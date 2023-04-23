@@ -512,6 +512,9 @@ html
 
 						if(chk==1){
 
+							r1diva.parentNode.style.backgroundColor='red';
+							r1diva.parentNode.style.color='white';
+						}else{
 							r1diva.onclick=function(j){
 								return function(){
 								for(var ia=0; ia<rgprblist.length;ia++){
@@ -522,8 +525,7 @@ html
 								}
 							}}(r1obj[ia].r1id);
 
-							r1diva.parentNode.style.backgroundColor='red';
-							r1diva.parentNode.style.color='white';
+
 						}
 
 
