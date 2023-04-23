@@ -317,10 +317,6 @@ html
 
 		
 
-		cps.sort(function(a,b){
-			return a.instructorder - b.instructorder
-		});
-
 		// Subject List Navigation area
 
 		var indr2=[];
@@ -445,6 +441,12 @@ html
 				}
 			}
 		}
+
+
+
+			cps.sort(function(a,b){
+				return a.instructorder - b.instructorder
+			});
 
 
 			function r1Call(r1obj,r2id){
