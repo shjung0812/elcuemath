@@ -1,0 +1,22 @@
+
+	module.exports={
+	spamprb:function(prbrows){
+	var prbchk=0;
+	var path=require('./prismpath.json');
+	var async=require('async');
+	var pr=require(path.prismbin+'prbtest');
+	var rst=pr.AnsFuncc([[1,10,1],[1,15,1]]);
+	var Nans=rst[1];
+
+	var cho1=` \\(0.8333 \\cdots = 0.8\\dot{3} \\) `;
+	var cho2=` \\(0.505050 \\cdots = 0.\\dot{5}\\dot{0}\\) `;
+	var cho3=` \\(1.2371371371 \\cdots = 1.2\\dot{3}7\\dot{1}\\) `;
+	var ans=` \\(2.163163163 \\cdots = 2.\\dot{1}\\dot{6}\\dot{3} \\) `;
+	prbcontent=`prbcontent=`+prbrows;
+	eval(prbcontent);
+
+
+	return [prbcontent,ans,Nans,cho1,cho2,cho3,prbchk]
+	}
+	};
+	

@@ -1,0 +1,2652 @@
+var express = require('express');
+var app = express();
+
+var path=require('./prismpath.json');
+var sf=require(path.prismbin+'serverflow');
+
+var md5=require('md5');
+var https=require('https');
+var fs = require('fs');
+const options = {
+	key: fs.readFileSync('./keys/private.pem'),
+	cert:fs.readFileSync('./keys/public.pem')
+}
+
+var server=require('http').createServer(app);
+//var server=https.createServer(options,app);
+var io = require('socket.io')(server);
+
+var formidable = require('formidable'),
+readChunk = require('read-chunk'),
+fileType = require('file-type');
+
+const multer = require('multer');
+//const upload=multer({dest:__dirname+'/public'});
+var storage = multer.diskStorage({
+	destination:function(req,file,cb){
+		cb(null,__dirname+'/public');
+	},
+	filename:function(req,file,cb){
+		cb(null,file.originalname)
+	}
+});
+var upload=multer({storage:storage});
+
+
+
+
+var session = require('express-session');
+const FileStore = require('session-file-store')(session);
+
+app.set('port', process.env.PORT || 3000);
+app.set('view engine', 'jade');
+app.set('views', __dirname + '/views');
+app.use(express.static(__dirname + '/public'));
+
+
+var bodyParser = require('body-parser')
+app.use(bodyParser.urlencoded({extended: false}));
+app.use(bodyParser.json());
+
+
+app.use(session({
+	secret: 'mylovesoojung',
+	resave: false,
+	saveUninitialized: true,
+	store: new FileStore()
+}));
+
+
+
+var flash = require('connect-flash');
+
+app.use(flash());
+var passport = require('passport')
+,LocalStrategy = require('passport-local').Strategy;
+
+var User = require(path.prismbin+'user');
+
+app.use(passport.initialize());
+app.use(passport.session());
+
+passport.serializeUser(function(user,done){
+	console.log('serialize');
+	console.log(user,done);
+	done(null,user.username);
+});
+
+passport.deserializeUser(function(id,done){
+	console.log('deserialize');
+	User.findById(id,function(err,user){	
+		done(null,user);
+	})
+});
+
+passport.use(new LocalStrategy(
+	function(username, password, done){
+		User.findOne({username:username},function(err,user){
+		if(err){return done(err);}
+		if(!user){
+		
+			return done(null,false,{message:'Incorrect username.'});
+		}
+		user.validPassword(md5(password)).then(ps=>{
+			if(!ps){
+				return done(null, false, {message:'Incorrect password.'});
+			}else{
+				return done(null, user);
+			}
+		});
+		});
+	}
+));
+var ss=require('socket.io-stream');
+var path = require('path');
+
+io.of('/draw').on('connection',function(socket){
+
+	console.log('draw connectino established');
+	
+	socket.on('canvpos',function(pos){
+		//io.sockets.in(pos.roomid).emit('canvpos',{data:pos.data});
+		console.log(pos.roomid);
+		io.sockets.in(pos.roomid).emit('canvpos',{data:pos.data});
+	});
+
+	socket.on('roomsid',function(msg){
+		console.log(msg);
+		io.of('/draw').emit('rooml',msg);
+	});
+
+	socket.on('drawtest',function(ma){
+		console.log(ma.pos[0], ma.pos[1]);
+		socket.emit('copypics',{pos:[ma.pos[0],ma.pos[1]],mousestat:ma.mousestat});
+	});
+
+});
+
+
+var siesmentorsocketid;
+var siesmenteesocketid;
+io.of('/sies').on('connection',function(socket){
+	console.log('sies connected');
+	socket.on('siessendsocketid',function(ma){
+		if(ma.userkind==0){
+			siesmentorsocketid=ma.socketid;
+			console.log('socketid of mentor is received : '+siesmentorsocketid);
+		}else if(ma.userkind==1){
+			siesmenteesocketid=ma.socketid;
+			console.log('socketid of mentee is received : '+siesmenteesocketid);
+		}else{
+			console.log('error from getting socket id of mentor or mentee');
+		}
+	});
+
+
+	socket.on('coursematerialcall',function(){
+		console.log('course material call recived..')
+		sf.getinfodb('select distinct crsname from defele',function(ma){
+			socket.emit('coursematerialsend',{crslist:ma});
+			console.log('course material sent to Mentor')
+		});
+	});
+	socket.on('crselementcall',function(ma){
+		sf.getinfodb('select distinct pstage,eleprbs, b.vidaddr from defele as a join videocont as b on a.elevideo=b.id where crsname="'+ma.crs+'"', function(mb){
+			socket.emit('sentelementlist',{elelist:mb,crsname:ma.crs});
+		});
+	});
+	socket.on('callprblist',function(ma){
+		sf.prbsetv2(ma.prblist,function(mb){
+			socket.emit('sentprblist',{prblist:mb,sendinput:ma.sendinput});
+		});
+	});
+	socket.on('sentlearningmaterialtomentee',function(ma){
+		sf.signalServerDumpRecord([ma.crsname,ma.ele,ma.prbs,ma.vidaddr,ma.mentor,ma.mentee],1,function(){
+			sf.prbsetv2(ma.prbs,function(mb){
+				socket.broadcast.to(siesmenteesocketid).emit('getlearningmaterialfrommentor',{crsname:ma.crsname,ele:ma.ele,prbs:mb,vidaddr:ma.vidaddr});
+			});
+		});
+	
+	});
+	socket.on('registersocketid',function(ma){
+		siesmenteesocketid=ma.id;
+		socket.broadcast.to(siesmentorsocketid).emit('menteerequestaccepted',{menteeid:siesmenteesocketid});
+	});
+	socket.on('learningresultsent',function(ma){
+		sf.signalServerDumpRecord([ma.prbstatepanel,ma.mentor,ma.mentee,'@@@','###'],2,function(rid){
+			socket.broadcast.to(siesmentorsocketid).emit('learningresulttomentor',{prbstatepanel:ma.prbstatepanel,mentee:ma.mentee,resultid:rid});
+		})
+	});
+
+	socket.on('siesmenteerequest',function(ma){
+		
+		sf.signalServerDumpRecord([ma.mentor,ma.mentee],3,function(){
+			socket.broadcast.to(siesmentorsocketid).emit('siesmenteerequesttomentor',{peerid:ma.peerid});
+		});
+	});
+
+	socket.on('siescallterminatebymentor',function(){
+		console.log('call will be terminated : so of mentees ' + siesmenteesocketid);
+		socket.broadcast.to(siesmenteesocketid).emit('siescallterminatebymentortomentee');
+	});
+
+	socket.on('signalservermentoraccept',function(ma){
+		sf.signalServerDumpRecord([ma.mentor,ma.mentee],4,function(){});
+	});
+	socket.on('connectionstopbymentor',function(ma){
+		sf.signalServerDumpRecord([ma.mentor,ma.mentee],5,function(){});
+	});	
+});
+
+var mentee;
+var mentor;
+io.of('/mmcc').on('connection',function(socket){
+	console.log('socket to /mmcc connected')
+
+	socket.on('calltomentor',function(ma){
+		mentee=ma.id;
+		socket.broadcast.to(mentor).emit('menteerequestaccepted',{menteeid:mentee});
+	});
+
+	socket.on('mentoridsent',function(ma){
+		mentor=ma.socketid;
+	});
+
+	socket.on('getelementlist',function(ma){
+		sf.getinfodb('select distinct pstage,eleprbs, b.vidaddr from defele as a join videocont as b on a.elevideo=b.id where crsname="'+ma.crsname+'"', function(mb){
+			socket.emit('sentelementlist',{elelist:mb,crsname:ma.crsname});
+		});
+	});
+
+	socket.on('getprblist',function(ma){
+		sf.prbsetv2(ma.prblist,function(mb){
+			socket.emit('sentprblist',{prblist:mb});
+		});
+	});
+	
+	socket.on('senttomentee',function(ma){
+		sf.prbsetv2(ma.prbs,function(mb){
+			//socket.broadcast.to().emit('receivedfrommentee',{id:ma.id});
+			socket.broadcast.to(mentee).emit('getfrommentor',{crsname:ma.crsname,ele:ma.ele,prbs:mb,vidaddr:ma.vidaddr});
+		});
+	
+	});
+
+	socket.on('learningresultsent',function(ma){
+		console.log(ma.prbstatepanel,ma.socketid);
+		console.log(mentor);
+		socket.broadcast.to(mentor).emit('learningresulttomentor',{menteeinfo:ma});
+	});
+});
+
+var mucmlist=[];
+io.of('/stream').on('connection',function(socket){
+	console.log('here stream io connected!');
+	socket.on('streamrespond',function(){
+		mucmlist.push(socket.id);
+		console.log('respond is connected with id is :'+socket.id);
+	});
+	ss(socket).on('streamtest',function(stream,data){
+		console.log('streamtest Here');
+		console.log(stream);
+		//var rstream=ss.createStream();
+		//ss(socket).emit('streamtestres',[rstream,{data:'data'}]);
+		//stream.pipe(rstream);
+	});
+});
+var voicepeerlist=[];
+var connectedstatus=[];
+function checkuser(csts,userinfo){
+	var sa=0;
+	for(var ia=0; ia<csts.length; ia++){
+		if(csts[ia][0]==userinfo.userid){
+			sa=1;
+			break;
+		}
+	}
+	if(sa==0){
+		return [0,0];// it does not exist
+	}else{
+		return [1,ia]; // it does exist
+	}
+		
+}
+io.on('connection',function(socket){
+
+	socket.on('mucminitialstatus',function(){
+		io.emit('mucmresidsent',{csts:connectedstatus});
+	});
+
+	socket.on('mucmcallerreset',function(reset){
+		io.emit('mucmcallerresetcaller',{peerid:reset.peerid});
+	});
+	socket.on('mucmpeeridsent',function(mps){
+	
+		console.log(connectedstatus);		
+		if(!checkuser(connectedstatus,mps)[0]){
+			connectedstatus.push([mps.userid,mps.peerid])
+			io.emit('mucmresidsent',{csts:connectedstatus});
+		}else{
+			for(var ia=0; ia<connectedstatus.length; ia++){
+				if(connectedstatus[ia][0]==mps.userid){
+				sa=1;
+				break;
+			}
+			connectedstatus[ia][1]=mps.peerid;
+			io.emit('mucmresidsent',{csts:connectedstatus});
+	}
+
+
+		}
+		
+	});
+
+	socket.on('peeridsent',function(peerid){
+		voicepeerlist.push(peerid);
+		console.log('peer list is :'+voicepeerlist);
+	});
+
+});
+
+
+
+app.get('/', function(req, res) {
+	if(!req.session.num){
+		req.session.num=1;
+	}else{
+		req.session.num +=1;
+	}
+
+	res.render('frontpage',{logincode:req.body.logincode});
+
+});
+
+app.get('/logout',function(req,res){
+	req.logout();
+	res.redirect('/');
+	
+});
+app.get('/chattest', function(req, res) {
+	res.render('cdctchat');
+});
+
+
+app.get('/audiocall', function(req, res) {
+	res.render('audiocall');
+});
+
+app.get('/audiocall/choicepage', function(req, res) {
+	res.render('audcchoicepage');
+});
+
+app.get('/audiocall/choicepage/callerpage', function(req, res) {
+	res.render('audccallerpage',{plist:voicepeerlist});
+});
+app.get('/audiocall/choicepage/anspage', function(req, res) {
+	res.render('audcanspage');
+});
+
+
+
+
+app.get('/streamtest', function(req, res) {
+	res.render('cdctstream');
+});
+
+
+
+app.get('/mucm',function(req,res){
+	res.render('mucm/mucmhome');
+});
+
+app.get('/mucm/caller',function(req,res){
+	res.render('mucm/mucmcaller',{mucmlist:mucmlist});
+});
+
+app.get('/mucm/responder',function(req,res){
+	res.render('mucm/mucmresponder');
+});
+
+
+app.get('/mmcc/home',function(req,res){
+	res.render('mmcc/mmcchome');
+});
+
+app.get('/mmcc/mentor',function(req,res){
+	sf.getinfodb('select distinct crsname from defele',function(ma){
+		res.render('mmcc/mmccmentor',{crslist:ma});
+	});
+	
+});
+
+app.get('/mmcc/mentee',function(req,res){
+	res.render('mmcc/mmccmentee');
+});
+
+
+app.get('/sies/home',function(req,res){
+	res.render('sies/sieshome');
+});
+
+app.get('/sies/mentor',function(req,res){
+	res.render('sies/siesmentor');
+});
+
+app.get('/sies/mentor/display',function(req,res){
+	var userid=req.query.userid;
+	var resultid=req.query.resultid;
+	console.log(userid,resultid);
+	res.render('sies/siesmentordisplay');
+});
+
+app.get('/sies/mentee',function(req,res){
+	res.render('sies/siesmentee');
+});
+
+// display communication record 
+app.get('/sies/commrecord',function(req,res){
+	sf.getinfodb('select * from commrecord',function(ma){
+		res.render('sies/commrecord',{record:ma});
+		
+	});
+});
+
+
+app.get('/admin',function(req,res){
+	if(!req.session.num){
+		req.session.num=1;
+	}else{
+		req.session.num +=1;
+	}
+
+	res.render('cdctadmin',{sessiontest:req.session.num,user:req.user});
+
+});
+
+app.get('/student',function(req,res){
+	res.send('student');
+});
+
+
+//login
+
+app.get('/login',function(req,res){
+	res.render('login');
+	console.log(req.flash());
+});
+
+app.get('/auth/register',function(req,res){
+	res.render('register',{registercode:req.query.registercode});
+});
+var regi=io.of('/regi');
+
+
+regi.on('connection',function(socket){
+	socket.on('checkusernameduplicate',function(a){
+		sf.getinfodb('select * from prismusers',function(b){
+			var chk=0;
+			for(var ia=0; ia<b.length; ia++){
+				if(b[ia].username==a.username){
+					chk=1;	
+					break;
+				}
+			}
+			socket.emit('checkusernameduplicateafter',{chk:chk});
+		});
+	});
+});
+app.post('/login',
+	//passport.authenticate('local',{successRedirect:'/',
+	passport.authenticate('local',{
+					failureRedirect: '/login',
+					failureFlash: true}),function(req,res){
+		if(req.user.position===1){
+			res.redirect('/admin');
+		}else if(req.user.position===0){
+			res.redirect('/nusd/mentee/gospace');
+		}else if(req.user.position===2){
+			res.redirect('/nusd/mentor');
+		}else {
+			res.send('system error in login field');
+		}
+
+});
+app.post('/auth/register',function(req,res){
+var username = req.body.username;
+var upassword = md5(req.body.password);
+var apassword = md5(req.body.passwordagain);
+var uemail = req.body.phoneNumber;
+var udipname= req.body.displayName;
+var uaffiliation=req.body.affiliation;
+var register = {username:username, password:upassword, email:uemail, DisplayName:udipname,position:0,regdate:sf.nodetime()};
+//var register = {username:username, password:upassword, email:uemail, DisplayName:udipname, affiliation:uaffiliation};
+
+
+	sf.getinfodb_par('insert into prismusers SET ?',register,function(err,result){
+		if(err.warningCount){
+			res.send(err);
+		}else{
+			res.send('<h2>Id Created successfully.... </h2><div><a href="/"> Click to Login </a></div>');
+			//res.redirect('/st/ecufrontpg?userid='+username+'&displayname='+udipname);
+		}
+	});
+
+});
+
+
+
+//drawing
+app.get('/drawing/addfunc',function(req,res){
+	res.render('drawing/addfunc');
+});
+app.get('/drawingtest',function(req,res){
+	res.render('drawing/drawingtst3')
+});
+
+app.get('/drawing/adminfeed',function(req,res){
+	res.render('drawing/adminfeed');
+});
+app.get('/drawing/drawingking',function(req,res){
+	res.render('drawing/drawingking',{roomid:req.query.roomid});
+});
+
+app.get('/drawing/drawingfield',function(req,res){
+	res.render('drawing/drawingfield',{kingid:req.query.roomid})
+});
+
+
+
+app.get('/drawing/mdn',function(req,res){
+	res.render('drawing/mdntest');
+});
+
+app.get('/drawing/mousedrawing',function(req,res){
+	res.render('drawing/mousedrawing');	
+});
+
+// number send project
+app.get('/nusd/createtext',function(req,res){
+	sf.getinfodb('select * from textlist as a left join n_terminal as b on a.textid=b.terminalid', function(r){
+		res.render('nusd/createtext',{textlist:r});
+	});
+});
+
+
+app.post('/nusd/createtext',function(req,res){
+	var texttitle=req.body.texttitle;
+	sf.GetObjIdv2('ttt','textlist','textid',10,function(r){
+		var textl = {texttitle:texttitle, textid:r}
+		sf.getinfodb_par('insert into textlist set ?',textl,function(){
+			res.redirect('/nusd/createtext');
+		});
+	});
+});
+
+app.get('/nusd/terminalconnect',function(req,res){
+	res.render('nusd/terminalconnect',{oid:req.query.oid});
+});
+
+app.post('/nusd/terminalconnect',function(req,res){
+	var terminal = {startnum:req.body.startnum, endnum:req.body.endnum, terminalid:req.body.oid};
+	sf.getinfodb_par('insert into n_terminal set ?',terminal,function(){
+		res.redirect('/nusd/createtext');
+	});
+});
+
+app.get('/nusd/mentor',function(req,res){
+		//res.render('nusd/mentor',{r:r,userlist:nusdmanage.userlist});
+
+	//sf.getinfodb('select * from textlist as a left join n_terminal as b on a.textid=b.terminalid', function(r){
+	//		res.render('cpt/cptlecprblist',{rs:rs});
+//	sf.getinfodb('select cptid,prblist,listinfo,createdate from cptproblemset',function(rs){
+		res.render('nusd/mentor',{userlist:nusdmanage.userlist});
+	//});
+
+
+
+});
+app.get('/nusd/mentor/cptpanel',function(req,res){
+	sf.getinfodb('select cptid,prblist,listinfo,createdate from cptproblemset',function(rs){
+		res.render('nusd/cptpanel',{userlist:nusdmanage.userlist,rs:rs});
+	});
+
+});
+app.get('/nusd/mentee',function(req,res){
+	sf.LoginCheck(req.user,0,function(err){
+		if(err){
+			res.send(err);
+		}else{
+			res.render('nusd/mentee',{userinfo:req.user});
+			console.log(req.user);
+		}
+	
+	});
+});
+app.get('/nusd/mentee/gospace',function(req,res){
+	console.log(req.session);
+	sf.LoginCheck(req.user,0,function(err){
+		if(err){
+			res.send(err);
+		}else{
+	
+			res.render('nusd/gospace',{userinfo:req.user});
+		}
+	
+	});
+
+
+});
+app.get('/nusd/mentee/img',function(req,res){
+	res.render('nusd/menteeimg',{imgaddr:req.query.imgaddr});
+});
+
+var nusdmanage={userlist:[]};
+io.of('/nusd').on('connection',function(socket){
+	console.log('nusd connected');
+
+	socket.on('rankcall',function(){
+		sf.getinfodb('select * from rkconnect as a join cptproblemset as b on a.childcol = b.cptid join r2list as c on c.r2id =a.parentcol order by rkorder asc, r2order asc',function(a){
+		//sf.getinfodb('select * from rkconnect as a join cptproblemset as b on a.childcol = b.cptid join r2list as c on c.r2id =a.parentcol order by rkorder asc',function(a){
+			socket.emit('rankcallafter',{a:a});
+		});
+	});
+
+	socket.on('reloadusernote',function(a){
+		sf.getinfodb('select * from usernote where username="'+a.username+'" order by udate desc',function(b){
+			var chk=0; 
+			var num;
+			for(var ia=0; ia<nusdmanage.userlist.length; ia++){
+				if(nusdmanage.userlist[ia].username==a.username){
+					chk=1;
+					num=ia;
+					break;
+				}
+			}
+
+			if(chk==1){
+				socket.emit('sendusernote',{a:b});
+				console.log('Usernote to mentee');
+			}else{
+				console.log('user is not exist');
+			}
+
+
+		});
+	});
+
+
+
+	socket.on('nusdcallprblist',function(plist){
+		var prblist=plist.plist.split(',');
+		sf.prbsetv2(prblist,function(prbcon){
+			socket.emit('nusdgetprblist',{prbcon:prbcon});
+		})
+	});
+	socket.on('nusdsocketidregister',function(a){
+		if(a.position==0){
+			var ma=0;
+			for(var ia=0; ia<nusdmanage.userlist.length; ia++){
+				if(nusdmanage.userlist[ia].username==a.username){
+					ma=1;
+					break;
+				}
+			}
+
+			if(ma!=1){
+				nusdmanage.userlist.push(a);
+				socket.broadcast.to(nusdmanage.mentorsocketid).emit('mentoruserlistrefresh',{userlist:nusdmanage.userlist});
+			}else{
+				nusdmanage.userlist[ia].socketid=a.socketid;
+			}
+		}else if(a.position==2){
+			nusdmanage.mentorsocketid=a.socketid;
+		}
+
+		console.log(nusdmanage);
+	});
+
+
+	socket.on('sendmentortorefresh',function(){
+	});
+
+	socket.on('numbersent',function(a){
+		console.log(a);
+		//send to mentee
+	
+		var chk=0; 
+		for(var ia=0; ia<nusdmanage.userlist.length; ia++){
+			if(nusdmanage.userlist[ia].username==a.username){
+				chk=1;
+				break;
+			}
+		}
+
+		if(chk==1){
+			socket.broadcast.to(nusdmanage.userlist[ia].socketid).emit('tomenteenusd',{nusdlist:a.nusdlist,opt:a.opt,prbobj:a.prbobj});
+			//socket.broadcast.to(siesmenteesocketid).emit('getlearningmaterialfrommentor',{crsname:ma.crsname,ele:ma.ele,prbs:mb,vidaddr:ma.vidaddr});
+			console.log('drawing sent');
+		}else{
+			console.log('user is not exist');
+		}
+	});
+	//socket.emit('copypics',{pos:[ma.pos[0],ma.pos[1]],mousestat:ma.mousestat});
+	socket.on('mentortomenteedraw',function(ma){
+		console.log('nusd : '+ma.pos[0], ma.pos[1]);
+		var chk=0; 
+		for(var ia=0; ia<nusdmanage.userlist.length; ia++){
+			if(nusdmanage.userlist[ia].username==ma.username){
+				chk=1;
+				break;
+			}
+		}
+
+		if(chk==1){
+			socket.broadcast.to(nusdmanage.userlist[ia].socketid).emit('copypicsofmentor',{pos:[ma.pos[0],ma.pos[1]],mousestat:ma.mousestat,statoption:ma.statoption});
+			console.log('Number sent');
+		}else{
+			console.log('user is not exist');
+		}
+
+	});
+	socket.on('mentortomenteedrawerase',function(ma){
+		var chk=0; 
+		for(var ia=0; ia<nusdmanage.userlist.length; ia++){
+			if(nusdmanage.userlist[ia].username==ma.username){
+				chk=1;
+				break;
+			}
+		}
+
+		if(chk==1){
+			socket.broadcast.to(nusdmanage.userlist[ia].socketid).emit('eraseofmentor',{mode:ma.mode});
+			console.log(ma.mode);
+			//socket.broadcast.to(siesmenteesocketid).emit('getlearningmaterialfrommentor',{crsname:ma.crsname,ele:ma.ele,prbs:mb,vidaddr:ma.vidaddr});
+			console.log('Number sent');
+		}else{
+			console.log('user is not exist');
+		}
+
+
+	});
+
+
+	socket.on('menteetomentordraw',function(ma){
+		console.log('nusd : '+ma.mousestat);
+		//console.log('nusd : '+ma.pos[0], ma.pos[1]);
+		
+		socket.broadcast.to(nusdmanage.mentorsocketid).emit('copypicsofmentee',{pos:[ma.pos[0],ma.pos[1]],mousestat:ma.mousestat,statoption:ma.statoption});
+	});
+
+	socket.on('chattingtoserver',function(a){
+		if(a.chatoption==0){
+			var chk=0; 
+			for(var ia=0; ia<nusdmanage.userlist.length; ia++){
+				if(nusdmanage.userlist[ia].username==a.username){
+					chk=1;
+					break;
+				}
+			}
+
+			if(chk==1){
+				socket.broadcast.to(nusdmanage.userlist[ia].socketid).emit('chattingtouser',{chatoption:0,chatmsg:a.chatmsg});
+				//socket.broadcast.to(siesmenteesocketid).emit('getlearningmaterialfrommentor',{crsname:ma.crsname,ele:ma.ele,prbs:mb,vidaddr:ma.vidaddr});
+				console.log('message to mentee');
+			}else{
+				console.log('user is not exist');
+			}
+		
+		}else if(a.chatoption==1){
+			socket.broadcast.to(nusdmanage.mentorsocketid).emit('chattingtouser',{chatoption:1,chatmsg:a.chatmsg,username:a.username});
+
+		}else if(a.chatoption==2){
+			socket.broadcast.to(nusdmanage.mentorsocketid).emit('chattingtouser',{chatoption:2,chatmsg:a.chatmsg,username:a.username});
+		}else if(a.chatoption==3){
+			var chk=0; 
+			for(var ia=0; ia<nusdmanage.userlist.length; ia++){
+				if(nusdmanage.userlist[ia].username==a.username){
+					chk=1;
+					break;
+				}
+			}
+
+			if(chk==1){
+				socket.broadcast.to(nusdmanage.userlist[ia].socketid).emit('chattingtouser',{chatoption:3,chatmsg:a.chatmsg});
+				//socket.broadcast.to(siesmenteesocketid).emit('getlearningmaterialfrommentor',{crsname:ma.crsname,ele:ma.ele,prbs:mb,vidaddr:ma.vidaddr});
+				console.log('self message to mentee');
+			}else{
+				console.log('user is not exist');
+			}
+
+
+		}
+	});
+});
+app.post('/qprbupload',function(req,res){
+	console.log('qprbupload xhr');
+	var form = new formidable.IncomingForm();
+	//form.uploadDir = path.join(__dirname,'public');
+	form.keepExtensions= true;
+
+	form.on('fileBegin',function(name,file){
+		var ext=file.name.split('.')[file.name.split('.').length-1]
+		file.path = __dirname+'/public/prismpics/'+name+'.'+ext;
+		sf.getinfodb('update prb set prbpickor="/prismpics/'+name+'.'+ext+'" where prbid="'+name+'"',function(){});
+	});
+
+	form.on('file',function(name,file){
+		//console.log(name);
+		//console.log(file);	
+	});
+	form.parse(req,function(a,b,c){//err,key_value1, keyvalue2;
+		res.send('xhr qprb succeed');
+	});
+});
+app.post('/mmcp',function(req,res){
+	console.log('mmcp xhr');
+	form = new formidable.IncomingForm();
+
+	//form.multiples = true;
+	//form.uploadDir = path.join(__dirname,'public/nusd/screensave');
+	form.uploadDir = path.join(__dirname,'public/usernote/mmcppic');
+	form.keepExtensions = true;
+	form.parse(req,function(a,b,c){//err,key_value1, keyvalue2;
+		//sf.GetObjId('uno','usernote',10,function(uid){
+			var rinfo={mmcpconid:b.mmcpconid,mmcpid:b.mmcpid,prbid:b.prbid,mpicid:c.file.name,username:b.username,createdate:sf.nodetime(),mpicorder:b.picnum};
+			sf.getinfodb_par('insert into mmcppic SET ?',rinfo,function(){
+				res.send('xhr mmcp succeed');
+			});
+
+		//});
+
+	});
+	form.on('fileBegin',function(name,file){
+		file.path = __dirname+'/public/usernote/mmcppic/'+file.name;
+		//file.path = __dirname+'/public/nusd/screensave/'+file.name
+	});
+
+
+});
+//xhr
+app.post('/xhr',function(req,res){
+	console.log('xhr');
+	var photos = [],
+	form = new formidable.IncomingForm();
+
+	//form.multiples = true;
+	//form.uploadDir = path.join(__dirname,'public/nusd/screensave');
+	form.uploadDir = path.join(__dirname,'public/usernote');
+	form.keepExtensions = true;
+	form.parse(req,function(a,b,c){//err,key_value1, keyvalue2;
+
+		sf.GetObjId('uno','usernote',10,function(uid){
+			var rinfo={uid:uid,imgaddr:'/usernote/'+c.file.name,username:b.username,udate:sf.nodetime()};
+			sf.getinfodb_par('insert into usernote SET ?',rinfo,function(){
+				res.send('succeed');
+			});
+
+		});
+
+	});
+	form.on('fileBegin',function(name,file){
+		file.path = __dirname+'/public/usernote/'+file.name
+		//file.path = __dirname+'/public/nusd/screensave/'+file.name
+	});
+	form.on('error',function(err){
+		console.log(err);
+	});
+	form.on('file',function(name,file){
+		//fs.rename(file.path, form.uploadDir+'/'+file.name);
+		/*
+		if(photos.length ===3){
+			fs.unlink(file.path);
+			return true;
+		}
+		
+		var buffer = null,
+		type = null,
+		filename = '';
+
+		buffer = readChunk.sync(file.path, 0, 262);
+		type = fileType(buffer);
+		
+		if(type!==null && (type.ext === 'png' || type.ext === 'jpg' || type.ext === 'jpeg')){
+			filename = Date.now() + '-' + file.name;
+			photos.push({
+				status:true,
+				filename: filename+'.'+type.ext,
+				type: type.ext,
+				publicPath: 'uploads/'+ filename
+			});
+		}else {
+			console.log('2');
+			photos.push({
+				status:false,
+				filename:file.name,
+				message: 'Invalid file type'
+			});
+			fs.unlink(file.path);
+		}*/
+	});
+});
+
+
+
+app.get('/nusd/screenimage',function(req,res){
+	const statfolder='./public';
+	const currentfolder='/nusd/screensave/';
+	const imgfolder = statfolder+currentfolder;
+
+	var screenlist=[];
+	fs.readdir(imgfolder,(err,files)=>{
+		files.forEach(file=>{
+			console.log(file);
+			screenlist.push(file);
+		})
+		res.render('nusd/screenimg',{currentfolder:currentfolder,screenlist:screenlist})
+	});
+});
+
+//
+app.get('/admin/eer',function(req,res){
+	var stchk=req.query.stchk;
+	if(stchk==0 || typeof stchk == 'undefined'){
+		res.render('eer/eerini');
+	}else if(stchk==1){
+		sf.EERGetSlkList(function(slab,block){
+			res.render('eer/eercrtslk',{slab:slab,block:block});
+		});
+	}else if(stchk==2){
+		var slabid=req.query.slabid;
+		sf.EERConnectSlabToBlock(slabid,function(blocklist){
+			res.render('eer/eerconnectslk',{blocklist:blocklist,slabid:slabid});
+		});
+	}else if(stchk==3){
+		sf.EERGetSlkList(function(slab,block){
+			res.render('eer/eerslablist',{slab:slab});
+		});
+	}else if(stchk==4){
+		var slabid=req.query.slabid;
+		sf.EERBlocklistOfSlab(slabid,function(blocklist){
+			res.render('eer/eerblocklevel',{blocklist:blocklist,slabid:slabid});
+		});
+	}else if(stchk==5){
+		var slkid=req.query.slkid;
+		sf.EERGetCaseList(slkid,function(caselist){
+			res.render('eer/eerpickcaselist',{caselist:caselist,slkid:slkid});
+		});
+	}else if(stchk==6){
+		sf.EERGetSlkList(function(slab,block){
+			res.render('eer/eerpfoslablist',{slab:slab});
+		});
+	}else if(stchk==7){
+		var slabid=req.query.slabid;
+		sf.EERBlocklistOfSlab(slabid,function(blocklist){
+			res.render('eer/eerpfoblocklist',{blocklist:blocklist,slabid:slabid});
+		});
+	}else if(stchk==8){
+		var slkid=req.query.slkid;
+		var slabid=req.query.slabid;
+		sf.EERGetCaseList(slkid,function(caselist){
+			res.render('eer/eerpfocaselist',{caselist:caselist,slkid:slkid,slabid:slabid});
+		});
+	}else if(stchk==9){
+		var caseid=req.query.caseid;
+		var slkid=req.query.slkid;
+		sf.PFO(slkid,caseid,function(ra){
+			console.log(ra);
+			res.render('eer/eerpfodisplay');
+		});
+
+
+	}
+});
+
+var eer=io.of('/eer');
+eer.on('connection',function(socket){
+	console.log('eer connected!!');
+	socket.on('eeradd',function(eer){
+		sf.EERadd(eer.pcsid);
+		socket.emit('rsteeradd');
+	});
+	socket.on('eerupdate',function(eer){
+		sf.EERUpdate(eer.pcsid,eer.recvnum);
+		socket.emit('rsteerupdate');
+	});
+	socket.on('eeromit',function(eer){
+		sf.EEROmit(eer.caseid,eer.cslevel);
+		socket.emit('rsteeromit');
+	});
+
+});
+
+var pls=io.of('/pls');
+pls.on('connection',function(socket){
+	console.log('pls connected!!');
+	socket.on('plsadd',function(pls){
+		sf.PLSadd(pls.pcsid);
+		socket.emit('rstplsadd');
+	});
+	socket.on('plsupdate',function(pls){
+		sf.PLSUpdate(pls.pcsid,pls.recvnum);
+		socket.emit('rstplsupdate');
+	});
+	/*socket.on('plsremove',function(a){
+		sf.PLSRemove(pls.pcsid,pls.recvnum);
+		socket.emit('rstplsremove');
+	});*/
+	socket.on('plspcpupdate',function(b){
+		var str={pcsinfo:b.newinput};
+	 	sf.getinfodb_par('update pcscate SET ? where pcsid="'+b.pcpid+'"',str,function(rst){});
+		socket.emit('rstplspcpupdate');
+	});
+	socket.on('plssamelevel',function(pls){
+		sf.PLSSameUpdate(pls.pcsid,pls.recvnum);
+		socket.emit('rstplssamelevel');
+	});
+	socket.on('plsclear',function(){
+		sf.getinfodb('update pcscate set cslevel=0 where pcsopt="csindex"',function(rs){});
+	});
+	socket.on('plsregistercrpcp',function(pls){
+		//sf.getinfodb('',function(rs){});
+		str={normid:pls.caseid,cateopt:'case_crpcp',childitem:pls.pcpid};
+		sf.getinfodb_par('insert pcsconnect SET ?',str,function(rs){});
+		socket.emit('rstplsregistercrpcp');
+		
+	});
+	socket.on('removecrpcp',function(pls){
+		sf.getinfodb('delete from pcsconnect where normid="'+pls.caseid+'" and childitem="'+pls.pcpid+'" and cateopt="case_crpcp"',function(rs){});
+		socket.emit('rstremovecrpcp');
+	});
+	socket.on('plsomit',function(pls){
+		sf.PLSOmit(pls.caseid,pls.cslevel);
+		socket.emit('rstplsomit');
+	});
+});
+
+
+
+app.get('/admin/cpt',function(req,res){///작업 다시; 수식을 불러올때 너무 느리다. 
+	var stchk=req.query.stchk;
+	console.log(stchk);
+	if(typeof stchk=='undefined' || stchk=='0'){
+		res.render('cpt/cpt');
+	}else if(stchk=='1'){
+		sf.getinfodb('select pcsid,pcsinfo from pcscate where pcsopt="csindex" order by numid desc',function(pcs){
+			sf.PCSPickingFreePrbcon(function(unassprbcon,unassprbidstr){
+			sf.NUSDpickingFreeprb(function(fl){
+				sf.getinfodb('select cptid,prblist,listinfo,createdate from cptproblemset order by numid desc',function(rs){
+					res.render('cpt/cptprbset',{pcs:pcs,rs:rs,unassstr:unassprbidstr,unassprb:fl});
+				});
+			});
+			});
+		});
+		
+		
+	}else if(stchk=='2'){
+		sf.getinfodb('select cptid,prblist,listinfo,createdate from cptproblemset',function(rs){
+			res.render('cpt/cptlecprblist',{rs:rs});
+		});
+	}else if(stchk=='3'){
+		var listinfo=req.query.listinfo;
+		var prblist=req.query.prblist;
+		var o1prblist=prblist.split(',');
+		sf.prbsetv2(o1prblist,function(prbcon){
+			res.render('cpt/cptprbcon',{prbcon:prbcon});
+		});
+	}else if(stchk=='4'){
+		res.render('cpt/cptr2create');
+	}else if(stchk=='5'){
+		res.render('cpt/order')
+	}else if(stchk=='6'){
+		res.render('cpt/r1order');
+	}else if(stchk=='7'){
+		res.render('cpt/r2order');
+	}else if(stchk=='8'){
+		res.render('cpt/r3create');
+	}
+});
+
+app.get('/admin/cpt/form',function(req,res){
+	var rd=req.query.rd;
+	if(rd==0){
+		var prblist=req.query.prblist;
+		var listinfo=req.query.listinfo;
+		if(listinfo!=''){
+		sf.GetObjId('cpt','cptproblemset',10,function(cptid){
+			var crsdt={prblist:prblist,listinfo:listinfo,createdate:sf.nodetime(),cptid:cptid,userid:'shjung'};
+			sf.getinfodb_par('insert into cptproblemset SET ?',crsdt,function(rst){});
+		});
+		}
+	}else if(rd==1){
+		var prblist=req.query.prblist;
+		var listinfo=req.query.listinfo;
+		var cptid=req.query.cptid;
+		var crsdt={prblist:prblist,listinfo:listinfo};
+		 sf.getinfodb_par('update cptproblemset SET ? where cptid="'+cptid+'"',crsdt,function(rst){
+		});
+	}else if(rd==2){
+		var cptid=req.query.cptid;
+		var crsdt={cptid:cptid};
+		 sf.getinfodb('delete rk,cpt from rkconnect as rk join  cptproblemset as cpt on rk.childcol=cpt.cptid where rk.conkind="rc21" and cpt.cptid="'+cptid+'"',function(rst){});
+	}else{
+		res.send('Error');
+	}
+
+	res.redirect('../cpt?stchk=1');
+	
+});
+
+var cpt=io.of('/cpt');
+cpt.on('connection',function(socket){
+	console.log('CPT Connected');
+
+
+	socket.on('modifyr3toaddr2',function(a){
+		sf.getinfodb('delete from rkconnect where parentcol="'+a.r3id+'" and conkind="rc32"',function(){	
+			var async=require('async');
+			var count=0;
+			
+			var chosenlistL=a.chosenlist;
+			async.whilst(
+				function(){return count<chosenlistL.length},
+				function(cback){
+					sf.GetObjId('conid','rkconnect',10,function(conid){
+						var istr='"'+a.r3id+'","'+chosenlistL[count][0]+'","'+sf.nodetime()+'","'+count+'","'+conid+'","rc32"'
+						sf.getinfodb('insert into rkconnect (parentcol, childcol, createdate, rkorder, conid, conkind) values ('+istr+')',function(b){
+							count++;
+							cback(null);
+						});
+					});
+
+				},
+				function(err){
+					if(!err){
+						console.log('succeed');
+						socket.emit('modifyr3toaddr2after',{chosenlist:a.chosenlist,r3id:a.r3id});
+					}else{
+						console.log('cpt error',err);
+					}
+			});
+
+
+		});
+		
+	});
+
+
+
+	socket.on('listinfoeditforr3',function(a){
+		sf.getinfodb('update r3list set listinfo="'+a.listinfo+'" where r3id="'+a.r3id+'"',function(){
+			socket.emit('listinfoeditforr3after',{listinfo:a.listinfo, r3id:a.r3id});
+		});
+	});
+
+
+	socket.on('callr3list',function(){
+		sf.getinfodb('select a.listinfo,a.r3id, b.childcol, b.rkorder from r3list as a join rkconnect as b on a.r3id=b.parentcol where b.conkind="rc32"', function(a){
+		sf.getinfodb('select * from r3list', function(b){
+				
+			//socket.emit('callr3listafter',{b:b});
+			socket.emit('callr3listafter',{a:a,b:b});
+		});
+		});
+	});
+
+
+
+	socket.on('callr2listforr3',function(){
+		sf.getinfodb('select * from r2list',function(a){
+			socket.emit('callr2listforr3after',{a:a});
+		});
+	});
+
+	socket.on('creater3',function(a){
+		sf.GetObjId('r3id','r3list',10,function(r3id){
+			var insertvar = {listinfo:a.listinfo, createdate:sf.nodetime(), r3id:r3id};
+			sf.getinfodb_par('insert into r3list SET ? ',insertvar,function(){
+				socket.emit('creater3after',{r3id:r3id,listinfo:a.listinfo});
+			});
+
+		});
+	});
+
+
+
+
+	socket.on('r2ordercallr2list',function(){
+		//sf.getinfodb('select a.r2listinfo,a.r2id, b.childcol, b.rkorder from r2list as a join rkconnect as b on a.r2id=b.parentcol where b.conkind="rc21"', function(a){
+		sf.getinfodb('select * from r2list order by r2order', function(a){
+				
+			socket.emit('r2ordercallr2listafter',{a:a});
+		});
+		//});
+	});
+
+
+	socket.on('establishOrderr2',function(a){
+			var async=require('async');
+			var count=0;
+			
+			async.whilst(
+				function(){return count<a.r2list.length},
+				function(cback){
+						sf.getinfodb('update r2list set r2order="'+a.r2list[count][2]+'" where r2id="'+a.r2list[count][0]+'"',function(b){
+							count++;
+							cback(null);
+						});
+
+				},
+				function(err){
+					if(!err){
+						console.log('succeed');
+						socket.emit('establishOrderr2after');
+					}else{
+						console.log('cpt error',err);
+					}
+			});
+	});
+
+
+
+
+
+	socket.on('establishOrderr1',function(a){
+		//sf.getinfodb('delete from rkconnect where parentcol="'+a.r2id+'" and conkind="rc21"',function(){	
+			var async=require('async');
+			var count=0;
+			
+			async.whilst(
+				function(){return count<a.r1list.length},
+				function(cback){
+						sf.getinfodb('update rkconnect set rkorder="'+a.r1list[count][2]+'" where parentcol="'+a.r2id+'" and childcol="'+a.r1list[count][0]+'"',function(b){
+							console.log(a.r1list[count])
+							console.log(a.r2id)
+							count++;
+							cback(null);
+						});
+
+				},
+				function(err){
+					if(!err){
+						console.log('succeed');
+						socket.emit('establishOrderr1after');
+					}else{
+						console.log('cpt error',err);
+					}
+			});
+
+
+		//});
+		//console.log(a);
+
+	});
+
+	socket.on('establishOrderprb',function(a){
+		sf.getinfodb('update cptproblemset set prblist="'+a.prbstr+'" where cptid="'+a.cptid+'"',function(){
+			socket.emit('establishOrderprbafter');
+		});
+	});
+
+	socket.on('levelCallr2list',function(){
+		sf.getinfodb('select cp.listinfo as r1listinfo, cp.cptid as cptid, rl.r2id as r2id, rl.r2listinfo as r2listinfo, rk.rkorder as rkorder  from rkconnect as rk join r2list as rl on rk.parentcol=rl.r2id join cptproblemset as cp on rk.childcol=cp.cptid where conkind="rc21"',function(a){;
+			socket.emit('levelCallr2listafter',{a:a})
+		});
+	});
+
+	socket.on('levelplist',function(a){
+		sf.prbsetv2(a.plist,function(plist){
+			socket.emit('levelplistafter',{plist:plist});
+		});		
+
+	});
+	socket.on('levelCallr1list',function(){
+		sf.getinfodb('select * from cptproblemset',function(a){
+			socket.emit('levelCallr1listafter',{a:a});
+		});
+	});
+	socket.on('listinfoedit',function(a){
+		sf.getinfodb('update r2list set r2listinfo="'+a.listinfo+'" where r2id="'+a.r2id+'"',function(){
+			socket.emit('listinfoeditafter',{listinfo:a.listinfo, r2id:a.r2id});
+		});
+	});
+	socket.on('modifyr2toaddr1',function(a){
+		sf.getinfodb('delete from rkconnect where parentcol="'+a.r2id+'" and conkind="rc21"',function(){	
+			var async=require('async');
+			var count=0;
+			
+			var chosenlistL=a.chosenlist;
+			async.whilst(
+				function(){return count<chosenlistL.length},
+				function(cback){
+					sf.GetObjId('conid','rkconnect',10,function(conid){
+						var istr='"'+a.r2id+'","'+chosenlistL[count][0]+'","'+sf.nodetime()+'","'+count+'","'+conid+'","rc21"'
+						sf.getinfodb('insert into rkconnect (parentcol, childcol, createdate, rkorder, conid, conkind) values ('+istr+')',function(b){
+							count++;
+							cback(null);
+						});
+					});
+
+				},
+				function(err){
+					if(!err){
+						console.log('succeed');
+						socket.emit('modifyr2toaddr1after',{chosenlist:a.chosenlist,r2id:a.r2id});
+					}else{
+						console.log('cpt error',err);
+					}
+			});
+
+
+		});
+		
+	});
+	socket.on('cpt',function(vcpt){
+		if(vcpt.opt==0){
+			sf.PCSRetrievingCrindex(vcpt.pcsid,function(crprbcon,crprbidstr){
+				socket.emit('cptprbcon',{crprbcon:crprbcon,crprbidstr:crprbidstr});	
+			});
+		}else if(vcpt.opt==1){
+			var o1pcsid=vcpt.pcsid.split(',');
+			sf.prbsetv2(o1pcsid,function(ps){
+				socket.emit('cptprbcon',{crprbcon:ps});
+			});		
+		}else if(vcpt.opt==2){
+			console.log(vcpt.pcsid);
+		}
+	});
+	socket.on('cptfocus',function(cf){
+		var o1prblist=cf.prblist.split(',');
+		sf.prbsetv2(o1prblist,function(ps){
+			socket.emit('cptfocusprbcon',{ps:ps});
+		});		
+	});
+
+
+	socket.on('callr2list',function(){
+		sf.getinfodb('select a.r2listinfo,a.r2id, b.childcol, b.rkorder from r2list as a join rkconnect as b on a.r2id=b.parentcol where b.conkind="rc21"', function(a){
+		sf.getinfodb('select * from r2list', function(b){
+				
+			socket.emit('callr2listafter',{a:a,b:b});
+		});
+		});
+	});
+	socket.on('callr1list',function(){
+		sf.getinfodb('select * from cptproblemset',function(a){
+			socket.emit('callr1listafter',{a:a});
+		});
+	});
+
+	socket.on('creater2',function(a){
+		sf.GetObjId('r2id','r2list',10,function(r2id){
+			var insertvar = {r2listinfo:a.listinfo, createdate:sf.nodetime(), r2id:r2id};
+			sf.getinfodb_par('insert into r2list SET ? ',insertvar,function(){
+				socket.emit('creater2after',{r2id:r2id,listinfo:a.listinfo});
+			});
+
+		});
+	});
+
+});
+
+
+app.get('/admin/qoc',function(req,res){
+	var stchk=req.query.stchk;
+	var degsnick='shjung';
+	if(typeof stchk=='undefined' || stchk=='0'){
+		sf.getinfodb('select crsname from defele where degsnick="'+degsnick+'" group by crsname',function(rs){
+			res.render('qoc/qoccrs',{rs:rs});
+		});
+	}else if(stchk=='1'){
+		var crs=req.query.crs;
+		sf.RelatedCrs(crs,function(eleset,a){
+			res.render('qoc/editcrs',{crs:crs,eleset:eleset});
+		});
+	}
+});
+
+
+
+app.get('/admin/coz',function(req,res){
+	var stchk=req.query.stchk;
+	var degsnick='shjung';
+	if(typeof stchk=='undefined' || stchk=='0'){
+		sf.getinfodb('select crsname from defele where degsnick="'+degsnick+'" group by crsname',function(rs){
+			res.render('./coz/cozcrslist',{rs:rs});
+		});
+	}else if(stchk=='1'){
+		var crs=req.query.crs;
+		sf.RelatedCrs(crs,function(eleset,a){
+			res.render('coz/cozopencrs',{crs:crs,eleset:eleset});
+		});
+	}
+});
+
+
+
+app.get('/admin/coztitle',function(req,res){
+	var pcrsname=req.query.crsname;
+	var date=new Date();
+	var vyear=date.getFullYear();
+	var vmonth=date.getMonth()+1;
+	var vday=date.getDate();
+	if(vday<10){
+		vday='0'+vday.toString();
+	}
+	if(vmonth<10){
+		vmonth='0'+vmonth.toString();
+	}
+	vyear=vyear.toString()[2]+vyear.toString()[3];
+	var titleprefix='GG'+vyear+vmonth+vday;
+	var fullcrsname=titleprefix+'_'+pcrsname;
+	
+
+	var str={degsnick:'shjung',crsname:fullcrsname,pstage:'PRES',elepass:'elefvwt',elenpass:'dump',elevideo:'mov.aaaaaaaaaa',eleprbs:'p00001',ele_criteria:-1,elestatus:0,eletime:sf.nodetime()};
+	sf.getinfodb_par('insert defele SET ?',str,function(rs){});
+
+
+	res.redirect('./coz?stchk=0');
+	
+
+});
+
+
+
+app.get('/admin/eerget',function(req,res){
+	var eermode=req.query.eermode;
+	if(eermode=='0'){
+		var modimode=req.query.modimode;
+		var slkinfo=req.query.slkinfo;
+		sf.EERCreateSlk(slkinfo,modimode,function(){
+			res.redirect('/admin/eer?stchk=1');
+		});	
+	}else if(eermode=='1'){
+		var slabid=req.query.slabid;
+		var blockid=req.query.blockid;
+		sf.EERCreateSlkConnect(slabid,blockid,function(){});
+		res.redirect('/admin/eer?stchk=1&slabid='+slabid);
+	}else if(eermode=='2'){
+		var slkid=req.query.slkid;
+		var caseid=req.query.caseid;
+		sf.EERCreateCaseConnect(slkid,caseid,function(){});
+		res.redirect('/admin/eer?stchk=5&slkid='+slkid);
+		
+	}else{
+		res.send('end');
+	}
+
+});
+
+
+
+app.get('/admin/subjectmanage',function(req,res){
+	sf.getinfodb('select * from subcla',function(rs){
+		res.render('course/subjmanage',{rs:rs});
+	});
+});
+
+
+app.get('/admin/yqwareq',function(req,res){
+	var name=req.query.yqwaname;
+	var contact=req.query.yqwanum;
+	var explanation=req.query.yqwaexplanation;
+	var rst=sf.YQWAreq(name,contact,explanation);
+	res.send(
+	`
+<html>
+	<head>
+		<meta http-equiv='refresh' content="3; url=http://www.elcue.net:3000" />
+	</head>
+	<body>
+		<h1> message : ${rst[1]} </h1>
+		<h1> Redirecting in 3 seconds...</h1>
+	</body>
+</html>
+		
+
+	`)
+
+});
+
+app.get('/admin/yqwachk',function(req,res){
+	sf.getinfodb('select * from yqwareq',function(rs){
+		res.render('yqwachk',{rs:rs});
+	});
+});
+
+
+
+//Object Oriented study
+
+app.get('/test/xml',function(req,res){
+	res.render('test/xml');
+});
+
+app.post('/num',function(req,res){
+	var num = req.body.value;
+	res.send(JSON.stringify({v:3,msg:'I LOve You'}))
+	res.end('done');
+});
+
+app.get('/test/json',function(req,res){
+	res.render('test/json');
+});
+
+app.get('/test/class',function(req,res){
+	res.render('test/class');
+});
+
+//bouncingball example
+app.get('/test/bouncingball',function(req,res){
+	res.render('bouncingball/bouncingball');
+});
+
+//prb Ans  create
+
+app.get('/admin/createmysqlpg',function(req,res){
+	var stchk=req.query.stchk;
+	if(typeof stchk=='undefined'){
+			res.render('./course/createmysql',{prblist:[]});
+	}else if(stchk==0){
+		var list;
+		sf.getinfodb('select prbid from prb',function(rs){
+			list=sf.SelectorSpamElement(rs,0)
+			res.render('./course/createmysql',{prblist:list});
+		});
+	}else if(stchk==1){
+		var list;
+		sf.getinfodb('select prbid from prb',function(rs){
+			list=sf.SelectorSpamElement(rs,1)
+			res.render('./course/createmysql',{prblist:list});
+		});
+	}else if(stchk==2){
+		var list;
+		sf.getinfodb('select prbid from prb',function(rs){
+			list=sf.SelectorSpamElement(rs,2)
+			res.render('./course/createmysql',{prblist:list});
+		});
+	}else if(stchk==3){
+		var prbid=req.query.prbid;
+		sf.getinfodb('select * from prb where prbid="'+prbid+'"',function(rs){
+			if(rs.length>0){
+				res.render('./course/createmysql2',{prbk:rs[0].prbkorean,prbid:rs[0].prbid,prbpic:rs[0].prbpickor,source:rs[0].source});
+			}else{
+				res.render('./course/createmysql',{prbk:'No Result!',prbid:'none',prbpic:'none'});	
+			}
+		});
+	}else if(stchk==4){
+		
+	}
+
+
+
+});
+
+
+
+//test
+app.get('/admin/page',function(req,res){
+ res.render('./course/inipage')
+})
+
+app.get('/admin/catecreate',function(req,res){
+	var prblist=req.query.prblist;
+	var chkprb=parseInt(req.query.chkprb,10);
+	var arprblist=[];
+	if(typeof prblist!='undefined'){
+		psprblist=prblist.split(',');
+		for(var ua=0; ua<psprblist.length; ua++){
+			arprblist.push(psprblist[ua]);
+		}
+	}
+	if(chkprb==0){
+		sf.getinfodb('select * from prbcateinfo where cateparents="0"',function(rs){
+			sf.getinfodb('select * from prb order by prbregi desc limit 30',function(prbls){
+				console.log(prbls);
+				var recentprblist=sf.CDSPrbParsing(prbls);
+				res.render('./prbpage/cateprb',{rst:rs,recentprblist:recentprblist});
+			});
+		});
+	}else if(chkprb==1){
+		sf.getinfodb('select * from prbcateinfo',function(rs){
+			var prbcont=[];
+			var count=0;
+				async.whilst(
+					function(){return count<arprblist.length;},
+				function(callback){
+	  				pr.dbconnect(arprblist[count],0,function(k){
+					 	count++;
+						prbcont.push(k);
+					 	callback(null);
+					});
+				 },
+				 function(err){
+					 if(err){
+						  console.log('error occurred in /ts/prblistchk');
+					 }else{
+						res.render('./prbpage/cateprb',{rst:rs,prbcont:prbcont,prbids:arprblist});
+			 		}
+				}
+			);
+		});
+			
+				
+	}else if(chkprb==2){
+		var prtids=req.query.cateids;
+		var prtlist=req.query.catelist;
+		sf.getinfodb('select * from prbcateinfo where cateparents="'+prtids+'" or cateids="'+prtids+'"',function(rs){
+			
+			var rst=sf.PCSCateParsing(rs,prtids);
+			var golist=sf.PCSChildParsing(rst[1]);
+			sf.PCSPrbParsing(prtlist,function(prbcon){
+				res.render('./prbpage/pcsparents',{prtlist:prtlist.split(','),prtinfo:rst[0],prtids:prtids,childlist:rst[1],prbcon:prbcon,golist:golist,sprtlist:prtlist});
+			});
+		});
+	}
+
+
+});
+
+
+app.get('/admin/pcsclassify',function(req,res){
+	var stchk=req.query.stchk;
+	if(stchk==-1){
+		res.render('./prbpage/epsini');
+	}else if(stchk==0){
+			sf.CPMcslevelbasedCase(function(rs,ra){
+				res.render('./prbpage/pcsini',{rs:rs});
+			});
+	
+	
+	}else if(stchk==1){
+		var crindex=req.query.crindex;
+		var pcsinfo=req.query.pcsinfo;
+		sf.PCSPickingFreePrbcon(function(unassprbcon,unassprbidstr){
+			sf.PCSRetrievingCrindex(crindex,function(crprbcon,crprbidstr){
+			res.render('./prbpage/pcswritecsindex',{unassprbcon:unassprbcon,crprbcon:crprbcon,crindex:crindex,pcsinfo:pcsinfo,unassprbidstr:unassprbidstr, crprbidstr:crprbidstr});
+			});
+		});
+	}else if(stchk==2){
+		var cps=req.query.crprbidstr;
+		sf.PCSPrbParsing(cps,function(pcps){
+//			sf.getinfodb('select pcsid, pcsinfo from pcscate where pcsopt="pcp" order by numid desc',function(pcs){
+			sf.PLSCaseList(function(caselist,pcplist0){
+			sf.PLScrPCPDisplay(caselist,function(crpcp){
+				var freepcp=sf.PLSDisplayFreePCP(crpcp,pcplist0,caselist);
+				//sf.PCSRetrievingPCPs(cps,function(pplist,pcplist){//cps 는 crindex에 나오는 문제의 리스트
+				sf.PCSRetrievingPCPs1(cps,function(prbase,pcpbase,pcplist){//cps 는 crindex에 나오는 문제의 리스트
+				//var prbase=sf.PCSParsingPrbBasePCP(pplist)
+				//var pcpbase=sf.PCSParsingPCPBasePrb(pplist);
+		//		console.log('pplist');
+		//		console.log(pplist);
+				console.log('prbase');
+				console.log(pcplist);
+				var e=JSON.stringify(prbase);
+				res.render('./prbpage/pcsconpcp',{pcps:pcps,crpcp:crpcp,pcplist:pcplist,prbase:e,pcpbase:pcpbase,freepcp:freepcp})
+				});
+		//	});
+			});
+			});
+		});
+	}else if(stchk==3){
+		sf.PCSPickingFreePrbcon(function(unassprbcon,unassprbidstr){
+			sf.getinfodb('select pcsid,pcsinfo from pcscate where pcsopt="csindex"',function(pcs){	
+				res.render('./prbpage/pcspcpgrouplist',{pcs:pcs,unassprbidstr:unassprbidstr});
+			});
+		});
+	}else if(stchk==4){
+		var pcsid=req.query.pcsid;
+		sf.PCSListPCPGroup(pcsid,function(pcpg){
+			res.render('./prbpage/pcscombination',{pcpg:pcpg});
+		});
+	}else if(stchk==5){
+		sf.PCSPickingFreePrbcon(function(unassprbcon,unassprbidstr){
+			sf.getinfodb('select pcsid,pcsinfo from pcscate where pcsopt="csindex"',function(pcs){	
+				res.render('./prbpage/pcspcpgrouplistvideo',{pcs:pcs,unassprbidstr:unassprbidstr});
+			});
+		});
+	}else if(stchk==6){
+		var pcsid=req.query.pcsid;
+		sf.PCSListPCPGroup(pcsid,function(pcpg){
+			sf.PRVCountPCPVideo(pcpg,function(svl){
+				sf.PRVPCPCount(pcpg,function(nind){
+					res.render('./prbpage/pcscombinationvideo',{pcpg:pcpg,svl:svl,nind:nind});
+				});
+			});
+		});
+	}else if(stchk==7){
+		sf.PLScslevel(function(plslevel){
+			console.log(plslevel);
+			res.render('./prbpage/pcscsindexlevel',{plslevel:plslevel});
+		});
+	}else if(stchk==8){
+		sf.PLSCaseList(function(caselist,pcplist){
+			sf.PLScrPCPDisplay(caselist,function(crpcp){
+				res.render('./prbpage/pcscrpcp',{caselist:caselist,crpcp:crpcp,pcplist:pcplist})
+			});
+		});
+	}else if(stchk==9){
+		sf.CPMcslevelbasedCase(function(rs,rb){
+			res.render('./prbpage/pcscrpcpbase',{rs:rs});
+		});
+	}else if(stchk==10){
+		sf.CPMcslevelbasedCase(function(rs,rb){
+			res.render('./prbpage/cpmcrpcpbasedvideo',{rs:rs});
+		});
+	}else if(stchk==11){
+		res.render('./prbpage/cueqmode');
+	}else if(stchk==12){
+		var qmode=req.query.qmode;
+		sf.CUEqmode(parseInt(qmode),function(userbcrs){
+			res.render('./prbpage/cueoption',{userbcrs:userbcrs})
+		});
+	}else if(stchk==13){
+		var qmode=req.query.qmode;
+		var crsliststr='';
+		var crslist=req.query.crslist;
+		var daybefore=req.query.daybefore;
+		if(Array.isArray(crslist)){
+			for(var ia=0; ia<crslist.length; ia++){
+				if(crslist.length -1==ia){
+					crsliststr=crsliststr+crslist[ia];
+				}else{
+					crsliststr=crsliststr+crslist[ia]+',';
+				}
+			}
+		}else{
+			crsliststr=crslist;
+		}
+		res.render('./prbpage/cuecrpcpbasedeval',{userid:req.query.userid,crslist:crsliststr,qmode:qmode,daybefore:daybefore});
+		
+	}else if(stchk==14){
+		var qmode=req.query.qmode;
+		sf.CUEqmode(parseInt(qmode),function(crsbuser){
+			res.render('./prbpage/cueoptioncrsbuser',{crsbuser:crsbuser})
+		});
+	}else if(stchk==15){
+		var crsname=req.query.crsname;
+		var qmode=req.query.qmode;
+		var useridliststr='';
+		var daybefore=req.query.daybefore;
+		var useridlist=req.query.useridlist;
+		if(Array.isArray(useridlist)){
+			for(var ia=0; ia<useridlist.length; ia++){
+				if(useridlist.length -1==ia){
+					useridliststr=useridliststr+useridlist[ia];
+				}else{
+					useridliststr=useridliststr+useridlist[ia]+',';
+				}
+			}
+		}else{
+			useridliststr=useridlist;
+		}
+		res.render('./prbpage/cuecrpcpbasedevalcrsbuser',{userid:useridliststr,crslist:crsname,qmode:qmode,daybefore:daybefore});
+	
+	}else if(stchk==16){
+		sf.PLSCaseList(function(caselist,pcplist){
+			sf.PLScrPCPDisplay(caselist,function(crpcp){
+				res.render('./prbpage/poc',{caselist:caselist,crpcp:crpcp,pcplist:pcplist})
+			});
+		});
+	}else if(stchk==17){
+		sf.EPSstaticmodify(function(rs){
+			res.render('epsstatic/epsstatic',{es:rs});
+		});
+
+	}else if(stchk==18){
+		sf.EnRS(function(enrs,emptyentity){
+			res.render('pea/enrs',{enrs:enrs,emptyentity:emptyentity});
+		});
+	}else if(stchk==19){
+		var prbidlist=req.query.prbidlist;
+		sf.PCSPrbParsing(prbidlist,function(pcps){
+			sf.PLSCaseList(function(caselist,pcplist0){
+			sf.PLScrPCPDisplay(caselist,function(crpcp){
+				var freepcp=sf.PLSDisplayFreePCP(crpcp,pcplist0,caselist);
+				sf.PCSRetrievingPCPs1(prbidlist,function(prbase,pcpbase,pcplist){//prbidlist 는 crindex에 나오는 문제의 리스트
+				var e=JSON.stringify(prbase);
+				res.render('./pea/pea',{pcps:pcps,crpcp:crpcp,pcplist:pcplist,prbase:e,pcpbase:pcpbase,freepcp:freepcp})
+				});
+			});
+			});
+		});
+	
+	}else if(stchk==20){
+		sf.PLSCaseList(function(caselist,pcplist){
+			sf.PLScrPCPDisplay(caselist,function(crpcp){
+				res.render('./pea/outerpea',{caselist:caselist,crpcp:crpcp,pcplist:pcplist})
+			});
+		});
+	}else if(stchk==21){
+		res.render('./pea/peaboard');
+	}else if(stchk==22){
+		sf.PEAindv(function(prblist){
+			res.render('./pea/peaindv',{prblist:prblist});
+		});
+	}else{
+		res.send('end');
+	}
+});
+
+app.get('/admin/createform',function(req,res){
+ var prbid=req.query.prbid;
+ var fidjs=req.query.fid+'.js';
+ var fid=req.query.fid;
+ var rstcode=req.query.rstcode;
+// var refresh=req.query.refresh;
+ //var exec = require('child_process').exec;
+
+//보안상의 문제로, 시스템 파일을 직접 웹에서 노출시키기가 어렵다고 판단하여 파일을 복사하여 열람하도록했다.
+	/*if(refresh){
+		//var child0=exec('cp -rf '+refresh+'.js ../',function(err,stdout,stderr){if(err){throw err;}});
+		var child0=exec('cp ./spam/crtfromweb/'+refresh+'.js ./spam/',function(err,stdout,stderr){if(err){throw err;}});
+		var child = exec('cp -rf ./spam/*.js ./public/jscontent',function(err,stdout,stderr){ if(err){throw err;}});
+	}*/
+
+	if ( typeof fid !== 'undefined' && typeof prbid=='undefined'){
+		var fpath='./spam/'+fidjs;
+		if(fs.existsSync(fpath)){
+		var stexec='less ./spam/'+prbid;
+		fs.readFile('./spam/'+fidjs,'utf8',function(err,data){
+			if(err){ throw err;}else{
+				res.render('./course/createjs',{jscont:data,fid:fid});
+			}
+	 	});
+		}else{
+			res.redirect('/admin/createform?rstcode=ThereIsNoFileT.T');
+		}
+	/*
+	}else if (typeof fid=='undefined'  && typeof prbid!=='undefined'){
+		console.log('here');
+		stexec='node ./spam/crtfromweb/prbmain.js '+prbid;
+		console.log(stexec);
+		var child = exec(stexec,function(error,stdout,stderr){
+				res.render('./course/createjs',{output:stdout});
+			});
+		var a=2;*/
+	}else{
+	// res.render('./course/createjs',{output:'test'});
+		res.render('./course/createjs',{rstcode:rstcode});
+	}
+ 
+});
+
+//QPRB 
+
+app.get('/admin/qprb',function(req,res){
+	res.render('qprb/qprb');
+});
+
+var qprb=io.of('/qprb');
+qprb.on('connection',function(socket){
+	console.log('qprb connected');
+
+	socket.on('qprbsendprbupload',function(a){
+		sf.GetObjId('prb','prb',10,function(prbid){
+			socket.emit('qprbsendprbuploadresult',{prbid:prbid})
+			var text={prbid:prbid,prbkorean:a.prbtext}
+			sf.getinfodb_par('insert into prb SET ?',text,function(rst){
+				//socket.emit('qprbsendprbuploadresult',{prbid:prbid})
+			});
+		});
+
+	});
+
+	socket.on('qprbsendprbcontents',function(a){
+		//var textl = {texttitle:texttitle, textid:r}
+		//sf.getinfodb_par('insert into textlist set ?',textl,function()
+
+		if(a.option=='create'){
+			sf.GetObjId('prb','prb',10,function(prbid){
+				var text={prbid:prbid,prbkorean:a.prbtext}
+				sf.getinfodb_par('insert into prb SET ?',text,function(rst){
+				});
+			});
+		}else if(a.option=='update'){
+			var prbupdate={prbkorean:a.prbtext}
+		 	sf.getinfodb_par('update prb SET ? where prbid="'+a.prbid+'"',prbupdate,function(rst){
+				console.log(a.prbid + ' is updated');
+			});
+		}
+
+
+
+	});
+});	
+
+//mmcp
+app.get('/mmcp/connect',function(req,res){
+	res.render('mmcp/mmcpconnect');
+});
+app.get('/mmcp/prb',function(req,res){
+	res.render('mmcp/mmcpprbreg');
+
+});
+app.get('/mmcp/envelope',function(req,res){
+	res.render('mmcp/mmcpenv');
+});
+app.get('/mmcp/assign',function(req,res){
+	res.render('mmcp/mmcpassign');
+});
+
+app.get('/mmcp/interface',function(req,res){
+
+	sf.LoginCheck(req.user,0,function(err){
+		if(err){
+			res.send(err);
+		}else{
+			res.render('mmcp/mmcpinterface',{userid:req.user.username, dsname:req.user.DisplayName});
+		}
+	
+	});
+
+
+});
+
+app.get('/mmcp/solvespace',function(req,res){
+	sf.LoginCheck(req.user,0,function(err){
+		var mmcpconid=req.query.mmcpconid;
+		var mmcpprblist=req.query.mmcpprblist;
+		var prblistv=mmcpprblist.split(',');
+		var whclause='';
+		for(var ia=0; ia<prblistv.length; ia++){
+			if(ia!=prblistv.length-1){
+				whclause=whclause+'mmcpid="'+prblistv[ia]+'" or '		
+			}else{
+				whclause=whclause+'mmcpid="'+prblistv[ia]+'"'		
+			}
+		}
+
+		sf.getinfodb('select * from mmcpprb where '+whclause,function(c){
+			var prbidlist=[];
+			var mmcpobj=[];
+			for(var ia=0; ia<c.length; ia++){
+				prbidlist.push(c[ia].prbid);
+				mmcpobj[ia]={};
+				mmcpobj[ia].mmcpconid=mmcpconid;
+				mmcpobj[ia].mmcpid=c[ia].mmcpid;
+				mmcpobj[ia].solutiontime=c[ia].solutiontime;
+			}
+
+
+			sf.prbsetv2(prbidlist,function(prb){
+				for(var ia=0; ia<prb.length; ia++){
+					mmcpobj[ia].prb=prb[ia];
+				}
+				res.render('mmcp/mmcpsolvespace',{mmcp:mmcpobj,username:req.user.username});
+
+			});
+		});
+	
+	
+
+	});
+});
+
+app.get('/mmcp/mmcpinspectuserpic',function(req,res){
+	res.render('mmcp/mmcpinspectuserpic');
+});
+var mmcp=io.of('/mmcp');
+mmcp.on('connection',function(socket){
+	console.log('mmcp connected');
+
+	socket.on('callpichistory',function(){
+		sf.getinfodb('select * from mmcppic where mpicorder is not null', function(a){
+			socket.emit('callpichistoryafter',{a:a});
+		});
+	});
+
+	socket.on('callcompletesingleprb',function(){
+		socket.emit('callcompletesingleprbafter');
+	});
+
+	socket.on('callmmcpconnectlistforinterface',function(a){
+		sf.getinfodb('select * from mmcpuserassign where userid="'+a.userid+'"',function(b){
+			var mmcpobj=[];
+			
+			var conlistv=b[0].mmcpconnectid.split(',');
+			var whclause='';
+			for(var ia=0; ia<conlistv.length; ia++){
+				if(ia!=conlistv.length-1){
+					whclause=whclause+'mmcpconid="'+conlistv[ia]+'" or '		
+				}else{
+					whclause=whclause+'mmcpconid="'+conlistv[ia]+'"'		
+				}
+			}
+
+			sf.getinfodb('select * from mmcpconnect where '+whclause,function(c){
+				socket.emit('callmmcpconnectlistforinterfaceafter',{a:c});
+			});
+	
+	
+		});
+	});
+
+	socket.on('mmcpassigncreate',function(a){
+		if(a.option==0){
+			sf.GetObjId('asi','mmcpuserassign',10,function(asi){
+			var concreate={assigninfo:a.assigninfo,asi:asi,mmcpconnectid:a.mmcpconnectid, createdate:sf.nodetime(),userid:a.userid}
+				sf.getinfodb_par('insert into mmcpuserassign set ? ', concreate, function(){
+					socket.emit('mmcpassigncreateafter');
+				});
+			});
+		}else if(a.option=1){
+			sf.getinfodb('update mmcpuserassign set assigninfo="'+a.assigninfo+'", mmcpconnectid="'+a.mmcpconnectid+'" where asi="'+a.asi+'"',function(){
+				
+				socket.emit('mmcpassigncreateafter');
+			});
+		}
+
+	});
+
+	socket.on('callmmcpcon',function(a){
+		sf.getinfodb('select * from mmcpconnect',function(a){
+			socket.emit('callmmcpconafter',{a:a});
+		});
+	});
+
+	socket.on('callstdlist',function(a){
+		sf.getinfodb('select pm.username,pm.Displayname,ass.mmcpconnectid,ass.asi, ass.assigninfo from prismusers as pm left join mmcpuserassign as ass on ass.userid=pm.username where pm.position=0',function(a){
+			socket.emit('callstdlistafter',{a:a});
+		});
+	});
+
+	socket.on('callmmcpconnectlist',function(a){
+		sf.getinfodb('select * from mmcpconnect',function(a){	
+			socket.emit('callmmcpconnectlistafter',{a:a});
+		});
+	});
+
+
+
+	socket.on('mmcpconnectcreate',function(a){
+		if(a.option==0){
+			sf.GetObjId('mpcon','mmcpconnect',10,function(mpconid){
+			var concreate={mmcplistinfo:a.listinfo,mmcpconid:mpconid,mmcpprblist:a.mmcpprblist, createdate:sf.nodetime(), breaktime:a.breaktime, numprb:a.numprb}
+				sf.getinfodb_par('insert into mmcpconnect set ? ', concreate, function(){
+					socket.emit('mmcpconnectcreateafter');
+				});
+			});
+		}else if(a.option=1){
+			sf.getinfodb('update mmcpconnect set numprb="'+a.numprb+'", mmcplistinfo="'+a.listinfo+'", mmcpprblist="'+a.mmcpprblist+'", breaktime="'+a.breaktime+'" where mmcpconid="'+a.mmcpconid+'"',function(){
+				
+				socket.emit('mmcpconnectcreateafter');
+			});
+		}
+		
+	});
+
+	socket.on('callmmcpprb',function(a){
+		sf.getinfodb('select * from mmcpprb',function(b){
+			var prblist=[];
+			for(var ia=0; ia<b.length; ia++){
+				prblist.push(b[ia].prbid);
+			}
+
+			var mmcpobj=[];
+			sf.prbsetv2(prblist,function(prb){
+				for(var ia=0; ia<prb.length; ia++){
+					mmcpobj[ia]={mmcpprb:prb[ia],solutiontime:b[ia].solutiontime,mmcpid:b[ia].mmcpid}
+				}
+				socket.emit('callmmcpprbafter',{mmcpobj:mmcpobj});
+			});
+		});
+	});
+
+	socket.on('prbregister',function(a){
+		sf.GetObjId('mcp','mmcpprb',10,function(mmcpid){
+			var prbregi={prbid:a.prbid, solutiontime:a.solutiontime,createdate:sf.nodetime(),mmcpid:mmcpid};
+			sf.getinfodb_par('insert into mmcpprb SET ? ',prbregi,function(){
+				//socket.emit();
+			});
+		});
+	});
+
+
+	socket.on('callprblist',function(){
+		sf.getinfodb('select * from prb where prbregi>720',function(a){
+			var prblist=[];
+			for(var ia=0; ia<a.length; ia++){
+				prblist.push(a[ia].prbid);
+			}
+			sf.prbsetv2(prblist,function(b){
+				socket.emit('callprblistafter',{prblist:b});
+			});
+		});
+	});
+
+
+
+});
+
+
+//video register
+
+app.get('/vdrg/monitoring',function(req,res){
+	res.render('vdrg/monitoringuser');
+});
+//Ans add
+app.get('/admin/addans',function(req,res){
+	res.render('vdrg/addans');
+});
+
+app.get('/vdrg/userinterface',function(req,res){
+
+	//res.render('vdrg/userinterface');
+
+	sf.LoginCheck(req.user,0,function(err){
+		if(err){
+			res.send(err);
+		}else{
+			res.render('vdrg/userinterface',{userinfo:req.user});
+		}
+	
+	});
+
+
+});
+
+app.get('/vdrg/mentorcenter',function(req,res){
+	res.render('vdrg/mentorcenter');
+	//res.render('nusd/mentor',{userlist:nusdmanage.userlist});
+});
+app.get('/admin/calcreference',function(req,res){
+	res.render('vdrg/calcreference');
+});
+
+app.get('/admin/prbvidcon',function(req,res){
+	res.render('vdrg/prbvidcon');
+});
+app.get('/admin/video',function(req,res){
+	res.render('vdrg/videolist');
+});
+
+var vdrg=io.of('/vdrg');
+
+
+var vdrgmanage={userlist:[]};
+vdrg.on('connection',function(socket){
+	console.log('vdrg connected');
+
+	socket.on('monitorcallrcon',function(a){
+		sf.rdcsRootcontentsobj(function(rcon){
+			socket.emit('monitorcallrconafter',{rcon:rcon});
+		//sf.connRcontovideo(rcon,a.username,function(prbvidset){
+		//sf.loadPrbtoprbvidset(prbvidset[rconnum],function(pvs){
+		//	socket.emit('callmyrconafter',{mycon:pvs,rconnum:rconnum,runlength:prbvidset.length});
+		//});
+		//});
+		});
+	});
+	socket.on('monitorfrommenteetoserver',function(a){
+		sf.getinfodb('select * from rdcthistory',function(b){
+			
+			//socket.emit('monitorfromservertomentor',{rconnum:a.rconnum,username:a.username});
+			socket.broadcast.to(vdrgmanage.monitorsocketid).emit('monitorfromservertomentor',{rconnum:a.rconnum,servertime:sf.nodetime(),rdcthis:b});
+			//socket.broadcast.to(vdrgmanage.monitorsocketid).emit('monitorfromservertomentor',{rconnum:a.rconnum,username:a.username,servertime:sf.nodetime(),rdcthis:b});
+		});
+	});
+
+	socket.on('monitorfrommentortoserver',function(){
+		var userlist=vdrgmanage.userlist;
+		//for(var ia=0; ia<userlist.length; ia++){
+		socket.broadcast.emit('monitorfromservertomentee');
+			//socket.broadcast.to(userlist[ia].socketid).emit('monitorfromservertomentee');
+		//}
+	});
+
+	socket.on('vdrgmonitor',function(a){
+		vdrgmanage.monitorsocketid=a.socketid;
+		socket.emit('vdrgmonitorafter',{userlist:vdrgmanage.userlist});
+	});
+
+	socket.on('vdrgwriterecord',function(a){
+		var ist={prbid:a.prbid, createdate:sf.nodetime(),username:a.username,hisopt:a.hisopt};
+			sf.getinfodb_par('insert into rdcthistory set ?',ist,function(c){
+			});
+
+	});	
+
+	socket.on('vdrgsharedinputsent',function(a){
+		//send to mentee
+	
+		var chk=0; 
+		for(var ia=0; ia<vdrgmanage.userlist.length; ia++){
+			if(vdrgmanage.userlist[ia].username==a.username){
+				chk=1;
+				break;
+			}
+		}
+
+		if(chk==1){
+			socket.broadcast.to(vdrgmanage.userlist[ia].socketid).emit('vdrgsharedinputafter',{prbobj:a.prbobj});
+		}else{
+			console.log('user is not exist');
+		}
+	});
+
+
+
+	socket.on('vdrgmentorlevelcontrol',function(a){
+		var chk=0; 
+		for(var ia=0; ia<vdrgmanage.userlist.length; ia++){
+			if(vdrgmanage.userlist[ia].username==a.username){
+				chk=1;
+				break;
+			}
+		}
+
+		if(chk==1){
+			socket.broadcast.to(vdrgmanage.userlist[ia].socketid).emit('vdrgmentorlevelcontrolafter',{levelstatus:a.levelstatus});
+			console.log('Level is Adjusted');
+		}else{
+			console.log('user is not exist');
+		}
+
+
+		if(a.levelstatus=='up'){
+			sf.getinfodb('select * from rdcthistory where hisopt="savetoask" and username="'+a.username+'"',function(b){
+				var plist=[];
+				for(var ia=0; ia<b.length; ia++){
+					plist.push(b[ia].prbid);
+				}
+				sf.prbsetv2(plist,function(prblist){
+					socket.emit('vdrgmentorlevelcontrolupafter',{prblist:prblist});
+				});
+			});
+		}
+
+
+	});
+
+	socket.on('vdrgsocketidregister',function(a){
+		if(a.position==0){
+			var ma=0;
+			for(var ia=0; ia<vdrgmanage.userlist.length; ia++){
+				if(vdrgmanage.userlist[ia].username==a.username){
+					ma=1;
+					break;
+				}
+			}
+
+			if(ma!=1){
+				vdrgmanage.userlist.push(a);
+				socket.broadcast.to(vdrgmanage.mentorsocketid).emit('mentoruserlistrefresh',{userlist:vdrgmanage.userlist});
+			}else{
+				vdrgmanage.userlist[ia].socketid=a.socketid;
+			}
+		}else if(a.position==2){
+			vdrgmanage.mentorsocketid=a.socketid;
+			socket.emit('vdrgsocketidregisterafter',{userlist:vdrgmanage.userlist});
+		}
+
+		console.log(vdrgmanage);
+	});
+
+	socket.on('mentortomenteedraw',function(ma){
+		var chk=0; 
+		for(var ia=0; ia<vdrgmanage.userlist.length; ia++){
+			if(vdrgmanage.userlist[ia].username==ma.username){
+				chk=1;
+				break;
+			}
+		}
+
+		if(chk==1){
+			socket.broadcast.to(vdrgmanage.userlist[ia].socketid).emit('copypicsofmentor',{pos:[ma.pos[0],ma.pos[1]],mousestat:ma.mousestat,statoption:ma.statoption});
+			console.log('Number sent');
+		}else{
+			console.log('user is not exist');
+		}
+
+	});
+	socket.on('mentortomenteedrawerase',function(ma){
+		var chk=0; 
+		for(var ia=0; ia<vdrgmanage.userlist.length; ia++){
+			if(vdrgmanage.userlist[ia].username==ma.username){
+				chk=1;
+				break;
+			}
+		}
+
+		if(chk==1){
+			socket.broadcast.to(vdrgmanage.userlist[ia].socketid).emit('eraseofmentor',{mode:ma.mode});
+			//socket.broadcast.to(siesmenteesocketid).emit('getlearningmaterialfrommentor',{crsname:ma.crsname,ele:ma.ele,prbs:mb,vidaddr:ma.vidaddr});
+			console.log('Number sent');
+		}else{
+			console.log('user is not exist');
+		}
+
+
+	});
+
+
+
+
+
+	socket.on('menteetomentordraw',function(ma){
+		console.log('vdrg : '+ma.mousestat);
+		//console.log('nusd : '+ma.pos[0], ma.pos[1]);
+		
+		socket.broadcast.to(vdrgmanage.mentorsocketid).emit('copypicsofmentee',{pos:[ma.pos[0],ma.pos[1]],mousestat:ma.mousestat,statoption:ma.statoption});
+	});
+
+
+
+	socket.on('rdctremovesta',function(a){
+		sf.getinfodb('delete from rdcthistory where prbid="'+a.prbid+'" and username="'+a.username+'"',function(b){
+			//socket.emit('rdctremovestaafter');
+		});
+	});
+
+	socket.on('rdctsavetoasklistreload',function(a){
+		sf.prbsetv2(a.stalist,function(plist){
+			socket.emit('rdctsavetoasklistreloadafter',{plist:plist})
+		});
+	});
+
+	socket.on('rdctcallsavetoasklist',function(a){
+		sf.callSavetoask(a.username,function(b,c){
+			socket.emit('rdctcallsavetoasklistafter',{stalist:b,plist:c});
+		});
+	});
+
+	socket.on('rdctsavetoask',function(a){
+
+		var ist={prbid:a.prbid, createdate:sf.nodetime(),username:a.username,hisopt:a.hisopt,rconnum:a.rconinfo[0]};
+			sf.getinfodb_par('insert into rdcthistory set ?',ist,function(c){
+				socket.emit('rdctsavetoaskafter',{prbid:a.prbid});	
+			});
+
+	});
+
+	socket.on('rdctiknowitalready',function(a){
+		var ist={prbid:a.prbid, createdate:sf.nodetime(),username:a.username,hisopt:a.hisopt,rconnum:a.rconinfo[0]};
+		sf.getinfodb_par('insert into rdcthistory set ?',ist,function(b){
+			socket.emit('rdctiknowitalreadyafter');	
+		});
+		
+	});
+
+	socket.on('rdctrankcall',function(){
+		sf.getinfodb('select * from rkconnect as a join cptproblemset as b on a.childcol = b.cptid join r2list as c on c.r2id =a.parentcol order by rkorder asc, r2order asc',function(a){
+		//sf.getinfodb('select * from rkconnect as a join cptproblemset as b on a.childcol = b.cptid join r2list as c on c.r2id =a.parentcol order by rkorder asc',function(a){
+			socket.emit('rdctrankcallafter',{a:a});
+		});
+	});
+
+
+
+
+	socket.on('senduseractivity',function(a){
+		var ist={prbid:a.prbid, resultcode:a.resultcode,createdate:sf.nodetime(),username:a.username,hisopt:a.hisopt,rconnum:a.rconinfo[0]};
+		sf.getinfodb_par('insert into rdcthistory set ?',ist,function(b){
+		});
+	});
+
+	socket.on('registeranstoprb',function(a){
+		 var title = a.title;
+		 var description=a.description;
+		//	var jmode=req.body.jmode;
+		var jmode=a.multiopt;
+		var fpath='./spam/crtfromweb/'+title+'.js';
+			if(!fs.existsSync(fpath) && jmode==0){
+				fs.writeFile(fpath,description,function(err){
+					var exec = require('child_process').exec;
+					var child0=exec('cp ./spam/crtfromweb/'+title+'.js ./spam/',function(err,stdout,stderr){if(err){throw err;}});
+					var child = exec('cp -rf ./spam/*.js ./public/jscontent',function(err,stdout,stderr){ if(err){throw err;}});
+					if(err){
+						res.status(500).send('Internal Server Error');
+					}
+					socket.emit('registeranstoprbafter',{multians:a.multians});
+					//res.redirect('/admin/createform?title='+title+'&rstcode=SuccessfullyCreated!');
+			
+				});
+			}else if(fs.existsSync(fpath) && jmode==0){
+				res.redirect('/admin/createform?title='+title+'&rstcode=FileExistsT.T');
+			}else if(!fs.existsSync(fpath) && jmode==1){
+				res.redirect('/admin/createform?title='+title+'&rstcode=ThereIsNoFileT.T');
+			}else if(fs.existsSync(fpath) && jmode==1){
+				fs.writeFile(fpath,description,function(err){
+					var exec = require('child_process').exec;
+					var child0=exec('cp ./spam/crtfromweb/'+title+'.js ./spam/',function(err,stdout,stderr){if(err){throw err;}});
+					var child = exec('cp -rf ./spam/*.js ./public/jscontent',function(err,stdout,stderr){ if(err){throw err;}});
+					if(err){
+						res.status(500).send('Internal Server Error');
+					}
+					socket.emit('registeranstoprbafter',{multians:a.multians});
+					//res.redirect('/admin/createform?title='+title+'&rstcode=SuccessfullyOverwrited!');
+			
+				});
+			}
+
+
+
+	});
+
+	socket.on('addanscallunassigned',function(a){
+	
+		//sf.PCSPickingFreePrbcon(function(unassprbcon,unassprbidstr){
+		sf.NUSDpickingFreeprb(function(fl){
+			if(a.multiopt==0){
+				sf.prbsetv4(fl,function(plist){
+					socket.emit('callprblistansafter',{plist:plist});
+				});
+			}else{
+
+				sf.prbsetv5(fl,function(plist){
+					socket.emit('callprblistansafter',{plist:plist});
+				});
+			}
+		});
+	});
+	socket.on('callprblistans',function(a){
+		console.log(a.multiopt);
+		if(a.multiopt==0){
+			sf.prbsetv4(a.plist,function(b){
+				socket.emit('callprblistansafter',{plist:b});
+			});
+		}else{
+			sf.prbsetv5(a.plist,function(b){
+				socket.emit('callprblistansafter',{plist:b});
+			});
+
+		}
+	});
+
+	socket.on('callmyrcon',function(a){
+		if(a.state=='ini'){
+			sf.decideRconnum(a.username,function(rconnum){	
+			sf.rdcsRootcontentsobj(function(rcon){
+			sf.connRcontovideo(rcon,a.username,function(prbvidset){
+			//console.log(prbvidset);
+			console.log(rconnum);
+			sf.loadPrbtoprbvidset(prbvidset[rconnum],function(pvs){
+				socket.emit('callmyrconafter',{mycon:pvs,rconnum:rconnum,runlength:prbvidset.length,rcon:rcon});
+			});
+			});
+			});
+			});
+		}else if(a.state=='prv'){
+			sf.rdcsRootcontentsobj(function(rcon){
+			sf.connRcontovideo(rcon,a.username,function(prbvidset){
+			sf.loadPrbtoprbvidset(prbvidset[a.rconnum],function(pvs){
+				socket.emit('callmyrconafter',{mycon:pvs,rconnum:a.rconnum,runlength:prbvidset.length});
+			});
+			});
+			});
+		}else if(a.state=='next'){
+			sf.rdcsRootcontentsobj(function(rcon){
+			sf.connRcontovideo(rcon,a.username,function(prbvidset){
+			sf.loadPrbtoprbvidset(prbvidset[a.rconnum],function(pvs){
+				socket.emit('callmyrconafter',{mycon:pvs,rconnum:a.rconnum,runlength:prbvidset.length});
+			});
+			});
+			});
+		}else if(a.state=='curr'){
+			sf.rdcsRootcontentsobj(function(rcon){
+			sf.connRcontovideo(rcon,a.username,function(prbvidset){
+			sf.loadPrbtoprbvidset(prbvidset[a.rconnum],function(pvs){
+				socket.emit('callmyrconafter',{mycon:pvs,rconnum:a.rconnum,runlength:prbvidset.length});
+			});
+			});
+			});
+
+		}
+	});
+
+	socket.on('rconnumbertovideo',function(){
+		sf.getinfodb('select rk.parentcol, rk.numid, rk.childcol, vi.vidaddr, vi.vidinfo from rkconnect as rk join videocont as vi on rk.parentcol=vi.id where conkind="rcvideo0"',function(vi){
+	
+			sf.rdcsRootcontentsobj(function(rcon){
+				fs.readdir('./spam',(err,files)=>{
+				
+					socket.emit('rconnumbertovideoafter',{vi:vi,rcon:rcon,files:files});
+				});
+			});
+		});
+	});
+
+	socket.on('calcreference',function(a){
+		sf.getinfodb('select r3.r3id, r3.listinfo as r3listinfo, r2.r2id, r2.r2listinfo as r2listinfo,cpt.cptid as r1id, cpt.listinfo as r1listinfo, cpt.prblist as prblist from rkconnect as rk join r3list as r3 on rk.parentcol=r3.r3id join rkconnect as rk2 on rk.childcol=rk2.parentcol join r2list as r2 on r2.r2id=rk2.parentcol join cptproblemset as cpt on rk2.childcol=cpt.cptid order by r3.r3order, r2.r2order, rk2.rkorder',function(a){
+		//sf.getinfodb('select * from rkconnect as rk join r3list as r3 on rk.parentcol=r3.r3id where rk.conkind="rc32" order by rk.rkorder',function(a){
+		//sf.getinfodb('select * from rkconnect as rk join r2list as r2 on rk.parentcol=r2.r2id where rk.conkind="rc21" order by rk.rkorder',function(b){
+			socket.emit('calcreferenceafter',{a:a});
+			//socket.emit('calcreferenceafter',{a:a,b:b});
+		//});
+		});
+	});
+
+	socket.on('vdrgregistervideoprb',function(a){
+		console.log(a.chosenvid);
+		console.log(a.chosenlist);
+
+		sf.getinfodb('delete from rkconnect where parentcol="'+a.chosenvid+'" and conkind="rcvideo0"',function(){
+		sf.GetObjId('conid','rkconnect',10,function(conid){
+
+			var async=require('async');
+			var count=0;
+			
+			async.whilst(
+				function(){return count<a.chosenlist.length},
+				function(cback){
+						sf.getinfodb('insert into rkconnect (parentcol,childcol,rkorder,conid,conkind,createdate) values ("'+a.chosenvid+'","'+a.chosenlist[count][0]+'","'+a.chosenlist[count][1]+'","'+conid+'","rcvideo0","'+sf.nodetime()+'")',function(){
+							count++;
+							cback(null);
+						});
+
+				},
+				function(err){
+					if(!err){
+						console.log('succeed');
+						socket.emit('vdrgregistervideoprbafter');
+					}else{
+						console.log('cpt error',err);
+					}
+			});
+		});
+		});
+
+
+
+
+	
+	});
+
+
+	socket.on('vdrgdisplaychosenlist',function(a){
+		var prblist=[];
+		for(var ia=0; ia<a.chosenlist.length; ia++){
+			prblist.push(a.chosenlist[ia][0]);
+		}	
+		sf.prbsetv2(prblist,function(prbcon){
+			socket.emit('vdrgdisplaychosenlistafter',{prbcon:prbcon});
+		});
+	});
+
+	socket.on('vdrgcallvideolist',function(){
+		sf.getinfodb('select v.id, v.vidaddr,vidinfo,rk.childcol,rk.rkorder,rk.conkind from videocont as v left join rkconnect as rk on v.id=rk.parentcol where rk.conkind is null or rk.conkind="rcvideo0" order by v.numid desc',function(a){
+			socket.emit('vdrgcallvideolistafter',{a:a});
+		});
+	});
+
+	socket.on('vdrgcallprblist',function(plist){
+		var prblist=plist.plist.split(',');
+		sf.prbsetv2(prblist,function(prbcon){
+			socket.emit('vdrggetprblist',{prbcon:prbcon});
+		})
+	});
+
+
+
+	socket.on('rankcall',function(){
+		sf.getinfodb('select * from rkconnect as a join cptproblemset as b on a.childcol = b.cptid join r2list as c on c.r2id =a.parentcol order by rkorder asc, r2order asc',function(a){
+		//sf.getinfodb('select * from rkconnect as a join cptproblemset as b on a.childcol = b.cptid join r2list as c on c.r2id =a.parentcol order by rkorder asc',function(a){
+			socket.emit('rankcallafter',{a:a});
+		});
+	});
+
+
+
+
+	socket.on('vdrgcreateupload',function(a){
+		sf.GetObjId('mov','videocont',10,function(vid){
+			var istr={id:vid,userid:'shjung',date:sf.nodetime(),vidaddr:a.vidaddr}
+			sf.getinfodb_par('insert into videocont set ?',istr,function(b){
+				socket.emit('vdrgcreateuploadafter',{vid:vid,vidaddr:a.vidaddr});
+			});
+		});
+
+
+	});
+
+	socket.on('vdrgupdateaddr',function(a){
+		sf.getinfodb('update videocont set vidaddr="'+a.vidaddr+'", vidinfo="'+a.vidinfo+'" where id="'+a.vid+'"',function(b){
+			sf.getinfodb('select * from videocont order by numid desc',function(a){
+				socket.emit('callvideolistafter',{a:a});
+			});
+
+		});
+	});
+
+	socket.on('vdrgcreate',function(a){
+		sf.GetObjId('mov','videocont',10,function(vid){
+			var istr={id:vid,userid:'shjung',date:sf.nodetime(),vidaddr:a.vidaddr}
+			sf.getinfodb_par('insert into videocont set ?',istr,function(b){
+				sf.getinfodb('select * from videocont order by numid desc',function(a){
+					socket.emit('callvideolistafter',{a:a});
+				});
+			});
+		});
+
+
+	});
+
+	socket.on('callvideolist',function(){
+		sf.getinfodb('select * from videocont order by numid desc',function(a){
+			socket.emit('callvideolistafter',{a:a});
+		});
+	});
+});
+
+//create contents option
+app.get('/admin/createcontents',function(req,res){
+	res.render('nusd/createcontents');
+});
+//fuzzy
+app.get('/test/fuzzy',function(req,res){
+	res.render('test/fuzzy');
+});
+
+//test
+app.get('/test/svg',function(req,res){
+	res.render('test/svg5');
+});
+
+app.get('/test/html2canvas',function(req,res){
+	res.render('test/html2canvas');
+});
+//download
+
+app.get('/uploadfile',function(req,res){
+	res.render('multer/uploadfile');
+});
+app.post('/uploadfile',upload.single('myFile'),function(req,res){
+	res.send('succeed:'+req.file);
+});
+//uploadQuestion
+app.post('/uploadquestion',uploadquestion.single('questionfile'),function(req,res){
+	res.send('succeed_upload')
+});
+
+var strquestion = multer.diskStorage({
+	destination:function(req,file,cb){
+		cb(null,__dirname+'/public/uploadquestion/');
+	},
+	filename:function(req,file,cb){
+		cb(null,file.originalname)
+	}
+});
+var uploadquestion=multer({storage:strquestion});
+
+
+
+
+
+// 404 catch-all handler (middleware)
+app.use(function(req, res, next){
+	res.status(404);
+	res.render('404');
+});
+
+// 500 error handler (middleware)
+app.use(function(err, req, res, next){
+	console.error(err.stack);
+	res.status(500);
+	res.render('500');
+});
+
+//app.listen(app.get('port'), function(){
+server.listen(app.get('port'), function(){
+  console.log( 'Express started on http://localhost:' + 
+    app.get('port') + '; press Ctrl-C to terminate.' );
+});

@@ -1,0 +1,171 @@
+html
+	head
+		title [Responder] webrtc Connecting test
+		script(src='/socket.io/socket.io.js')
+		style.
+			#videobox {
+				width:100%;
+				height:100%;
+			}
+			#videobox video {
+				width:100%;
+				height:100%;
+			}
+	body
+		div(id='videobox')
+			p video
+				video(id='remoteVideo' autoplay playsinline controls='false')
+			
+		script.
+			var socket = io('/mucm');
+			socket.on('connect',()=>{
+				console.log('mucm connected');
+				socket.emit('mucmsocketidregister',{user:'responder',socketid:socket.id,username:'mentor(optional)',position:2});
+
+			});
+
+			async function getConnectedDevices(type){
+				const devices = await navigator.mediaDevices.enumerateDevices();
+				return devices.filter(device => device.kind === type);
+			}
+
+			//getConnectedDevices('videooutput',cameras => console.log('Cameras found', cameras));
+
+
+			async function openAudio(){
+
+				const constraints = {
+					'video':false,
+					'audio':true
+					//'audio':{'echoCancellation':true}
+				}
+
+				return await navigator.mediaDevices.getUserMedia(constraints);
+			}
+
+			async function everythingReady(){
+				/*
+					checklist
+						getusermedia test,
+						audio input test,
+				*/
+
+				var equipChecklist=[];
+				var msglist=[];
+
+
+				const navimedia=await navigator.mediaDevices;
+				if(navimedia !== undefined){
+					equipChecklist.push(1);
+					msglist.push('navigator.mediaDevices ok')
+	
+					
+					const audios= await getConnectedDevices('audioinput');
+					if(audios && audios.length>0){
+						equipChecklist.push(1);
+						msglist.push('audio input ok')
+					}else{
+						equipChecklist.push(0);
+						msglist.push('audio input FAILED')
+					}
+					
+				}else{
+					equipChecklist.push(0);
+					const msg = 'navigator.mediaDevices is not found'
+					msglist.push(msg)
+				}
+			
+				return {equipcheck:equipChecklist, msglist:msglist}
+
+			}
+
+
+			var statusobj={};
+			async function firstSetting(){
+				const statuscheck=await everythingReady()
+				statusobj.firstsetting=1;
+				if(1){ //statuscheck;
+					statusobj.audioready=1;
+					RTCGo();
+				
+				}else{
+					statusobj.audioready=0;			
+					console.log('the connection cannot be established');
+				}
+			};
+
+			firstSetting();
+
+
+			function RTCGo(){
+				const constraints = {
+					'video':false,
+					'audio':true
+				}
+
+
+
+				navigator.mediaDevices.getUserMedia(constraints).then(async stream=>{	
+					const configuration = {iceServers:[{url:"stun:global.stun.twilio.com:3478?transport=udp"}]};
+					//const configuration = {iceServers:[{urls:"stun:global.stun.twilio.com:3478?transport=udp"}]};
+					//const configuration = {iceServers:[{urls:'turn:numb.viagenie.ca',username:'eccentric1984@gmail.com',credential:'aa2792'}]};
+					//const configuration = {iceServers:[{urls:'turn:numb.viagenie.ca:3478',username:'eccentric1984@gmail.com',credential:'aa2792'}]};
+					//const configuration = {iceServers:[{urls:['turn:13.250.13.83:3478?transport=udp'],username:'YzYNCouZM1mhqhmseWk6',credential:'YzYNCouZM1mhqhmseWk6'}]};
+					//const configuration = {iceServers:[{url:"turn:turn.bistri.com:80",credential:'homeo', username:'homeo'}]};
+					const peerConnection = new RTCPeerConnection(configuration);
+
+
+					stream.getTracks().forEach((track)=>{
+						peerConnection.addTrack(track, stream);
+
+					});
+
+
+
+
+					socket.on('webrtcservertoresponder', async (message) =>{
+						if(statusobj.audioready==1 && statusobj.firstsetting==1){
+							if(message.offer){
+								peerConnection.setRemoteDescription(new RTCSessionDescription(message.offer));
+								const answer = await peerConnection.createAnswer();
+								await peerConnection.setLocalDescription(answer);
+				
+								socket.emit('webrtcrespondertoserver',{answer:answer});
+
+							}
+						}else{
+							console.log('sorry audio and firstsetting should be ready');
+						}
+					});
+
+
+
+					peerConnection.onicecandidate=(e) => {
+						console.log('onicecandidate ',e);
+						socket.emit('webrtctoservernewicecandidate',{destination:'tocaller',newicecandidate:e.candidate});
+					};
+
+
+
+					socket.on('webrtctorespondernewicecandidate',async function(a){
+						if(a.newicecandidate){
+							console.log(a.newicecandidate,'responder');
+							await peerConnection.addIceCandidate(a.newicecandidate);
+						}
+					});
+
+
+					const remoteStream = new MediaStream();
+					const remoteVideo = document.querySelector('video#remoteVideo');
+					peerConnection.addEventListener('track',async (event) => {
+						remoteStream.addTrack(event.track);
+						remoteVideo.srcObject = remoteStream
+					});
+
+
+				});
+
+
+
+			}
+
