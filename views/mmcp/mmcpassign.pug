@@ -1,0 +1,379 @@
+html
+	head
+		script(type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML")
+		script(src='/socket.io/socket.io.js')
+		style.
+			#mmcpasilist {
+				border:3px ridge;
+			}
+
+	body
+		div
+			h2 Assign
+
+
+		div
+			div
+				div
+					input(id='connectname')
+				div
+					a(onclick='createConnectready()') create
+					input(type='radio' name='mmcp' id='mmcpassigncreate')
+				div
+					a update
+					input(type='radio' name='mmcp' id='mmcpassignupdate')
+				div
+					a remove
+					input(type='radio' name='mmcp' id='mmcpassignremove')
+				div
+					a submit
+					input(type='submit' name='mmcp' onclick='clickSubmit()')
+
+		div(id='stdlist')
+		div(id='mmcpasilist')
+		div(id='mmcpconlist')
+		script.
+			var socket = io('/mmcp');
+			socket.on('connect',()=>{
+				console.log('mmcp connection ready');
+			});
+
+			var userid=!{JSON.stringify(userid)}
+
+			var chosenlist='';
+			var stat={chosencolor:'blue', fontcolor:'white'}
+			var chosenuser='';
+			var chosenconid='';
+
+			function mmcpconnectUpdateready(listinfo,conid){
+				document.getElementById('mmcpassignupdate').checked=true;
+				document.getElementById('connectname').value=listinfo;
+				document.getElementById('connectname').focus();
+				chosenconid=conid;
+				
+			}
+
+
+
+
+			function createConnectready(){
+				var conname=document.getElementById('connectname');
+				conname.focus();
+				conname.value='';
+				document.getElementById('mmcpassigncreate').checked=true;
+				chosenlist='';
+				//chosenuser='';
+				chosenRepresent('mmcpconlist',chosenlist);
+				chosenRepresent('userdiv',chosenuser);
+				
+			}
+
+
+
+
+			socket.on('mmcpassigncreateafter',function(){
+				window.location.reload();
+			});
+
+			function updateConnect(){
+				var conname=document.getElementById('connectname');
+				if(conname.value!=''){
+					if(chosenlist!=''){
+						if(chosenuser!=''){
+							socket.emit('mmcpassigncreate',{assigninfo:conname.value, mmcpconnectid:chosenlist,option:1,asi:chosenconid});
+						}else{
+							alert('chosenuser is not specified');
+						}
+					}else{
+						alert('chosenlist is empty');
+					}
+				}else{
+					alert('the input name is empty');
+				}
+
+			}
+
+
+
+			function clickSubmit(){
+				var mac=document.getElementById('mmcpassigncreate');
+				var mau=document.getElementById('mmcpassignupdate');
+				var mar=document.getElementById('mmcpassignremove');
+	
+				if(mac.checked){
+					createConnect();
+				}else if(mau.checked){
+					updateConnect();		
+				}else if(mar.checked){
+					alert('remove');
+				}else{
+					alert('nothing is checked');	
+				}
+			}
+
+			function createConnect(){
+				var conname=document.getElementById('connectname');
+				if(conname.value!=''){
+					if(chosenlist!=''){
+						if(chosenuser!=''){
+							socket.emit('mmcpassigncreate',{assigninfo:conname.value, mmcpconnectid:chosenlist,userid:chosenuser,option:0});
+						}else{
+							alert('chosenuser is empty');
+						}
+					}else{
+						alert('chosenlist is empty');
+					}
+				}else{
+					alert('the input name is empty');
+				}
+			}
+
+
+
+
+			function chosenRepresent(classN,chosenlist){
+				function removeAllRepresent(cname){
+					var rdiv=document.getElementsByClassName(cname);
+					for(var ia=0; ia<rdiv.length; ia++){
+						rdiv[ia].style.backgroundColor='';
+						rdiv[ia].style.color='';
+					}
+				}
+
+
+				removeAllRepresent(classN);
+				if(chosenlist!=''){
+					var chosenlistl=chosenlist.split(',');
+					for(var ia=0; ia<chosenlistl.length; ia++){
+						if(chosenlistl[ia]!=''){
+							var rpdiv=document.getElementById(chosenlistl[ia]);
+							if(rpdiv){
+								rpdiv.style.backgroundColor=stat.chosencolor;
+								rpdiv.style.color=stat.fontcolor;
+							}
+						}
+					}
+				}
+		
+			}
+
+
+			function removeItemFromExist(liststr,item){
+				var liststrl=liststr.split(',');
+
+				var nlist='';
+				for(var ia=0; ia<liststrl.length; ia++){
+					if(liststrl[ia]==item){
+						/*if(ia==0){
+							nlist=nlist+item;
+						}else{
+							nlist=nlist+','+item;
+						}*/
+					}else{
+						if(nlist==''){
+							nlist=nlist+liststrl[ia];
+						}else{
+							nlist=nlist+','+liststrl[ia];
+						}
+					}
+				}
+				return nlist;	
+			}
+
+
+
+			function checkItemExist(liststr,item){
+				var liststrl=liststr.split(',');
+
+				var chk=0;
+				for(var ia=0; ia<liststrl.length; ia++){
+					if(liststrl[ia]==item){
+						chk=1;
+						break;
+					}
+				}
+
+				return chk;
+			}
+					
+
+
+
+			function clickToChosen(item,classN,opt){
+				if(opt==0){//not exclusive
+					var chk=checkItemExist(chosenlist,item);
+					if(chk==0){//no exist
+						if(chosenlist!=''){
+							chosenlist=chosenlist+','+item;
+						}else {
+							chosenlist=item;
+						}
+					}else{
+						chosenlist=removeItemFromExist(chosenlist,item);
+					}
+
+					chosenRepresent(classN,chosenlist);
+				}else if(opt==1){//exclusive
+					chosenuser=item;
+					chosenRepresent(classN,chosenuser);
+				}
+			}	
+
+		
+
+
+
+
+			callMmcpcon();
+			socket.on('callmmcpconafter',function(a){
+				console.log('callmmcpcon');
+				console.log(a);
+				var mmcpconlist=document.getElementById('mmcpconlist');
+				for(var ia=0; ia<a.a.length; ia++){
+					if(a.a[ia].mmcpkind=='gl' || a.a[ia].mmcpkind=='glp'){
+						var mmcpcondiv=document.createElement('div');
+						mmcpcondiv.id=a.a[ia].mmcpconid;
+						mmcpcondiv.onclick=function(i){return function(){clickToChosen(i,'mmcpconlist',0);}}(a.a[ia].mmcpconid);
+						mmcpcondiv.className='mmcpconlist'
+						var listinfo=document.createElement('div');
+						var listinfoa=document.createElement('A');
+						listinfoa.innerHTML=a.a[ia].mmcplistinfo;
+						listinfo.appendChild(listinfoa);
+						mmcpcondiv.appendChild(listinfo);
+						mmcpconlist.appendChild(mmcpcondiv);
+					}
+				}
+			});
+			function callMmcpcon(){
+				socket.emit('callmmcpcon');
+			}
+
+			function removeallele(parentid){
+				var parent=document.getElementById(parentid);
+				while(parent.firstChild){
+					parent.firstChild.remove();
+				}
+			}
+
+
+
+
+			callStdlist();
+			function callStdlist(){
+				socket.emit('callstdlist',{username:userid,mode:'glanceteacherstd'});
+				//socket.emit('callstdlist',{username:userid});
+			}
+
+
+			function callMmcpenvlist(asilist){
+				removeallele('mmcpasilist');
+				var mmcpasilistdiv=document.getElementById('mmcpasilist');
+				for(var ia=0; ia<asilist.length; ia++){
+					var asidiv=document.createElement('div');
+					asidiv.className='asidiv';
+
+					asidiv.onclick=function(i,l,m){
+						return function(){
+							console.log(i);
+							chosenlist=i;
+							chosenRepresent('mmcpconlist',chosenlist);
+				
+
+							mmcpconnectUpdateready(m,l)
+	
+						}
+					}(asilist[ia][2],asilist[ia][0],asilist[ia][1])
+
+					var asidivadiv=document.createElement('div');
+					var asidiva=document.createElement('A');
+					asidiva.innerHTML=asilist[ia][1];
+					asidivadiv.appendChild(asidiva);
+					asidiv.appendChild(asidivadiv);
+
+
+					mmcpasilistdiv.appendChild(asidiv);
+
+				}
+			}
+			socket.on('callstdlistafter',function(a){
+				console.log('stdlistafter')
+				console.log(a)
+				var indstd=[];
+				for(var ia=0; ia<a.a.length; ia++){
+					var chk=0;
+					for(var ib=0; ib<indstd.length; ib++){
+						if(indstd[ib][0]==a.a[ia].username){
+							chk=1;
+							break;
+						}
+					}
+					if(chk==0){
+						indstd.push([a.a[ia].username,a.a[ia].Displayname]);
+					}
+				}	
+
+				var mmcpsetobj=[];
+				for(var ia=0; ia<indstd.length; ia++){
+					mmcpsetobj[ia]={username:indstd[ia][0],mmcpcon:[],Displayname:indstd[ia][1]}
+					for(var ib=0; ib<a.a.length; ib++){
+						if(indstd[ia][0]==a.a[ib].username){
+							mmcpsetobj[ia].mmcpcon.push([a.a[ib].asi,a.a[ib].assigninfo,a.a[ib].mmcpconnectid])
+						}
+					}
+				}
+				console.log(mmcpsetobj);
+				var stdlist=document.getElementById('stdlist');
+				for(var ia=0; ia<mmcpsetobj.length; ia++){
+					var userdiv=document.createElement('div');
+					userdiv.id=mmcpsetobj[ia].username;
+					var userid=document.createElement('div');
+					var userida=document.createElement('A');
+					userida.innerHTML=mmcpsetobj[ia].Displayname;
+					//userida.innerHTML=a.a[ia].Displayname;
+					//userdiv.id=a.a[ia].username;
+					userdiv.className='userdiv';
+		
+					userdiv.onclick=function(i,j){
+						return function(){	
+							callMmcpenvlist(i);
+							clickToChosen(j,'userdiv',1);
+						}
+					}(mmcpsetobj[ia].mmcpcon,mmcpsetobj[ia].username);
+						
+					/*
+			
+					if(a.a[ia].mmcpconnectid!=null){	
+						userdiv.onclick=function(i,j,l,m){
+							return function(){
+								chosenlist=i;
+								chosenRepresent('mmcpconlist',chosenlist);
+				
+								clickToChosen(j,'userdiv',1);
+
+								mmcpconnectUpdateready(m,l)
+	
+							}
+						}(a.a[ia].mmcpconnectid,a.a[ia].username,a.a[ia].asi,a.a[ia].assigninfo)
+		
+					}else{
+						userdiv.onclick=function(i){
+							return function(){
+								chosenlist='';
+								chosenRepresent('mmcpconlist',chosenlist);
+								clickToChosen(i,'userdiv',1);
+
+								//mmcpconnectUpdateready(m,l)
+								createConnectready();
+							}
+						}(a.a[ia].username);
+					}*/
+
+					userid.appendChild(userida);
+					userdiv.appendChild(userid);
+
+					stdlist.appendChild(userdiv);
+				}
+			});
+		
+			
+

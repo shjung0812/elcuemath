@@ -1,0 +1,75 @@
+html
+ head
+  //script(type='text/javascript' async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML").
+  style.
+   img {
+    margin:auto;
+    display:block;
+    width:50%;
+   }
+ body
+  script.
+   function myfunction(){
+   var mysqlcontid=document.getElementsByClassName("prbcontent")
+   document.getElementById('idmysqlcontent').value=mysqlcontid[0].innerHTML
+   
+   var mysqlid=document.getElementsByClassName('prbbutton')
+   document.getElementById('idmysqlprbid').value=mysqlid[0].innerHTML
+
+   var mysqlsource=document.getElementsByClassName('prbsource');
+   document.getElementById('idmysqlsource').value=mysqlsource[0].innerHTML
+
+   document.getElementById('rdupdate').checked='checked'
+   }
+   function InsertImage(){
+    var mysqlid=document.getElementsByClassName('prbbutton');
+    document.getElementById('prbidforpic').value=mysqlid[0].innerHTML;
+   }
+   function MoveToCreate(){
+    
+   	document.getElementById('rdcreate').checked='checked'
+   }
+   window.onload=function(){
+    InsertImage();
+    myfunction();
+   }
+  h1 
+   a(href='/admin/createmysqlpg?stchk=0')  Create Mysql page
+  div
+   a(class='prbbutton')=prbid
+  div 
+   a(class='prbsource')=source
+   br
+   a(class='prbcontent' onclick='myfunction()')=prbk
+   
+  br
+  h3 create mysql content
+  div
+   form(action='/admin/createmysql', method='post')
+    p source
+    input(type='text', name='mysqlsource',id='idmysqlsource')
+    p insert mysql id
+    input(type='text', name='mysqlid',id='idmysqlprbid' onclick='MoveToCreate()')
+    p insert mysql content
+    textarea(name='mysqlcontent', id='idmysqlcontent', rows='22', style='width:645px;')
+    br
+    input(type='radio', name='mysqldb',value=0 checked id='rdcreate')
+    | Create
+    input(type='radio', name='mysqldb',value=1,id='rdupdate')
+    | Update
+    input(type='radio', name='mysqldb',value=2)
+    | Delete
+    input(type='submit', value='submit')
+
+  h3(onclick='InsertImage()') create image addresses
+  div
+   form(action='/admin/uploadimage', method='post', enctype='multipart/form-data')
+    input(type='hidden', name='mysqlid' id='prbidforpic')
+    input( type='file', name='file')
+    input( type='submit', value='submit')
+   div
+    -if(prbpic!=null){
+      img(src=prbpic)
+    -}
+ 
+

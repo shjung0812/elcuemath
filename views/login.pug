@@ -1,0 +1,38 @@
+html
+	head
+		title Login Failure
+		script(async src="https://www.googletagmanager.com/gtag/js?id=G-MPRPDZ50KW")
+		script.
+			window.dataLayer = window.dataLayer || [];
+			function gtag(){dataLayer.push(arguments);}
+			gtag('js', new Date());
+			gtag('config', 'G-MPRPDZ50KW');
+
+		style.
+			#msgbox {
+				width:100%;
+				background-color:#aaaaaa;
+				text-align:center;
+			}
+			#loginbox {
+				width:60%;
+				padding:0 20%;
+			}
+			
+	body
+		div(id='msgbox')
+			div(id='inmsg')
+				h1 입력한 아이디나 비밀번호에 문제가 있습니다. 
+				h1 Try Again
+		div(id='loginbox')
+			form(action='/login' method='post')
+				div
+					label Username:
+					input(type='text' name='username')
+				div
+					label Password:
+					input(type='password' name='password')
+				div
+					input(type='submit' value='Log In')
+	
+	

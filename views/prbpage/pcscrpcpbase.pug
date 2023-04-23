@@ -1,0 +1,351 @@
+html
+	head
+		style.
+			body {
+				background-color:#eeeeee;
+			}
+			#cont {
+				background-color:#eeeeee;
+				width:100%;
+				height:100%;
+			}
+			#title a {
+				text-decoration:none;
+				color:black;
+				font-size:2em;
+			}
+			#displaycrpcpbased {
+				width:100%;
+				overflow:auto;
+				background-color:#eeeeee;
+			}
+			#crpcpboard {
+				width:100%;
+				overflow:auto;
+				background-color:#dddddd;
+			}
+			.crpcpdiv {
+				width:100%;
+				overflow:auto;
+				background-color:#aaaaaa;
+			}
+			.crpcptitle {
+				width:100%;
+				background-color:#bbbbbb;
+			}
+			.crpcptitle a {
+				display:inline-block;
+				margin: 0 0 0 4%;
+			}
+			.crpcpinvolveddiv {
+				width:95%;
+				background-color:#aaaaaa;
+				margin:0 0 0 5%;
+			}
+			.crpcpinvolveddiv a:nth-child(n+2) {
+				display:inline-block;
+				width:20%;
+			}
+			.crpcpinvolveddiv a:first-child {
+				display:inline-block;
+				width:6%;
+				margin:0 0 0 2%;
+			}
+			.combinationdiv a:nth-child(n+2) {
+				display:inline-block;
+				width:20%;
+			}
+			.combinationdiv a:first-child {
+				display:inline-block;
+				width:5%;
+			}
+			#displayprblist {
+				position:fixed;
+				top:0;
+				left:40%;
+				width:60%;
+				height:100%;
+				background-color:#999999;
+			}
+			#prblistboard {
+				width:94%;
+				height:94%;
+				margin:3%;
+				padding:2% 0 0 0;
+				background-color:#aaaaaa;
+				overflow-y:scroll;
+			}
+	
+			.prblistdiv {
+
+				width:94%;
+				height:15%;
+				margin:0 3%;
+				background-color:#aaaaaa;
+			}
+			::-webkit-scrollbar {
+				display:none;
+			}
+			#countpcpdiv {
+				width:100%;
+				overflow:auto;
+				background-color:#dddddd;
+			}	
+			.countpcpcondiv {
+				width:100%;
+				background-color:#9e9e9e;
+				margin:1% 0;
+
+			}
+			.countpcpcondiv a{
+				display:inline-block;
+			}
+			.countpcpcondiv a:first-child{
+				width:20%;
+			}
+			.countpcpcondiv a:nth-child(n+2){
+				width:5%;
+			}
+
+			
+		script(type='text/javascript' async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML")
+		script(src='/socket.io/socket.io.js')
+		script.
+			function removeElementOfDiv(regbdivid,e,thi){
+				e=window.event || e;
+				if(thi===e.target){
+					var fdiv=document.getElementById(regbdivid);
+					if(fdiv){
+						while(fdiv.firstChild){
+							fdiv.removeChild(fdiv.firstChild);
+						}
+					}
+				}
+			}
+			function removeElementOfDiv_npp(regbdivid){
+				var fdiv=document.getElementById(regbdivid);
+				if(fdiv){
+					while(fdiv.firstChild){
+						fdiv.removeChild(fdiv.firstChild);
+					}
+				}
+			}
+			function myfunc(caseid,cslevel,e,thi){
+				var displaycrpcpbased=document.getElementById('displaycrpcpbased');
+				removeElementOfDiv('displaycrpcpbased',e,thi);
+				removeElementOfDiv('displayprblistboard',e,thi);
+				removeElementOfDiv_npp('displaycountpcp');
+				var socket=io('/cpm');
+				socket.emit('crpcpbased',{caseid:caseid,cslevel:cslevel});
+				socket.on('rstcrpcpbased',function(cpm){
+					
+					var crpcpboard=document.createElement('DIV');
+					crpcpboard.setAttribute('id','crpcpboard');
+	
+		
+					for(var ia=0; ia<cpm.crpcpb.length; ia++){
+						var crpcpdiv=document.createElement('DIV');
+						crpcpdiv.setAttribute('class','crpcpdiv');
+	
+
+						var crpcptitle=document.createElement('DIV');
+						crpcptitle.setAttribute('class','crpcptitle');
+
+						for(var ib=0; ib<cpm.crpcpb[ia][0].length; ib++){
+							var va=document.createElement('A');
+							va.innerHTML=cpm.crpcpb[ia][0][ib][1].replace(/\\\\/g,"\\");
+							crpcptitle.appendChild(va);
+						}
+
+						crpcpdiv.appendChild(crpcptitle);
+						for(var ib=0; ib<cpm.crpcpb[ia][1].length; ib++){
+							var crpcpinvolveddiv=document.createElement('DIV');
+							crpcpinvolveddiv.setAttribute('class','crpcpinvolveddiv');
+
+							var pnum=document.createElement('A');
+							pnum.innerHTML=cpm.crpcpb[ia][1][ib][1].length; 
+							crpcpinvolveddiv.appendChild(pnum);
+						
+							for(var ic=0; ic<cpm.crpcpb[ia][1][ib][0].length; ic++){
+								var va=document.createElement('A');
+								va.innerHTML=cpm.crpcpb[ia][1][ib][0][ic][1].replace(/\\\\/g,"\\");
+								crpcpinvolveddiv.appendChild(va);
+								crpcpinvolveddiv.onclick=function(i,j){return function(){callprblist(i,j);};}(cpm.crpcpb[ia][1][ib][1],event);
+							}
+		
+							crpcpdiv.appendChild(crpcpinvolveddiv);
+
+						}
+						
+						crpcpboard.appendChild(crpcpdiv);
+						MathJax.Hub.Queue(["Typeset",MathJax.Hub,crpcpboard]);
+					}
+
+					displaycrpcpbased.appendChild(crpcpboard);
+
+
+					var indpcp=[];
+					var cchk;
+					var totalfreq=0;
+					for(var ia=0; ia<cpm.indcom.length; ia++){
+						for(var ib=0; ib<cpm.indcom[ia][1].length; ib++){
+							for(var ic=0; ic<cpm.indcom[ia][1][ib].length; ic++){
+								cchk=0;
+								for(var id=0; id<indpcp.length; id++){
+									if(indpcp[id][0]==cpm.indcom[ia][1][ib][ic][0]){
+										cchk=1;
+									}
+								}
+								if(cchk==0){
+									indpcp.push(cpm.indcom[ia][1][ib][ic])
+								}
+								totalfreq+=1;
+							}
+						}
+					}
+			
+					var count;
+					var pcpcount=[];
+					for(var ia=0; ia<indpcp.length; ia++){
+						count=0;
+						for(var ib=0; ib<cpm.indcom.length; ib++){
+							for(var ic=0; ic<cpm.indcom[ib][1].length; ic++){
+								for(var id=0; id<cpm.indcom[ib][1][ic].length; id++){
+									if(indpcp[ia][0]==cpm.indcom[ib][1][ic][id][0]){
+										count+=1;
+									}
+								}
+							}
+						}
+						pcpcount[ia]=[indpcp[ia],totalfreq,count,parseFloat(count*100/totalfreq).toFixed(1),indpcp.length];
+					}
+
+					var swap=function(array,i,j){
+						var temp=array[i];
+						array[i]=array[j];
+						array[j]=temp;
+					}
+		
+					var sortind=function(array){
+						for(var i=0; i<array.length; i++){
+							for(var j=1;j<array.length; j++){
+								if(array[j-1][2]<array[j][2]){
+									swap(array,j-1,j);
+								}
+							}
+						}
+						return array;
+					}
+
+					var pcpcount=sortind(pcpcount);
+
+					var displaycountpcp=document.getElementById('displaycountpcp');
+
+					var countpcpboard=document.createElement('DIV');
+					countpcpboard.setAttribute('id','countpcpboard');
+
+					var countpcpdiv=document.createElement('DIV');
+					countpcpdiv.setAttribute('id','countpcpdiv');
+
+
+					for(var ia=0; ia<pcpcount.length; ia++){
+						var countpcpcondiv=document.createElement('div');
+						countpcpcondiv.setAttribute('class','countpcpcondiv');
+
+						var va0=document.createElement('A');
+						va0.innerHTML=pcpcount[ia][0][1].replace(/\\\\/g,"\\");
+
+						var va1=document.createElement('A');
+						va1.innerHTML=pcpcount[ia][3]+'%';
+
+						var va2=document.createElement('A');
+						va2.innerHTML=pcpcount[ia][2];
+
+						var va3=document.createElement('A');
+						va3.innerHTML=pcpcount[ia][1];
+
+						var va4=document.createElement('A');
+						va4.innerHTML=pcpcount[ia][4];
+
+						countpcpcondiv.appendChild(va0);
+						countpcpcondiv.appendChild(va1);
+						countpcpcondiv.appendChild(va2);
+						countpcpcondiv.appendChild(va3);
+						countpcpcondiv.appendChild(va4);
+
+						countpcpdiv.appendChild(countpcpcondiv);
+					}
+					MathJax.Hub.Queue(["Typeset",MathJax.Hub,countpcpdiv]);
+					countpcpboard.appendChild(countpcpdiv);
+					displaycountpcp.appendChild(countpcpboard);
+
+					
+				});
+			}
+			function callprblist(prblist,e){
+				var socket=io('/cpm');
+
+				removeElementOfDiv('displayprblistboard');
+
+				var displayprblistboard=document.getElementById('displayprblistboard');
+				
+
+				var displayprblist=document.createElement('DIV');	
+				displayprblist.setAttribute('id','displayprblist');
+
+				var prblistboard=document.createElement('DIV');
+				prblistboard.setAttribute('id','prblistboard');
+
+	
+				socket.emit('crpcpbasedprblist',{prblist:prblist});
+				socket.on('rstcrpcpbasedprblist',function(cpm){
+					for(var ia=0; ia<cpm.prbcon.length; ia++){
+						var prblistdiv=document.createElement('DIV');
+						prblistdiv.setAttribute('class','prblistdiv');
+			
+						var prbiddiv=document.createElement('DIV');	
+						prbiddiv.setAttribute('class','prbiddiv');
+						var va=document.createElement('A');
+						va.innerHTML=cpm.prbcon[ia][0];
+						prbiddiv.appendChild(va);
+			
+						var prbcontdiv=document.createElement('DIV');
+						prbcontdiv.setAttribute('class','prbcontdiv');
+						var vb=document.createElement('A');
+						vb.innerHTML=cpm.prbcon[ia][1];
+						prbcontdiv.appendChild(vb);
+			
+						var prbansdiv=document.createElement('DIV');	
+						prbansdiv.setAttribute('class','prbansdiv');
+						var vc=document.createElement('A');
+						vc.innerHTML=cpm.prbcon[ia][2];
+						prbansdiv.appendChild(vc);
+
+						prblistdiv.appendChild(prbiddiv);
+						prblistdiv.appendChild(prbcontdiv);
+						prblistdiv.appendChild(prbansdiv);
+		
+						prblistboard.appendChild(prblistdiv);
+					}
+					displayprblist.appendChild(prblistboard);
+				
+					MathJax.Hub.Queue(["Typeset",MathJax.Hub,displayprblist]);
+					displayprblistboard.appendChild(displayprblist);
+			
+				});
+			
+			}
+		
+	body
+		div(id='title')
+			a(href='./pcsclassify?stchk=-1') crPCP Based Problem
+		div(id='cont' onclick='removeElementOfDiv("displayprblistboard",event,this)')
+			div
+				-for(var ia=0; ia<rs.length; ia++){
+					div
+						a(onclick='myfunc("'+rs[ia][0]+'","'+rs[ia][2]+'",event,this)')=rs[ia][1]
+				-}
+			div(id='displaycrpcpbased')
+			div(id='displaycountpcp')
+			div(id='displayprblistboard')
+		

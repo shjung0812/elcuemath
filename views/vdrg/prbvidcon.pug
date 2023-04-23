@@ -1,0 +1,392 @@
+html
+	head
+		title Problem Video connection.
+		script(src='/socket.io/socket.io.js')
+		script(type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML")
+		style.
+			#r2set {
+				border:3px ridge;
+				padding:2% 0 2% 0;
+			}
+
+			#r1set {
+				border:3px ridge;
+				padding:2% 0 2% 0;
+			}
+	body
+		div
+			h2 Problem Video Connect
+
+		div
+			div(id='r2set')
+			div(id='r1set')
+			div(id='cptprblistdiv')
+		div
+			div
+				button(onclick='callVideolist()') VideoCall
+			div(id='videolist')
+		div
+			div(id='videoregister')
+				button(onclick='videoPrbRegister()') Video Register
+			div(id='chosenlistvid')
+			div(id='chosenprblistdiv')
+		script.
+
+			var socket = io('/vdrg');
+			socket.on('connect',()=>{
+				console.log('connection ready');
+
+			});
+
+			var chosenvid;
+			var chosenlist=[];
+			var stat={chosencolor:'blue', fontcolor:'white'}
+
+			function videoPrbRegister(){
+				if(chosenvid && chosenlist.length>0){
+					socket.emit('vdrgregistervideoprb',{chosenvid:chosenvid,chosenlist:chosenlist});
+				}else{
+					console.log(chosenvid);
+					console.log(chosenlist);
+					
+				}
+			}
+
+
+			socket.on('vdrgregistervideoprbafter',function(){
+				window.location.reload(true);
+			});
+
+			function removeItemFromExist(liststr,item){
+				var liststrl=liststr;
+
+				var nlist=[];
+				for(var ia=0; ia<liststrl.length; ia++){
+					if(liststrl[ia][0]==item){
+					}else{
+						nlist.push(liststrl[ia]);
+					}
+				}
+				return nlist;	
+			}
+
+
+			function removeAllRepresent(cname){
+				var rdiv=document.getElementsByClassName(cname);
+				for(var ia=0; ia<rdiv.length; ia++){
+					rdiv[ia].style.backgroundColor='';
+					rdiv[ia].style.color='';
+				}
+			}
+
+
+			function chosenRepresent(){
+				removeAllRepresent('cptprbdiv');
+				if(chosenlist.length!=0){
+					var chosenlistl=chosenlist;
+					for(var ia=0; ia<chosenlistl.length; ia++){
+						var rpdiv=document.getElementById(chosenlistl[ia][0]);
+						if(rpdiv){
+							rpdiv.style.backgroundColor=stat.chosencolor;
+							rpdiv.style.color=stat.fontcolor;
+						}
+					}
+				}
+		
+				socket.emit('vdrgdisplaychosenlist',{chosenlist:chosenlist});
+		
+			}
+
+			socket.on('vdrgdisplaychosenlistafter',function(a){
+
+				removeallele('chosenprblistdiv');
+				var chosenlistdiv=document.getElementById('chosenprblistdiv');
+				for(var ia=0; ia<a.prbcon.length; ia++){
+					var prbdiv=document.createElement('div');
+					prbdiv.onclick=function(i){return function(){clickToChosen(i)}}(a.prbcon[ia][0]);
+					var prbdivprb=document.createElement('div');
+					var prbdivprba=document.createElement('A');
+					prbdivprba.innerHTML=a.prbcon[ia][1];
+					prbdivprb.appendChild(prbdivprba);
+					prbdiv.appendChild(prbdivprb);
+
+					chosenlistdiv.appendChild(prbdiv);
+				}
+
+				MathJax.Hub.Queue(["Typeset",MathJax.Hub,chosenlistdiv])	
+
+
+
+				//function clickToChosen(item){
+			});
+
+
+			var swap=function(array,i,j){
+				var temp=array[i];
+				array[i]=array[j];
+				array[j]=temp;
+			}
+	
+			var sortind=function(array){
+				for(var i=0; i<array.length; i++){
+					for(var j=1;j<array.length; j++){
+						if(array[j-1][1]>array[j][1]){
+							swap(array,j-1,j);
+						}
+					}
+				}
+				return array;
+			}
+
+
+
+
+			function selectTop(arr){
+				var t=0;
+				for(var ia=0; ia<arr.length; ia++){	
+					if(arr[ia][1]>t){
+						t=arr[ia][1];
+					}
+				}
+				return t;
+			}
+
+
+
+			function checkItemExist(liststr,item){
+				var liststrl=liststr;
+
+				var chk=0;
+				for(var ia=0; ia<liststrl.length; ia++){
+					if(liststrl[ia][0]==item){
+						chk=1;
+						break;
+					}
+				}
+
+				return chk;
+			}
+					
+
+
+			function clickToChosen(item){
+				var chk=checkItemExist(chosenlist,item);
+				if(chk==0){//no exist
+					chosenlist.push([item,selectTop(chosenlist)+1]);
+				}else{
+					chosenlist=removeItemFromExist(chosenlist,item);
+				}
+				chosenlist=sortind(chosenlist);
+
+				chosenRepresent();
+
+			}	
+
+
+
+
+			socket.on('vdrgcallvideolistafter',function(a){
+				removeallele('videolist');
+
+				var videolistdiv=document.getElementById('videolist');
+		
+				chosenvid='';
+
+	
+				var indvidset=[];
+				for(var ia=0; ia<a.a.length; ia++){
+					var chk=0;
+					for(var ib=0; ib<indvidset.length; ib++){
+						if(indvidset[ib][0]==a.a[ia].id){
+							chk=1;
+							break;
+						}
+					}	
+					if(chk==0){
+						indvidset.push([a.a[ia].id,a.a[ia].vidaddr,a.a[ia].vidinfo]);
+					}
+				}
+
+				
+				vidprbobj=[];
+				for(var ia=0; ia<indvidset.length; ia++){
+					vidprbobj[ia]={id:indvidset[ia][0],vidinfo:indvidset[ia][2],vidaddr:indvidset[ia][1],prblist:[]}
+					for(var ib=0; ib<a.a.length; ib++){
+						if(a.a[ib].id==indvidset[ia][0]){
+							if(a.a[ib].childcol != null){
+								vidprbobj[ia].prblist.push([a.a[ib].childcol,a.a[ib].rkorder])
+							}
+						}
+					}
+				}
+
+
+				chosenlist=[];
+
+				for(var ia=0; ia<vidprbobj.length; ia++){
+
+					var listdiv=document.createElement('div');
+					listdiv.className='vidlist';
+					var videodiv=document.createElement('div');
+					var videosrc=document.createElement('iframe');
+					videosrc.src=vidprbobj[ia].vidaddr;
+					videodiv.appendChild(videosrc);
+					listdiv.appendChild(videodiv);
+					listdiv.id=vidprbobj[ia].id;
+					listdiv.onclick=function(i,j,k){return function(){
+		
+						registerToPanelVideo(i,j,k);
+					}}(vidprbobj[ia].id,vidprbobj[ia].vidaddr,vidprbobj[ia].prblist);
+					
+
+					videolistdiv.appendChild(listdiv);
+
+
+				}
+				
+			});
+
+
+			function registerToPanelVideo(id,addr,prblist){
+
+				chosenvid=id
+				putColoron('vidlist',id,['blue','white']);
+
+				removeallele('chosenlistvid');
+				var chosenlistvid=document.getElementById('chosenlistvid');
+				var chosenviddiv=document.createElement('div');
+				var chosenvidsrc=document.createElement('iframe');
+				chosenvidsrc.src=addr;
+				chosenviddiv.appendChild(chosenvidsrc);
+				chosenlistvid.appendChild(chosenviddiv);
+
+				chosenlist=prblist;
+				console.log(prblist);
+				console.log('prblist');
+				chosenRepresent();
+
+			}	
+
+
+			function callVideolist(){
+				socket.emit('vdrgcallvideolist');
+			}
+
+
+			function callprblist(plist){
+				socket.emit('vdrgcallprblist',{plist:plist});
+			}
+			socket.on('vdrggetprblist',function(p){
+				removeallele('cptprblistdiv');	
+				var cptprblistdiv=document.getElementById('cptprblistdiv');
+				for(var ia=0; ia<p.prbcon.length; ia++){
+					var cptprbdiv=document.createElement('div');
+					cptprbdiv.className='cptprbdiv';
+					var cptprbdivprb=document.createElement('div');
+					var cptprbdivprba=document.createElement('a');
+					cptprbdivprba.innerHTML=p.prbcon[ia][1];
+					cptprbdivprb.appendChild(cptprbdivprba);
+					cptprbdiv.appendChild(cptprbdivprb);
+
+					var prbobj={};
+					var sendoption=0;
+					prbobj.prb=p.prbcon[ia][1];
+					prbobj.pic=p.prbcon[ia][8];
+					prbobj.prbid=p.prbcon[ia][0];
+					cptprbdiv.id=p.prbcon[ia][0];
+
+					cptprbdiv.onclick=function(i){return function(){clickToChosen(i)}}(prbobj.prbid);
+
+					cptprblistdiv.appendChild(cptprbdiv);
+				}	
+				MathJax.Hub.Queue(["Typeset",MathJax.Hub,cptprblistdiv])	
+				chosenRepresent();
+			});
+
+
+
+
+			function removeallele(parentid){
+				var parent=document.getElementById(parentid);
+				while(parent.firstChild){
+					parent.firstChild.remove();
+				}
+			}
+
+
+			function rankCall(){
+				socket.emit('rankcall');
+			}	
+			rankCall();
+			socket.on('rankcallafter',function(a){
+				removeallele('r2set');
+				var r2setdiv = document.getElementById('r2set');
+				MathJax.Hub.Queue(["Typeset",MathJax.Hub,r2setdiv])	
+			
+				var indr2set=[];
+				for(var ia=0; ia<a.a.length; ia++){
+					var chk=0;
+					for(var ib=0; ib<indr2set.length; ib++){
+						if(indr2set[ib][0]==a.a[ia].parentcol){
+							chk=1;
+							break;
+						}
+					}	
+					if(chk==0){
+						indr2set.push([a.a[ia].parentcol,a.a[ia].r2listinfo]);
+					}
+				}
+
+				
+				r2obj=[];
+				for(var ia=0; ia<indr2set.length; ia++){
+					r2obj[ia]={r2id:indr2set[ia][0],r2listinfo:indr2set[ia][1],r1set:[]}
+					for(var ib=0; ib<a.a.length; ib++){
+						if(a.a[ib].parentcol==indr2set[ia][0]){
+							r2obj[ia].r1set.push({r1id:a.a[ib].childcol,r1prb:a.a[ib].prblist,r1listinfo:a.a[ib].listinfo})
+						}
+					}
+				}
+
+				for(var ia=0; ia<r2obj.length; ia++){
+					var r2divadiv=document.createElement('div');
+					r2divadiv.className='r2div';
+					r2divadiv.id=r2obj[ia].r2id;
+					var r2diva=document.createElement('a');
+					r2diva.innerHTML=ia+1+'. '+r2obj[ia].r2listinfo;
+					r2divadiv.appendChild(r2diva);
+					r2divadiv.onclick=function(i,j){return function(){r1Call(i); putColoron('r2div',j,['red','white']);}}(r2obj[ia].r1set,r2obj[ia].r2id);
+					r2setdiv.appendChild(r2divadiv);
+				}		
+				
+			});
+
+			function putColoron(classN, idN,colorN){
+				var cn=document.getElementsByClassName(classN);
+				for(var ia=0; ia<cn.length; ia++){	
+					cn[ia].style.color='';
+					cn[ia].style.backgroundColor='';
+				}
+				document.getElementById(idN).style.backgroundColor=colorN[0];
+				document.getElementById(idN).style.color=colorN[1];
+			}
+			function r1Call(r1obj){
+				removeallele('r1set')
+				removeallele('cptprblistdiv');	
+				var r1set=document.getElementById('r1set');
+				for(var ia=0; ia<r1obj.length; ia++){
+					var r1div=document.createElement('div');
+					r1div.className='r1div';
+					r1div.id=r1obj[ia].r1id;	
+					var r1diva=document.createElement('a');
+					r1diva.innerHTML=ia+1+'. '+r1obj[ia].r1listinfo;
+					r1div.appendChild(r1diva);
+					r1div.onclick=function(i,j){return function(){callprblist(i);putColoron('r1div',j,['blue','white'])}}(r1obj[ia].r1prb,r1obj[ia].r1id);
+					r1set.appendChild(r1div);
+					
+				}
+				MathJax.Hub.Queue(["Typeset",MathJax.Hub,r1set])	
+				
+			}	
+
+

@@ -1,0 +1,155 @@
+html
+	head
+		style.
+			#crprbcont {
+				width:100%;
+				margin:30px 10px;
+			}
+			.prbbox {
+				width:300px;
+				height:100px; 
+				box-shadow: 0px 10px 20px 0px grey;
+				float:left;
+				margin: 5px 5px;
+				padding:2px 2xp;
+				overflow:auto;
+			}
+			#formingCreate,#unassprbid {
+				margin:30px 0;
+				width:100%;
+				float:left;
+			}
+			#back {
+				text-decoration:none;
+				font-size:2em;
+				color:black;
+			}
+			#unassprbid div a {
+				display:block;
+			} 
+			#unassprbid div {
+				margin:5% 0;
+			}
+			
+		script(type='text/javascript' async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML")
+		script.
+			var colorlist='';
+			function fillprbid(childprb,loc){
+				var currprb=document.getElementById(loc).value;
+				if(currprb==''){
+					document.getElementById(loc).value=childprb;
+					fillcolor(childprb);
+				}else{
+					var prblist=currprb.split(',');
+					var chk=0;
+					var currnum;
+					for(var ia=0; ia<prblist.length; ia++){
+						if(prblist[ia]==childprb){
+							chk=1;
+							currnum=ia;
+						}
+					}
+					var nprblist='';
+					if(chk==0){
+						nprblist=childprb+','+currprb;
+						fillcolor(childprb);
+					}else if(chk==1){
+						prblist.splice(currnum,1);
+						for(var ic=0; ic<prblist.length; ic++){
+							if(prblist.length-1==ic){
+								nprblist=nprblist+prblist[ic];
+							}else{
+								nprblist=nprblist+prblist[ic]+',';
+							}
+			
+						}
+						//alert(childprb+' is removed')
+						removecolor(childprb);
+					}
+					document.getElementById(loc).value=nprblist;
+				}
+
+			}
+			function fillcolor(prbid){
+				document.getElementById(prbid).style.backgroundColor='green';	
+				addcolorlist(prbid);
+			}
+			function removecolor(prbid){
+				document.getElementById(prbid).style.backgroundColor='';
+				colorlist=subcolorlist(prbid);
+			}
+			function subcolorlist(prbid){
+				var o1colorlist=colorlist.split(',');
+				var ncolorlist='';
+				var nchk=0;
+				var prbnum;
+
+				var idx=o1colorlist.indexOf(prbid);	
+				o1colorlist.splice(idx,1);
+
+				for(var ia=0; ia<o1colorlist.length; ia++){
+					if(o1colorlist.length-1==ia){
+						ncolorlist=ncolorlist+o1colorlist[ia];
+					}else{
+						ncolorlist=ncolorlist+o1colorlist[ia]+',';
+					}
+				}
+				return ncolorlist;
+			}
+			function addcolorlist(prbid){
+				if(colorlist==''){
+					colorlist=prbid;
+				}else{
+					colorlist=colorlist+','+prbid;
+				}
+				
+			}
+
+
+	body
+		div(id='bodydiv')
+			a(href='/admin/pcsclassify?stchk=0' id='back') Elcue Point System
+			div(id='formingRemove')
+				form(action='/admin/pcscrform',method='get')
+					input(type='hidden',id='crindex',name='crindex', value=crindex)
+					a prbid
+					input(type='text',id='prbidsRm',name='prbids')
+					input(type='hidden',id='pcsinfo',name='pcsinfo',value=pcsinfo)
+					input(type='radio',id='rddelete',name='modimode', value=1)
+					| Remove
+					input(type='submit', value='submit')
+		div(id='gotopcp')
+			a(href='./pcsclassify?stchk=2&unassprbidstr='+unassprbidstr+'&crprbidstr='+crprbidstr) go to PCP with this problems
+
+
+		div
+			p=pcsinfo
+		div(id='crprbcont')
+			-for(var ib=0; ib<crprbcon.length; ib++){
+				div(id=crprbcon[ib][0], onclick="fillprbid('#{crprbcon[ib][0]}','prbidsRm')",class='prbbox')
+					a=crprbcon[ib][0]
+					a=crprbcon[ib][1]
+			-}
+			div(id='clearance')
+		div(id='formingCreate')
+			form(action='/admin/pcscrform',method='get')
+				input(type='hidden',id='crindex',name='crindex', value=crindex)
+				a prbid
+				input(type='text',id='prbidsCr',name='prbids')
+				input(type='hidden',id='pcsinfo',name='pcsinfo',value=pcsinfo)
+				input(type='radio',id='rdcreate',name='modimode', value=0 checked)
+				| Create
+				input(type='submit', value='submit')
+		div(id='unassprbid') Unassigned prbid
+			-for(var ia=0; ia<unassprbcon.length; ia++){
+				div(id=unassprbcon[ia][0],onclick="fillprbid('#{unassprbcon[ia][0]}','prbidsCr')")
+					a=unassprbcon[ia][0]
+					a=unassprbcon[ia][1]
+					a=unassprbcon[ia][2]
+					a=unassprbcon[ia][4]
+					a=unassprbcon[ia][5]
+					a=unassprbcon[ia][6]
+					-if(unassprbcon[ia][8]!=0){
+						img(src=unassprbcon[ia][8])
+					-}
+			-}

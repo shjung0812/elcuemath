@@ -1,0 +1,20 @@
+html
+	head
+		style.
+			a {
+				display:block;
+				text-decoration:none;
+				font-size:2em;
+				color:black;
+				box-shadow:5px 5px 5px #ddd;
+				padding:2% 0;
+				
+			}
+	body
+		div(id='back')
+			a(href='./cpt') Back
+		div
+			-for(var ia=0; ia<rs.length; ia++){
+				div
+					a(href='./cpt?stchk=3&listinfo='+rs[ia].listinfo+'&prblist='+rs[ia].prblist)=rs[ia].listinfo +' :: '+rs[ia].createdate
+			-}	

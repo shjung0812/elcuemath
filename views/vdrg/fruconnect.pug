@@ -1,0 +1,84 @@
+html
+	head
+		script(src='/socket.io/socket.io.js')
+	body
+		div(id='head')
+			div
+				input(type='text' value='Hi')
+			div
+				button(onclick='updateFr1()') Submit
+		div(id='varisetlist')
+		
+			
+		script.
+			var socket = io('/vdrg');
+			var username = '#{username}';
+			var filterid = '#{filterid}';
+			var cptid = '#{cptid}';
+			var filterconid = '#{filterconid}';
+			var fr1id = '#{fr1id}';
+
+
+			function putColoron(classN, idN,colorN){
+				var cn=document.getElementsByClassName(classN);
+				for(var ia=0; ia<cn.length; ia++){	
+					cn[ia].style.color='';
+					cn[ia].style.backgroundColor='';
+				}
+				document.getElementById(idN).style.backgroundColor=colorN[0];
+				document.getElementById(idN).style.color=colorN[1];
+			}
+
+
+
+			function updateFr1(){
+				if(chosenfr1id!=''){
+					socket.emit('fruconnectupdatefr1',{filterconid:filterconid,username:username, filterid:filterid, fr1id:chosenfr1id,cptid:cptid});
+				}
+			}
+
+
+
+			var chosenfr1id='';
+
+			socket.on('fcuconnectcallr1varisetafter',function(a){
+				console.log(a);	
+				var varisetlist=document.getElementById('varisetlist');
+				
+				if(a.a.length==0){
+					var emptya=document.createElement('a');
+					emptya.innerHTML='No r1variset';
+					varisetlist.appendChild(emptya);
+				}else{
+	
+					for(var ia=0; ia<a.a.length; ia++){
+						var vdiv=document.createElement('div');
+						vdiv.className='fr1list';
+						vdiv.id=a.a[ia].fr1id;
+						vdiv.onclick=function(i){
+							return function(){
+								chosenfr1id=i;
+								putColoron('fr1list',i,['red','white']);
+							}
+						}(a.a[ia].fr1id)
+
+						var variseta=document.createElement('a');
+						variseta.innerHTML=a.a[ia].cptinfo;
+						vdiv.appendChild(variseta);
+						varisetlist.appendChild(vdiv);
+						if(a.a[ia].fr1id==fr1id){
+							chosenfr1id=fr1id;
+							putColoron('fr1list',fr1id,['red','white']);
+							
+						}
+
+
+					}
+				}
+				
+			});
+
+			callR1variset();
+			function callR1variset(){
+				socket.emit('fcuconnectcallr1variset',{cptid:cptid})
+			}

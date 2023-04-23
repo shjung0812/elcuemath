@@ -1,0 +1,46 @@
+html
+	head
+		script.
+			var blocklist=!{JSON.stringify(blocklist)};
+			function putprbid(prbid){
+				var achk;
+				for(var ia=0; ia<blocklist.length; ia++){
+					if(blocklist[ia][0]==prbid){
+						achk=blocklist[ia][2];
+						break;
+					}
+				}
+				if(achk==0){
+					removeallcolor('blocklist');
+					var chprbid=document.getElementById(prbid);
+					chprbid.style.backgroundColor='#339933';
+					document.getElementById('blockid').value=prbid;
+				}
+			}
+			function removeallcolor(classname){
+				var allpcp=document.getElementsByClassName(classname)
+				for(var ia=0; ia<allpcp.length; ia++){
+					allpcp[ia].style.backgroundColor='';
+				}
+			}
+
+	body
+		div
+		div(id='back')
+			a(href='./eer?stchk=0') Connect SLab to Block
+		div
+			div(id='forming')
+				form(action='/admin/eerget',method='get')
+					a ADD BLOCK
+					input(type='text',name='blockid',id='blockid')
+					input(type='hidden',name='eermode', value=1)
+					input(type='hidden',name='slabid', value=slabid)
+					input(type='radio',name='modimode', value=0 checked)
+					|Add
+					input(type='submit', value='submit')
+		div(id='blockboard')
+			-for(var ia=0; ia<blocklist.length; ia++){
+				div(id=blocklist[ia][0], class='blocklist')
+					a(onclick='putprbid("'+blocklist[ia][0]+'")')=blocklist[ia][1]
+			-}
+		

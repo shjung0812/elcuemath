@@ -1,0 +1,319 @@
+html
+	
+	head
+		title Rank1 Order
+		style.
+			#r2list{
+				border:1px solid;
+				padding:2% 0 2% 0;
+				cursor:pointer;
+			}
+			#r1listboard {
+				cursor:pointer;
+				border:1px solid;
+				padding:2% 0 2% 0;
+			}
+			#childwaiting {
+				cursor:pointer;
+				border:1px solid;
+				padding:2% 0 2% 0;
+			}
+		script(type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML")
+		script(src='/socket.io/socket.io.js')
+
+		script.
+
+			var socket = io('/cpt');
+			socket.on('connect',()=>{
+				console.log('cpt connection ready');
+			});
+
+			// Global Variable;
+			var rgchildlist=[];
+			var givenchildlist=[];
+			var chosenchild='';
+			var chosenr2='';
+
+
+			function tempAlert(msg,duration){
+				var el = document.createElement("div");
+				el.setAttribute("style","position:absolute;top:10%;left:35%;background-color:white;padding:5% 10%;z-index:6;");
+				el.innerHTML = msg;
+				setTimeout(function(){
+					el.parentNode.removeChild(el);
+				},duration);
+				document.body.appendChild(el);
+			}
+
+
+
+			function establishOrder(){
+				if(rgchildlist.length==givenchildlist.length && chosenr2!=''){
+					console.log(rgchildlist);
+					for(var ia=0; ia<rgchildlist.length; ia++){
+						rgchildlist[ia][2]=ia;
+					}	
+					socket.emit('establishOrderr1',{r2id:chosenr2,r1list:rgchildlist});
+					tempAlert('the data is updated', 1000);
+				}else{
+					alert('the order is not completed yet');
+				}
+			}
+
+
+			socket.on('establishOrderr1after',function(){
+				window.location.reload();
+			});
+
+			function putColoron(classN, idN,colorN){
+				var cn=document.getElementsByClassName(classN);
+				for(var ia=0; ia<cn.length; ia++){	
+					cn[ia].style.color='';
+					cn[ia].style.backgroundColor='';
+				}
+				document.getElementById(idN).style.backgroundColor=colorN[0];
+				document.getElementById(idN).style.color=colorN[1];
+			}
+
+
+
+			function rgprb(ele){
+				chosenchild=ele;
+				putColoron('chosenchild',ele,['blue','white']);
+			}
+
+
+
+			function putOrderon(ord){
+				var idx=idxOf(givenchildlist,chosenchild);
+
+				if(chosenchild!=''){
+					rgchildlist.splice(ord,0,givenchildlist[idx]);
+					
+					chosenchild='';
+					childOrder('r1listboard');
+					callChildwaiting('childwaiting',givenchildlist);
+				
+				}else{
+					alert('the Child is not chosen');
+				}
+				
+			}	
+
+
+
+			function callChildwaiting(childwaiting,childlist){
+
+				removeallele(childwaiting);
+				var prbwaitingdiv=document.getElementById(childwaiting);
+
+				var waiting=[];
+				for(var ia=0; ia<childlist.length; ia++){
+					var chk=0;
+					for(var ib=0; ib<rgchildlist.length; ib++){
+						if(rgchildlist[ib][0]==childlist[ia][0]){
+							chk=1;
+							break;
+						}
+					}
+					if(chk==0){
+						waiting.push(childlist[ia])
+					}
+				}
+
+
+				for(var ia=0; ia<waiting.length; ia++){
+					var wdiv=document.createElement('div');
+					var wdiva=document.createElement('A');
+					wdiva.innerHTML=waiting[ia][1];
+					wdiv.id=waiting[ia][0];
+					wdiv.className='chosenchild'
+					wdiv.onclick=function(i){return function(){rgprb(i);}}(waiting[ia][0]);
+					wdiv.appendChild(wdiva);
+					prbwaitingdiv.appendChild(wdiv);
+				}
+				MathJax.Hub.Queue(["Typeset",MathJax.Hub,childwaiting]);
+			}		
+		
+
+			function idxOf(arr,itm){
+				var chk=0;
+				for(var ia=0; ia<arr.length; ia++){
+					if(arr[ia][0]==itm){
+						chk=1;
+						break;
+					}
+				}
+				if(chk==1){
+					return ia;
+				}else{
+					return -1;
+				}
+			}
+
+
+
+			function removeFromrglist(ele){
+				var idx=idxOf(rgchildlist,ele);
+				if(idx>-1){
+					rgchildlist.splice(idx,1);
+				}else{
+					alert('error from remove rglist');
+				}
+
+				childOrder('r1listboard');
+				callChildwaiting('childwaiting',givenchildlist);
+				rgprb(ele);
+			}
+
+
+
+			function removeallele(parentid){
+				var parent=document.getElementById(parentid);
+				while(parent.firstChild){
+					parent.firstChild.remove();
+				}
+			}
+
+
+
+			function childOrder(childboard){//childboard - prblistboard	
+				removeallele(childboard);
+				var prblistboard=document.getElementById(childboard);
+				if(rgchildlist.length==0){
+					var porder0=document.createElement('div');
+					var porder0a=document.createElement('A');
+					porder0a.innerHTML='porder0';
+					porder0.appendChild(porder0a);
+					porder0.onclick=function(i){return function(){putOrderon(i);}}(0);
+					prblistboard.appendChild(porder0);
+				}else{
+					for(var ia=0; ia<=rgchildlist.length; ia++){
+						if(ia!=rgchildlist.length){
+							var porder=document.createElement('div');
+							var pcon=document.createElement('div');
+
+							var pordera=document.createElement('A');
+							var pcona=document.createElement('A');
+		
+							pordera.innerHTML='porder'+ia;
+							pcona.innerHTML=rgchildlist[ia][1];
+
+							pcon.onclick=function(i){return function(){removeFromrglist(i);}}(rgchildlist[ia][0]);
+							porder.onclick=function(i){return function(){putOrderon(i);}}(ia);
+
+							porder.appendChild(pordera);
+							pcon.appendChild(pcona);
+
+							prblistboard.appendChild(porder);
+							prblistboard.appendChild(pcon);
+						}else{
+							var porder=document.createElement('div');
+
+							var pordera=document.createElement('A');
+		
+							pordera.innerHTML='porder'+ia;
+
+							porder.onclick=function(i){return function(){putOrderon(i);}}(ia);
+
+							porder.appendChild(pordera);
+
+							prblistboard.appendChild(porder);
+
+
+						}
+					}	
+				}
+				MathJax.Hub.Queue(["Typeset",MathJax.Hub,childboard]);
+			}
+
+
+
+
+			callR2list();
+			function callR2list(){
+				socket.emit('levelCallr2list');
+			}
+			socket.on('levelCallr2listafter',function(a){
+		
+				var r2ind=[];
+				for(var ia=0; ia<a.a.length; ia++){
+					var chk=0;
+					for(var ib=0; ib<r2ind.length; ib++){
+						if(r2ind[ib][0]==a.a[ia].r2id){
+							chk=1;
+							break;
+						}
+					}
+					if(chk==0){
+						r2ind.push([a.a[ia].r2id,a.a[ia].r2listinfo]);
+					}
+				}				
+
+				
+				var robj=[];
+				for(var ia=0; ia<r2ind.length; ia++){
+					robj[ia]={r2id:r2ind[ia][0],r2listinfo:r2ind[ia][1],r1info:[]};
+	
+
+					var tmprk=[];
+					for(var ib=0 ;ib<a.a.length; ib++){
+						if(r2ind[ia][0]==a.a[ib].r2id){
+							tmprk.push([a.a[ib].cptid,a.a[ib].r1listinfo,a.a[ib].rkorder]);
+						}
+					}
+
+					var ordidx=0;
+					var ultimateorder=0;
+					while(robj[ia].r1info.length<tmprk.length){
+						for(var ic=0; ic<tmprk.length; ic++){
+							if(ordidx==tmprk[ic][2]){
+								robj[ia].r1info.push([tmprk[ic][0],tmprk[ic][1],ultimateorder]);
+								ultimateorder++;
+								break;
+							}
+						}
+						ordidx++;
+
+						if(ordidx>100){	
+							break;
+							alert(ordidx);
+						}
+					}
+				}
+
+				var r2list=document.getElementById('r2list');
+				for(var ia=0; ia<robj.length; ia++){
+					var r2listdiv=document.createElement('div');
+					var r2listdiva=document.createElement('A');
+					r2listdiva.innerHTML=ia+1+') '+robj[ia].r2listinfo;
+					r2listdiv.appendChild(r2listdiva);
+					r2listdiv.onclick=function(i,j,k){return function(){
+						givenchildlist=[];
+						chosenr2=k
+						for(var ia=0; ia<j.length; ia++){
+							givenchildlist.push(j[ia]);
+						}
+						rgchildlist=i;
+						removeallele('childwaiting');
+						childOrder('r1listboard')}
+					}(robj[ia].r1info, robj[ia].r1info,robj[ia].r2id);
+					r2list.appendChild(r2listdiv);
+				}
+				
+				
+			
+			});
+
+			
+	body
+		div
+			h2 R1order
+		div
+			button(onclick='establishOrder();') Establish Order
+			a(href='/admin/cpt?stchk=1' class='inputbox') R1edit
+
+		div
+			div(id='r2list')
+			div(id='childwaiting')
+			div(id='r1listboard')

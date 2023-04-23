@@ -1,0 +1,106 @@
+html
+	head 
+		title='welcome '+ dsname+ ' User interface'
+		script(type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML")
+		script(src='/socket.io/socket.io.js')
+		script(async src="https://www.googletagmanager.com/gtag/js?id=G-MPRPDZ50KW")
+		script.
+			window.dataLayer = window.dataLayer || [];
+			function gtag(){dataLayer.push(arguments);}
+			gtag('js', new Date());
+			gtag('config', 'G-MPRPDZ50KW');
+
+		style.
+			#mmcpconlist {
+				margin:0 0 5% 0 ;
+			}
+
+	body
+		div
+			h2=dsname+ ' 서술형숙제'
+		div
+			div(id='mmcpconlist')
+			div(id='mmcpprblist')
+				
+
+		script.
+
+			var socket = io('/mmcp');
+			socket.on('connect',()=>{
+				console.log('mmcp connection ready');
+			});
+
+
+
+			var userid='#{userid}';
+
+			function removeallele(parentid){
+				var parent=document.getElementById(parentid);
+				while(parent.firstChild){
+					parent.firstChild.remove();
+				}
+			}
+
+
+			function callEnvelope(b,mmcpconnectid){
+				var mmcpconnectidv=mmcpconnectid.split(',');
+				var mmcpprblistdiv=document.getElementById('mmcpprblist');
+				removeallele('mmcpprblist');
+
+				for(var ia=0; ia<mmcpconnectidv.length; ia++){
+					var coniddiv=document.createElement('div');
+					var coniddiva=document.createElement('A');
+					var chk=0;
+	
+					for(var ib=0; ib<b.length; ib++){
+						if(b[ib].mmcpconid==mmcpconnectidv[ia] && b[ib].mmcpkind=='glp'){
+							//coniddiva.href='./mmcphomework?mmcpprblist='+b[ib].mmcpprblist+'&mmcpconid='+b[ib].mmcpconid;
+							coniddiva.href='./mmcpglancetestparal?mmcpprblist='+b[ib].mmcpprblist+'&mmcpconid='+b[ib].mmcpconid+'&breaktime='+b[ib].breaktime;
+							//coniddiva.innerHTML=b[ib].mmcplistinfo+' : '+b[ib].numprb+' 개의 문제';
+							coniddiva.innerHTML=b[ib].mmcplistinfo+' : '+b[ib].numprb+' 개의 문제 (GLP)';
+							coniddiv.appendChild(coniddiva);	
+							mmcpprblistdiv.appendChild(coniddiv);
+							chk=1;
+							break;
+
+						}else if(b[ib].mmcpconid==mmcpconnectidv[ia] && b[ib].mmcpkind=='gl'){
+							var prblist=b[ib]
+							//coniddiva.href='./mmcphomework?mmcpprblist='+b[ib].mmcpprblist+'&mmcpconid='+b[ib].mmcpconid;
+							coniddiva.href='./solvespace?mmcpprblist='+b[ib].mmcpprblist+'&mmcpconid='+b[ib].mmcpconid;
+							//coniddiva.innerHTML=b[ib].mmcplistinfo+' : '+b[ib].numprb+' 개의 문제';
+							coniddiva.innerHTML=b[ib].mmcplistinfo+' : '+b[ib].numprb+' 개의 문제 (GL)';
+							coniddiv.appendChild(coniddiva);	
+							mmcpprblistdiv.appendChild(coniddiv);
+							chk=1;
+							break;
+						}
+
+					}
+					//if(chk==0){
+						//alert('there are problem.. no id in DB');
+					//}
+				}	
+			}
+
+			socket.on('callmmcpconnectlistforinterfaceafter',function(a){
+				var mmcpconlist=document.getElementById('mmcpconlist');
+				for(var ia=0; ia<a.a.length; ia++){
+					var conlistdiv=document.createElement('DIV');
+					var conlistdiva=document.createElement('A');
+					conlistdiva.innerHTML=a.a[ia].assigninfo;
+					conlistdiv.onclick=function(i,j){
+						return function(){
+							callEnvelope(i,j);
+						}
+					}(a.b,a.a[ia].mmcpconnectid);
+					//conlistdiva.innerHTML=a.a[ia].mmcplistinfo+'('+a.a[ia].numprb+'개의 문제)';
+					//conlistdiva.href='./solvespace?mmcpprblist='+a.a[ia].mmcpprblist+'&mmcpconid='+a.a[ia].mmcpconid;
+					conlistdiv.appendChild(conlistdiva);
+					mmcpconlist.appendChild(conlistdiv);
+				}
+			});
+
+			callMmcpconlist();
+			function callMmcpconlist(){
+				socket.emit('callmmcpconnectlistforinterface',{userid:userid});
+			}

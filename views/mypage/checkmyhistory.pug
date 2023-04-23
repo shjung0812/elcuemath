@@ -1,0 +1,20 @@
+html
+	head
+		title 내 과제 보기
+		script(async src="https://www.googletagmanager.com/gtag/js?id=G-MPRPDZ50KW")
+		script.
+			window.dataLayer = window.dataLayer || [];
+			function gtag(){dataLayer.push(arguments);}
+			gtag('js', new Date());
+			gtag('config', 'G-MPRPDZ50KW');
+
+	body
+		div
+			h2 homediv
+			a(href='/vdrg/userstart') 이전으로
+		
+		div
+			a(href='/mmcp/monitor?username='+userid, target='_blank') my Homework check
+		div
+			a(href='/student/classprbhistory', target='_blank') 수업시간푼문제확인
+		script.

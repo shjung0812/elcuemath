@@ -1,0 +1,29 @@
+html
+	head
+	
+	body
+		h3 still hi
+		canvas(id='canvasid' width='490' height='220')
+		div(id='canvasDiv')
+		div(id='other') hello world
+		script(type='text/javascript' src='http://code.jquery.com/jquery-2.1.0.min.js')
+
+		script(type='text/javascript').
+			context=document.getElementById('canvasid').getContext('2d');
+			function redraw(){
+			
+				context.beginPath();
+				context.moveTo(33,33)
+				context.lineTo(44,44);
+				context.closePath();
+				context.stroke();
+			}
+			$('#other').click(function(e){
+				redraw();
+				console.log(e.pageX);
+			});
+			$('#other').mousedown(function(e){
+				console.log(e.pageX);
+				
+			});	
+			

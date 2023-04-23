@@ -1,0 +1,41 @@
+html
+    head
+        script(src='/socket.io/socket.io.js')
+    body
+        p r1userhistory
+        div(id='userlist')
+        
+        script.
+            var socket = io('/vdrg',{
+                transports:['websocket'],
+                upgrade:false
+                });
+            socket.emit('admincallalluserlist')
+            socket.on('admincallalluserlistafter',function(a){
+                console.log(a);
+                var userlist=document.getElementById('userlist')
+                for(var ia=0; ia<a.a.length; ia++){
+                    var fdiv=document.createElement('div');
+                    var fdiva=document.createElement('a')
+
+                    var button=document.createElement('button');
+                    button.innerHTML='click'
+                    button.onclick=function(k){
+                        return function(){
+                            //window.location='/vdrg/r1userstatistics?username='+k;
+                            window.open('/vdrg/r1userstatistics?username='+k,'_blank');
+                        }
+                    }(a.a[ia].username)
+                    //button.target='_blank'
+                    fdiva.innerHTML=a.a[ia].DisplayName;
+                    fdiv.appendChild(button);
+                    fdiv.appendChild(fdiva);
+        
+                    userlist.appendChild(fdiv)
+
+                }
+                
+                
+            })
+
+            

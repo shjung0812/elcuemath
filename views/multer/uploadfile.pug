@@ -1,0 +1,16 @@
+html
+	
+	head
+		meta(charset='utf-8')
+		title My Download
+	body
+		form(action='/uploadfile' enctype='multipart/form-data' method='post')
+			input(type='file' name='myFile')
+			input(type='submit' value='Upload a file')
+
+		form(action='uploadmultiple' enctype='multipart/form-data' method='post')
+			input(type='file' name='myFiles' multiple)
+			input(type='submit' value='Upload your files')
+
+	
+	

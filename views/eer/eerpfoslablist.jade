@@ -1,0 +1,19 @@
+html
+	head
+		style.
+			.slklist a {
+				font-size:2em;
+				color:black;
+				text-decoration:none;
+			}
+	body
+		div(id='back')
+			a(href='./eer?stchk=0') Connect Slab to Block
+		div(id='slblist')
+			div(class='slklist')
+				a SLAB LIST
+			div
+				-for(var ia=0; ia<slab.length; ia++){
+					div
+						a(href='./eer?stchk=7&slabid='+slab[ia].inhid)=slab[ia].slabinfo
+				-}

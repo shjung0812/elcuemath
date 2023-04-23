@@ -1,0 +1,116 @@
+html
+	head
+		title User Note saved Check
+		script(src='/socket.io/socket.io.js')
+		script(async src="https://www.googletagmanager.com/gtag/js?id=G-MPRPDZ50KW")
+		script.
+			window.dataLayer = window.dataLayer || [];
+			function gtag(){dataLayer.push(arguments);}
+			gtag('js', new Date());
+			gtag('config', 'G-MPRPDZ50KW');
+
+		style.
+			#savenotebox {
+				width:100%;
+				height:100%;
+				float:left;
+				background-color:#444444;
+				overflow:auto;
+			}
+			#savenotebox div {
+				width:10%;
+				height:10%;
+				float:left;
+				border:solid;
+			}
+			#savenotebox div img {
+				width:100%;
+				
+			}
+			#numberdisplaydiv {
+				width:80%;	
+				height:100%;
+				float:left;
+				//background-color:#dddddd;
+			}
+			#optionpanel {
+				width:20%;
+				height:100%;
+				float:left;
+				background-color:#dddddd;
+			}
+
+	body
+		div(id='numberdisplaydiv')
+			div(id='savenotebox')
+				
+		div(id='optionpanel')
+			div(id='imgpanel')
+
+			
+		script.
+
+			var socket = io('/vdrg');
+			socket.on('connect',()=>{
+		
+			});
+
+			function removeall(elename){
+				var ele=document.getElementById(elename)
+				while(ele.firstChild){
+					ele.removeChild(ele.firstChild);
+				}
+			}
+
+			var username=!{JSON.stringify(username.username)};
+			socket.on('sendusernote',function(a){
+				console.log(username);
+				var savenotebox=document.getElementById('savenotebox');
+				removeall('savenotebox');
+				for(var ia=0; ia<a.a.length; ia++){
+					var sndiv=document.createElement('div');
+					sndiv.className='sndiv';
+					sndiv.onclick=function(i,j){return function(){loadImg(i,j)}}(a.a[ia].imgaddr,a.a[ia].unote);
+					var sndivimg=document.createElement('img');
+					sndivimg.src=a.a[ia].imgaddr;
+					sndiv.appendChild(sndivimg);
+					savenotebox.appendChild(sndiv);
+
+				}
+		
+			});
+			function callUsernote(){
+				socket.emit('reloadusernote',{username:username});
+			}
+			callUsernote();
+			function loadImg(imgsrc,imgtxt){
+				var imgpanel=document.getElementById('imgpanel');
+				removeall('imgpanel');
+				var imgdiv=document.createElement('div');
+				var rimg=document.createElement('img');
+				rimg.src=imgsrc;
+				rimg.style.width='100%';
+				imgdiv.appendChild(rimg);
+				imgdiv.onclick=function(){
+					var chk=document.getElementById('optionpanel').style.width;
+					if(chk==''){
+						document.getElementById('optionpanel').style.width='60%';
+						document.getElementById('numberdisplaydiv').style.width='39%';
+					}else{
+						document.getElementById('optionpanel').style.width='';
+						document.getElementById('numberdisplaydiv').style.width='';
+					}
+				}
+
+				var imgtxtdiv=document.createElement('div');	
+				var rimgtxt=document.createElement('textarea');
+				rimgtxt.value=imgtxt;
+
+				var imgoptiondiv=document.createElement('div');
+
+				imgpanel.appendChild(imgdiv);
+				imgpanel.appendChild(imgtxtdiv);
+				imgpanel.appendChild(imgoptiondiv);
+			}
+
+				

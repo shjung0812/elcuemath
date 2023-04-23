@@ -1,0 +1,3143 @@
+html
+	head
+		title WRSS Mentor
+		script(src='/socket.io/socket.io.js')
+		script(type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML")
+		style.
+			#userscreens {
+				width:60%;
+				height:80%;
+				float:left;
+			}	
+			canvas {
+				cursor:url('/cursor/Dot.cur'), default;
+			}
+			#user1 {
+				margin:0 auto;
+				width:100%;
+				height:100%;
+			}
+			#userwrsswriting {
+				width:20%;
+				height:80%;
+				float:left;
+				background-color:blue;
+				overflow:auto;
+			}
+			#monitoringprbdiv{
+				width:20%;
+				height:80%;
+				float:left;
+				overflow:auto;
+			}
+			.mprbdiv {
+				margin:2% 0  0 0;
+			}
+			.imgdiv {
+				width:100%;
+			}
+			.imgdiv img {
+				width:100%;
+			}
+			.multia {
+				border:1px solid;
+			}
+
+			#wrssuser1mypics {
+				border: 1px solid black;
+				position:absolute;
+				z-index:10;
+			}
+			#wrssuser1backdiv {
+				position:absolute;
+				z-index:9;
+			}
+			#wrsspicdiv img {
+				width:80%;
+				margin:10% 10% 0 10%;
+			}
+
+			#msgdiv a{
+				background-color:red;
+			}
+
+			.selectuserbox {
+				background-color:black;
+				color:white;	
+				width:100%;
+				padding:10%;
+			}
+			#rankcalldiv, #fcpt {
+				width:100%;
+				float:left;
+			}
+			#webrtcdiv {
+				width:100%;
+				height:100%;
+				position:absolute;
+				top:0;
+				left:0;
+				z-index:1;
+				background-color:#aaaaaa;
+
+			}
+
+			#webrtcbuttonbar {
+				width:100%;
+				height:10%;
+				text-align:center;
+			}
+			#webrtcbuttonbar button {
+				position:relative;
+				top:20%;
+			}
+
+			#videobox {
+				width:100%;
+				height:80%;
+			}
+			#switchbox {
+				width:100%;
+				height:10%;
+			}
+			#switchbox button {
+				width:30%;
+				height:50%;
+			}
+
+			#videobox div {
+			}
+			#webrtclog {
+				width:10%;
+				height:90%;
+				float:left;
+				overflow:auto;
+				cursor:pointer;
+			}
+			#webrtclog::-webkit-scrollbar {
+				display:none;
+			}
+			.logdiv {
+				width:90%;
+				padding:0 5%;
+				margin:15% 0%;
+				font-size:.7em;
+			}
+			#mentorvideobox, #menteevideobox {
+				width:45%;
+				height:90%;
+				float:left;
+
+			}
+			#videobox div video{
+				width:100%;
+				height:100%;
+				//object-fit:cover;
+			}
+			#rankcall {
+				width:100%;
+				height:100%;
+				position:absolute;
+				top:0;
+				left:0;
+				z-index:2;
+				background-color:#aaaaaa;
+			}
+			#container1 {
+				width:100%;
+				height:100%;
+				position:absolute;
+				top:0;
+				left:0;
+				z-index:3;
+				background-color:yellow;
+				
+			}
+			#ranknavidiv {
+				width:70%;
+				float:left;
+				height:100%;
+			}
+			#chosendisplay {
+				width:10%;
+				height:100%;
+				float:left;
+				background-color:#cccccc;
+				overflow:hidden;
+			}
+
+			#fcpt {
+				width:20%;
+				float:left;
+				height:100%;
+				background-color:#aaaaaa;
+				overflow:auto;
+			}
+			#setdiv {
+				width:30%;
+				height:100%;
+				float:left;
+				overflow:auto;	
+
+			}
+			#r1set{
+				width:100%;
+				font-size:.8em;
+			}
+			#r2set {
+				font-size:.5em;
+				width:100%;
+			}
+			#cptprblistdiv {
+				width:70%;
+				height:100%;
+				float:left;
+				overflow:auto;
+			}
+
+		
+			#cptprblistdiv div:hover {
+				cursor:pointer;
+
+			}
+			.r2div:hover {
+				cursor:pointer;
+				color:white;
+				background-color:purple;
+			}
+			.r1div:hover {
+				cursor:pointer;
+				color:white;
+				background-color:purple;
+
+			}
+			.cptprbdivmultiple {
+				width:90%;
+				padding:0 5%;
+			}
+			.prblistset {
+				width:100%;
+				background-color:#aaaaaa;
+				margin:5% 0;
+				padding:2.5% 0 0 0;
+				border-top:1px solid black;	
+				border-bottom:1px solid black;	
+			}
+
+			.cptprbdivprb {
+				width:90%;
+				padding:0 5%;
+			}
+
+			.cptprbpicdiv {
+				width:50%;
+				padding:0 25%;
+			}
+			.cptprbpicdiv img {
+				width:100%;
+			}
+			.fcptdiv {
+				margin:2% 0;
+				border:1px red solid;
+			}
+			.fcptdiv div:hover {
+				cursor:pointer;
+			}
+			.chosendisplaydiv {
+				margin:2% 0;
+				border:1px black dotted;
+			}
+			.pdiv {
+				margin:2% 0;
+				border:1px black dotted;
+			}
+			#speaktouser {
+				width:20%;
+				height:20%;
+			}
+			#rankcalldiv {
+				width:100%;
+				height:20%;
+			}
+			#webrtcstart {
+				background-color:red;
+			}
+			.wwpicimg {
+				width:100%;
+				height:20%;
+			}
+			.wwpicimg img {
+				width:100%;
+			}
+			#userreload {
+				float:right;
+				width:10%;
+				height:10%;
+			}
+
+			.r2div {
+				width:100%;
+				overflow:hidden;	
+			}
+			.tempr1set {
+				padding:5% 0 5% 6%;
+				background-color:#9987a3;
+			}
+
+			.r2divadiv {
+				width:80%;
+				float:left;
+				
+			}
+
+			.r2resultdisplaydiv {
+				width:20%;
+				//padding:0 0 0 80%;	
+				float:left;
+				text-align:center;
+			}
+			.r2resultdisplaydiv div {
+				width:33.3%;
+				float:left;
+			}
+			.r1div {
+				width:100%;
+				overflow:hidden;
+			}
+			.r1divadiv{
+				width:80%;
+				float:left;
+			}
+			.r1resultdisplaydiv {
+				width:20%;
+				float:left;
+				text-align:center;
+			}
+			.r1resultdisplaydiv div {
+				width:25%;
+				float:left;
+			}
+			.wrsscount {
+				background-color:blue;
+				color:white;
+			}
+			.hwcount {
+				background-color:red;
+				color:white;
+			}
+			.glcount {
+				background-color:yellow;
+				color:black;
+			}
+
+			.inscount {
+				background-color:#7af0ed;
+				color:black;
+			}
+
+			.prbresultdisplaydiv {
+				width:100%;
+				height:3%;
+			}
+			.wrssprb {
+				width:25%;
+				height:30%;
+				float:left;
+				
+			}
+			.hwprb {
+				width:25%;
+				height:30%;
+				float:left;
+				
+			}
+			.glprb {
+				width:25%;
+				height:30%;
+				float:left;
+				
+			}
+
+			.insprb {
+				width:25%;
+				height:30%;
+				float:left;
+				
+			}
+
+
+
+			.displaypic {
+			}
+			.displaypic div {
+				width:100%;
+				margin:2% 0;
+			}
+
+			.displaypic div img {
+				width:100%;
+			}
+			.rddperiod, #userlistdiv {
+				cursor:pointer;
+			}
+
+			buttondiv button {
+				float:left;
+			}
+			#chosendisplay div {
+				cursor:pointer;	
+			}
+
+	body
+
+		div(id='container1')
+			div(id='userscreens')
+				div(id='user1')
+					canvas(id='wrssuser1mypics')
+					div(id='wrssuser1backdiv')
+			div(id='monitoringprbdiv')
+				div(id='displayedprb')
+				div(id='monitoringprb')
+			div(id='userwrsswriting')
+							
+			div(id='rankcalldiv')
+				div
+					button(onclick='IGVcontrol(1)') IGVon
+					button(onclick='IGVcontrol(0)') IGVoff
+					input(type='text' id='sendnum') 
+					button(onclick='turnpagetoNumber()') Turn to Page
+					button(onclick='wrssSharescreeninfo();') Share User Writing
+					button(onclick='pageStart();') Communication Start
+				div
+					button(onclick='webRTCcomm("connect");' id='speaktouser') WebRTC SpeakToUser
+					button(onclick='webRTCcomm("disconnect")') WebRTC All stop
+					//button(onclick='webRTCcomm("pcobjectreload")') WebRTC PC Object reload
+					button(onclick='webRTCcomm("reload")', id='userreload') WebRTC UserReload
+				div
+					button(onclick='mentorLevelControl(0)') Level Down
+					button(onclick='mentorLevelControl(1)') Level Up
+
+				div
+					audio(id='sound1' src='/sounds/beep-07.mp3' autoplay='false')
+
+
+		
+		div(id='rankcall')
+
+			div(id='ranknavidiv')
+	
+				div(id='setdiv')
+					div(id='buttondiv')
+						button(onclick='rankCall();')  RankCall
+						button(onclick='collectAndCreate()') Collect And Create
+						button(onclick='instantPrb()') InstantPrb
+						button(onclick='resultDisplay(2)') 2
+						button(onclick='resultDisplay(5)') 5
+						button(onclick='resultDisplay(7)') 7
+						button(onclick='resultDisplay(15)') 15
+						button(onclick='resultDisplay(30)') 30
+						button(onclick='resultDisplay(10000)') 10000
+
+					div(id='r2set')
+					div(id='r1set')
+				div(id='cptprblistdiv')
+			div(id='chosendisplay')
+			div(id='fcpt')
+				div(id='fcptlistdiv')
+		div(id='webrtcdiv')
+			div(id='webrtcbuttonbar')
+				//button(onclick='everythingReady()') Check audio, video Ready
+				//button(onclick='webRTCcomm("connect");') WebRTC SpeakToUser
+				button(onclick='webRTCconnect(0);') WebRTC connect Both Audio Only
+				button(onclick='webRTCconnect(1);') WebRTC connect Mentor Cam only
+				button(onclick='webRTCcomm("disconnect")') WebRTC All stop
+				button(onclick='webRTCcomm("pcobjectreload")') Mentee RTCGo restart
+				button(onclick='webRTCcomm("reload")') WebRTC UserReload
+
+			div(id='videobox')
+				div(id='mentorvideobox')
+					video(id='mentorvideo' autoplay  playsinline controls='false' muted)
+				div(id='webrtclog' onclick='getWebRTClog()')
+					
+				div(id='menteevideobox')
+					video(id='menteevideo' autoplay  playsinline controls='false')
+			div(id='switchbox')
+					
+
+
+		script.
+			var socket = io('/vdrg');
+
+
+			var userinfo={username:'#{username}', socketid:''};
+			var mentor={mentorid:'#{mentorid}',mentorsocketid:''};
+			//var mentorid='#{mentorid}';
+
+			socket.on('connect',()=>{
+				socket.emit('vdrgsocketidregister',{socketid:socket.id,username:userinfo.username, mentorid:mentor.mentorid,position:3});
+				socket.emit('fortabletreport',{a:'connect '+socket.id,username:'wrss-'+mentor.mentorid,modecheck:'socketcheck'});
+				document.getElementsByTagName('title')[0].innerHTML='WRSS mentor ('+userinfo.username+')';
+
+			});
+
+
+		
+
+			socket.on('callwrsswritingpicafter',function(a){
+				removeallele('userwrsswriting');
+				var userwwpic=document.getElementById('userwrsswriting')
+
+
+				for(var ia=a.wwpic.length-1; ia>=0; ia--){
+					var fdiv=document.createElement('div');
+					fdiv.onclick=function(j,o){
+						return function(){
+							var sharebox=document.createElement('div');
+							var color=['black','white']
+							var duration=5000;
+							sharebox.setAttribute("style","position:fixed;z-index:20;top:10%;left:35%;background-color:"+color[0]+";padding:5% 10%;color:"+color[1]+";");
+							var tdiv=document.createElement('div');
+							tdiv.innerHTML='share';
+							tdiv.onclick=function(k,l,m,oo){
+								return function(){
+									socket.emit('vdrgsharehomework',{menteesocketid:k,mentorsocketid:l,userfile:m,auxaddr:'/wrsswritingpic/',username:userinfo.username,prbid:oo});
+									mentorLevelControl(1);
+								}
+							}(userinfo.socketid,mentor.mentorsocketid,j,o);
+							sharebox.appendChild(tdiv);
+							document.body.appendChild(sharebox);
+							setTimeout(function(){
+								sharebox.parentNode.removeChild(sharebox);
+							},duration);
+						}
+
+					}(a.wwpic[ia].mpicid,a.wwpic[ia].prbid);
+					fdiv.className='wwpicimg'
+					var fimg=document.createElement('img');
+					fimg.src='/usernote/wrsswritingpic/'+a.wwpic[ia].mpicid;
+					fdiv.appendChild(fimg);
+					userwwpic.appendChild(fdiv);
+				}
+			});
+
+			callWrsswriting();
+			function callWrsswriting(){
+				socket.emit('callwrsswritingpic',{username:userinfo.username})
+			}	
+
+
+			function mentorLevelControl(opt){
+				if(opt==0){
+					socket.emit('vdrgmentorlevelcontrol',{levelstatus:'off',usersocketid:userinfo.socketid});
+				}else{
+					socket.emit('vdrgmentorlevelcontrol',{levelstatus:'up',usersocketid:userinfo.socketid});
+				}
+			}
+
+			var switchnum=2;
+			floatingElement(switchnum%3);
+			document.onkeydown = function(e){
+				if(e.shiftKey && e.which==70){
+					
+					switchnum+=1;
+					floatingElement(switchnum%3);
+				}
+			}
+
+
+
+			function floatingElement(ele){
+				var container1=document.getElementById('container1');
+				var rankcall=document.getElementById('rankcall');
+				var webrtcdiv=document.getElementById('webrtcdiv');
+
+				if(ele==0){//userscreen floating
+					rankcall.style.zIndex=1;
+					webrtcdiv.style.zIndex=2;
+					container1.style.zIndex=3;
+				
+				}else if(ele==1){//rankcallfloating
+					rankcall.style.zIndex=3;
+					container1.style.zIndex=1;
+					webrtcdiv.style.zIndex=2;
+
+				}else if(ele==2){//webrtcfloating
+					rankcall.style.zIndex=2;
+					container1.style.zIndex=1;
+					webrtcdiv.style.zIndex=3;
+
+				}
+			}
+
+			function wrssSharescreeninfo(){
+				socket.emit('wrssaskscreeninfo',{menteesocketid:userinfo.socketid,username:userinfo.username});
+			}
+
+			function tempAlert(msg,duration,color){
+				var el = document.createElement("div");
+				el.setAttribute("style","position:absolute;z-index:20;top:10%;left:35%;background-color:"+color[0]+";padding:5% 10%;color:"+color[1]+";");
+				el.innerHTML = msg;
+				setTimeout(function(){
+					el.parentNode.removeChild(el);
+				},duration);
+				document.body.appendChild(el);
+			}
+
+
+
+
+			function showresultprb(username){
+				//if(username!=''){
+
+					var prblist=[];
+					var resultlist=[];
+
+
+					for(var ib=0; ib<userstory.srt.length; ib++){
+						prblist.push(userstory.srt[ib][0]);
+						resultlist.push(userstory.srt[ib][1]);
+					}
+
+
+					var mprbnum=document.getElementById('monitoringprb').childElementCount;
+					if(mprbnum!=prblist.length){
+						socket.emit('monitoringprbresult',{plist:prblist,rlist:resultlist});
+					}
+
+				//}
+
+				
+
+			}
+
+
+			function updateUserrecord(){
+
+				var userlistdiv=document.getElementById('userlistdiv');
+				removeallele('userlistdiv');
+
+				for(var ia=0; ia<userstory.length; ia++){
+
+
+					var username=userstory[ia].username;
+
+					var userdiv=document.createElement('div');
+					userdiv.className='userdiv';
+					userdiv.id=username+'div';
+					var usernamediv=document.createElement('div');
+					usernamediv.onclick=function(i){
+						return function(){
+							displayusername=i;
+							putColoron('userdiv',i+'div',['#33fff3','#333333'])
+						}
+					}(username);
+					usernamediv.className='usernamediv';
+					var usernamediva=document.createElement('a');
+					usernamediva.innerHTML=username;
+					usernamediv.appendChild(usernamediva);
+					userdiv.appendChild(usernamediv);
+
+
+					var stadiv=document.createElement('div');
+					stadiv.className='stadiv';
+					userdiv.appendChild(stadiv);
+
+					for(var ic=0; ic<5; ic++){
+						var stastar=document.createElement('div');
+						stastar.innerHTML='&#9956';
+						stastar.className='stastar';
+						stadiv.appendChild(stastar);
+				
+						if(ic<userstory[ia].numsta.length){
+							stastar.style.backgroundColor='blue';
+							stastar.style.color='white';
+						}
+					}
+
+
+					// slotlist display ika
+					var slotlistbox=document.createElement('div');
+					slotlistbox.className='slotlistbox';
+
+
+					var uprbnum;
+					//find user
+					for(var ic=0; ic<pnum.length; ic++){
+						if(userstory[ia].username==pnum[ic].username){
+							uprbnum=pnum[ic].prbnum;
+						}
+					}	
+
+
+					for(var ib=0; ib<uprbnum.length; ib++){
+						var slotbox=document.createElement('div');
+						slotbox.className='slotbox';
+
+
+						var iprblist=[];
+						var iresultlist=[];
+						for(var ic=0; ic<userstory[ia].ika[ib][2].length; ic++){
+							iprblist.push(userstory[ia].ika[ib][2][ic][1]);
+							iresultlist.push(-1);
+							//iresultlist.push(userstory[ia].prbsolve[ib][2][ic][0]);
+						}
+
+						slotbox.onclick=function(i,k){
+							return function(){
+								//showresultprbOfBox(i,k);
+							}
+						}(iprblist,iresultlist)
+
+
+
+						var slotboxin=document.createElement('div');
+						slotboxin.className='slotboxin';
+						slotbox.appendChild(slotboxin);
+						slotlistbox.appendChild(slotbox);	
+
+						if(userstory[ia].ika[ib][1]!=0){
+							slotbox.style.backgroundColor='red';
+							slotboxin.innerHTML=userstory[ia].ika[ib][1]+'/'+userstory[ia].ika[ib][0];
+							slotbox.style.color='white';
+						}else{
+							slotboxin.innerHTML=userstory[ia].ika[ib][0];
+						}
+					}
+					userdiv.appendChild(slotlistbox);
+
+					// prbsolve
+					var prbsolvelistbox=document.createElement('div');
+					prbsolvelistbox.className='prbsolvelistbox';
+					for(var ib=0; ib<uprbnum.length; ib++){
+
+						var prblist=[];
+						var resultlist=[];
+
+
+						for(var ic=0; ic<userstory[ia].ika[ib][2].length; ic++){
+							prblist.push(userstory[ia].ika[ib][2][ic][1]);
+							resultlist.push(-1);
+						}
+
+
+
+
+						for(var ic=0; ic<userstory[ia].prbsolve[ib][2].length; ic++){
+							prblist.push(userstory[ia].prbsolve[ib][2][ic][1]);
+							resultlist.push(userstory[ia].prbsolve[ib][2][ic][0]);
+						}
+
+
+
+						var prbsolvebox=document.createElement('div');
+						prbsolvebox.className='prbsolvebox';
+						prbsolvebox.onclick=function(i,k){
+							return function(){
+								showresultprbOfBox(i,k);
+							}
+						}(prblist,resultlist)
+						var prbsolveboxin=document.createElement('div');
+						prbsolveboxin.className='prbsolveboxin';
+						prbsolvebox.appendChild(prbsolveboxin);
+						prbsolvelistbox.appendChild(prbsolvebox);	
+
+
+						if(userstory[ia].prbsolve[ib][1]!=0){
+							prbsolvebox.style.backgroundColor='green';
+							prbsolveboxin.innerHTML=userstory[ia].prbsolve[ib][1]+'/'+userstory[ia].prbsolve[ib][0];
+							prbsolvebox.style.color='white';
+						}else{
+							prbsolveboxin.innerHTML=userstory[ia].prbsolve[ib][0];
+						}
+					}
+					userdiv.appendChild(prbsolvelistbox);
+
+				
+					userlistdiv.appendChild(userdiv);
+				}
+					if(displayusername!=''){		
+						putColoron('userdiv',displayusername+'div',['#33fff3','#333333'])
+					}
+			}
+
+
+
+
+			var hourTime=5;
+			function calcProgress(uhistory,hourTime,opt){
+				var numikaset=[];
+				var mst=Date.parse(uhistory.servertime);
+				var bettime=1000*60*60*hourTime;
+				if(opt=='ika'){
+					for(var ia=0; ia<uhistory.rdcthis.length; ia++){
+
+
+						if(uhistory.rdcthis[ia].hisopt=='iknowitalready' && (mst-bettime)<Date.parse(uhistory.rdcthis[ia].createdate) && uhistory.rdcthis[ia].username==userstory[uidx].username){
+							numikaset.push([uhistory.rdcthis[ia].rconnum,uhistory.rdcthis[ia].prbid]);
+						}
+					}
+
+					var uprbnum;
+					//find user
+					for(var ic=0; ic<pnum.length; ic++){
+						if(userstory[uidx].username==pnum[ic].username){
+							uprbnum=pnum[ic].prbnum;
+							break;
+						}
+					}	
+
+
+					var rcika=[];
+					for(var ia=0; ia<uprbnum.length; ia++){
+						rcika[ia]=[uprbnum[ia][0].split(',').length,0,[]];
+						for(var ib=0; ib<numikaset.length; ib++){
+
+							var chk=0;					
+							var plist=uprbnum[ia][0].split(',');
+							for(var ic=0; ic<plist.length; ic++){
+								if(plist[ic]==numikaset[ib][1]){
+									chk=1;
+									break;
+								}
+							}
+							if(chk==1){
+								rcika[ia][1]+=1;
+								rcika[ia][2].unshift([numikaset[ib][0],numikaset[ib][1]]);
+						
+							}
+						}
+					}					
+
+					userstory[uidx].ika=rcika;
+				}else if(opt=='solvedprb'){
+					var allowednumprbset=[];
+					for(var ia=0; ia<uhistory.rdcthis.length; ia++){
+						if((mst-bettime) < Date.parse(uhistory.rdcthis[ia].createdate) && uhistory.rdcthis[ia].hisopt=='prbsolve' && uhistory.rdcthis[ia].username==userstory[uidx].username){
+							allowednumprbset.push([uhistory.rdcthis[ia].resultcode,uhistory.rdcthis[ia].prbid]);
+						}
+					}
+
+					var uprbnum;
+					//find user
+					for(var ic=0; ic<pnum.length; ic++){
+						if(userstory[uidx].username==pnum[ic].username){
+							uprbnum=pnum[ic].prbnum;
+							break;
+						}
+					}	
+
+
+
+					var solvedprbset=[];
+					for(var ia=0; ia<uprbnum.length; ia++){
+						solvedprbset[ia]=[uprbnum[ia][0].split(',').length,0,[]];
+						for(var ib=0; ib<allowednumprbset.length; ib++){
+		
+							var chk=0;					
+							var plist=uprbnum[ia][0].split(',');
+							for(var ic=0; ic<plist.length; ic++){
+								if(plist[ic]==allowednumprbset[ib][1]){
+									chk=1;
+									break;
+								}
+							}
+							if(chk==1){
+								solvedprbset[ia][1]+=1;
+								solvedprbset[ia][2].unshift([allowednumprbset[ib][0],allowednumprbset[ib][1]])
+						
+							}
+						}
+					}
+
+					userstory[uidx].prbsolve=solvedprbset;
+					
+				}else if(opt=='sta'){
+					var numsta=[];
+					var indsta=[];
+					for(var ia=0; ia<uhistory.rdcthis.length; ia++){
+						if((uhistory.rdcthis[ia].hisopt=='savetoask' || uhistory.rdcthis[ia].hisopt=='rmsavetoask' || uhistory.rdcthis[ia].hisopt=='mrmsavetoask' ) && uhistory.rdcthis[ia].username==userstory[uidx].username){
+
+
+
+							var chk=0;
+							for(var ib=0; ib<indsta.length; ib++){
+								if(indsta[ib]==uhistory.rdcthis[ia].prbid){
+									chk=1;
+									break;
+								}
+							}
+							if(chk==0){
+								indsta.push(uhistory.rdcthis[ia].prbid)
+							}
+						
+						}
+					}
+
+
+
+						var stalist=[];
+						for(var ia=0; ia<indsta.length; ia++){
+							var numsta=0;
+
+							for(var ib=0; ib<uhistory.rdcthis.length; ib++){
+								if((uhistory.rdcthis[ib].hisopt=='savetoask' || uhistory.rdcthis[ib].hisopt=='rmsavetoask' || uhistory.rdcthis[ib].hisopt=='mrmsavetoask' ) && uhistory.rdcthis[ib].username==userstory[uidx].username){
+									if(uhistory.rdcthis[ib].prbid==indsta[ia]){
+										numsta+=1;
+									}
+
+								}
+							}
+
+
+							if(numsta%2==1){
+								stalist.push(indsta[ia])
+							}
+						}
+
+
+
+
+					userstory[uidx].numsta=stalist;
+				}else if(opt='srt'){
+					var srt=[];
+					for(var ia=0; ia<uhistory.rdcthis.length; ia++){
+
+						if((mst-bettime)<Date.parse(uhistory.rdcthis[ia].createdate) && uhistory.rdcthis[ia].username==userstory.username){
+							//numikaset.push([uhistory.rdcthis[ia].rconnum,uhistory.rdcthis[ia].prbid]);
+							if(uhistory.rdcthis[ia].hisopt=='iknowitalready'){
+								srt.unshift([uhistory.rdcthis[ia].prbid,-1])	
+							}else if(uhistory.rdcthis[ia].hisopt=='prbsolve'){
+								srt.unshift([uhistory.rdcthis[ia].prbid,uhistory.rdcthis[ia].resultcode])	
+							}else if(uhistory.rdcthis[ia].hisopt=='savetoask'){
+								srt.unshift([uhistory.rdcthis[ia].prbid,-2])	
+							}
+						}
+					}
+					userstory.srt=srt;
+
+				}
+			}
+
+
+
+
+			var userstory={username:userinfo.username};
+			socket.on('wrssmonitorfromservertomentor',function(a){
+				//for(var ia=0; ia<userstory.length; ia++){
+					//if(userstory[ia].username==a.username){
+						//iknowitalready
+						//calcProgress(a,ia,hourTime,'ika')
+
+						//solved problem within time
+						//calcProgress(a,ia,hourTime,'solvedprb')
+
+						//number of save to ask
+						//calcProgress(a,ia,hourTime,'sta')
+
+						//prblist result with series time; srt
+						calcProgress(a,hourTime,'srt');
+
+					//}
+				//}
+
+
+				//updateUserrecord();		
+				showresultprb(userinfo.username);	
+							
+			});
+
+
+
+			function showresultprbOfBox(plist,rlist){
+				socket.emit('monitoringprbresult',{plist:plist,rlist:rlist});
+			}
+
+
+			socket.on('monitoringprbresultafter',function(a){
+				
+				const date= new Date();
+				const ctime=date.getHours()+':'+date.getMinutes()+':'+date.getSeconds();
+
+				var sound=document.getElementById('sound1');
+				sound.play();
+
+				tempAlert('updated:'+ctime,3000,['blue','white'])
+				removeallele('monitoringprb');
+				var rset=[];
+				for(var ia=0; ia<a.plist.length; ia++){
+					rset[ia]=[a.plist[ia],a.rlist[ia]]
+				}
+
+
+				//console.log(rset);
+				var mprb=document.getElementById('monitoringprb');
+				for(var ia=0; ia<rset.length; ia++){
+					var fdiv=document.createElement('div');
+
+					
+					fdiv.onclick=function(j){
+						return function(){
+							var sharebox=document.createElement('div');
+							var color=['black','white']
+							var duration=5000;
+							sharebox.setAttribute("style","position:fixed;z-index:20;top:10%;left:35%;background-color:"+color[0]+";padding:5% 10%;color:"+color[1]+";");
+							var tdiv=document.createElement('div');
+							tdiv.innerHTML='share';
+							tdiv.onclick=function(k,l,m){
+								return function(){
+									socket.emit('vdrgsharehomework',{menteesocketid:k,mentorsocketid:l,userfile:m,auxaddr:'/wrsswritingpic/',username:userinfo.username,mode:'shareprb',prbid:j});
+									mentorLevelControl(1);
+								}
+							}(userinfo.socketid,mentor.mentorsocketid,j);
+							sharebox.appendChild(tdiv);
+							document.body.appendChild(sharebox);
+							setTimeout(function(){
+								sharebox.parentNode.removeChild(sharebox);
+							},duration);
+						}
+
+					}(rset[ia][0][0]);
+
+
+
+					fdiv.className='mprbdiv';
+					var fdiva=document.createElement('a');
+					fdiva.innerHTML=rset[ia][0][1];
+					fdiv.appendChild(fdiva);
+
+					if(rset[ia][0][8]!=null){
+						var imgdiv=document.createElement('div');
+						imgdiv.className='imgdiv';
+						var imgel=document.createElement('img');
+						imgel.src=rset[ia][0][8];
+						imgdiv.appendChild(imgel);
+						fdiv.appendChild(imgdiv);
+					}
+
+					var multipdiv=document.createElement('div');	
+					var multi1=document.createElement('div');
+					var multi1el=document.createElement('a');
+					multi1el.innerHTML=rset[ia][0][4];
+					multi1.appendChild(multi1el);
+					multipdiv.appendChild(multi1);
+
+					var multi2=document.createElement('div');
+					var multi2el=document.createElement('a');
+					multi2el.innerHTML=rset[ia][0][5];
+					multi2.appendChild(multi2el);
+					multipdiv.appendChild(multi2);
+
+					var multi3=document.createElement('div');
+					var multi3el=document.createElement('a');
+					multi3el.innerHTML=rset[ia][0][6];
+					multi3.appendChild(multi3el);
+					multipdiv.appendChild(multi3);
+
+					var multiA=document.createElement('div');
+					var multiAel=document.createElement('a');
+					multiAel.innerHTML=rset[ia][0][2];
+					multiA.appendChild(multiAel);
+					multiA.className='multia';
+					multipdiv.appendChild(multiA);
+
+					fdiv.appendChild(multipdiv);
+
+					if(rset[ia][1]==1){
+						fdiv.style.backgroundColor='#06EE06';
+					}else if(rset[ia][1]==-1){
+						fdiv.style.backgroundColor='orange';
+					}else if(rset[ia][1]==-2){
+						fdiv.style.backgroundColor='blue';
+						fdiv.style.color='white';
+					}else if(rset[ia][1]==3){
+						fdiv.style.backgroundColor='#E8E52A'; // nofile state
+					}else{
+						fdiv.style.backgroundColor='red';
+					}
+					mprb.appendChild(fdiv);
+				}
+				MathJax.Hub.Queue(["Typeset",MathJax.Hub,mprb])	
+				removeallele('wrssuser1backdiv');
+				wrssuser1context.clearRect(0,0,wrssuser1canvaswidth, wrssuser1canvaswidth*gratio);
+			});
+
+
+
+			function monitoringSend(){// for future use mentorinfo in it.
+				socket.emit('wrssmonitorfrommentortoserver',{mentorinfo:[],usersocketid:userinfo.socketid})
+				callWrsswriting();
+			}
+			function pageStart(){
+				setInterval(monitoringSend,3000)
+			}
+
+
+			var onvideo=0;
+			function videoOnoff(opt){
+				if(opt==0){ //video is off
+					onvideo=0;
+				}else if(opt==1){//video is on
+					onvideo=1;
+				}
+			}
+
+			function webRTCcomm(opt){ // opt is connect, disconnect, reload
+
+				if(opt=='connect'){
+					/*
+					stream.getTracks().forEach(track=>{
+						if(!onvideo){
+							if(track.kind == 'video'){
+								track.enabled=false;
+							}else{
+								track.enabled=true;
+							}
+							
+						}else{
+							track.enabled=true;
+						}
+					});
+					stream.getTracks().forEach(track=>{
+						if(track.kind == 'video'){
+							track.enabled=false;
+						}
+					});
+					*/
+					stream.getTracks().forEach(track=>{
+						track.enabled=true;
+					});
+
+				}else if(opt=='disconnect'){
+					stream.getTracks().forEach(track=>{
+						track.enabled=false;
+					});
+
+				}else if(opt=='reload'){
+				}
+			
+				socket.emit('wrssgetconnect',{conoption:opt,usersocketid:userinfo.socketid});
+
+			}
+
+
+			var selected_device = '';
+
+			async function selectDevices(){
+				const devices = await navigator.mediaDevices.enumerateDevices();
+
+				var webrtcbuttonbar=document.getElementById('webrtcbuttonbar');
+
+
+						/*var vc=document.getElementsByClassName('videoinput');
+						if(vc!=null){
+							for(let i of vc){	
+								i.remove();
+							}
+						}*/
+
+
+				for(let it of devices){
+
+					
+					if(it.kind=='videoinput'){
+						selected_device=it.deviceId;
+						var fdiv=document.createElement('button');
+						fdiv.innerHTML=it.label;
+						fdiv.className='videoinput';
+						webrtcbuttonbar.appendChild(fdiv);
+						fdiv.onclick=function(k){	
+							return function(){
+								selected_device=k;
+							}
+						}(it.deviceId)
+					}
+				}
+			}
+			selectDevices();
+
+
+			async function getConnectedDevices(type){
+				const devices = await navigator.mediaDevices.enumerateDevices();
+
+				/*
+				var webrtcbuttonbar=document.getElementById('webrtcbuttonbar');
+
+				for(let it of devices){
+					
+					if(it.kind=='videoinput'){
+						selected_device=it.deviceId;
+						var fdiv=document.createElement('button');
+						fdiv.innerHTML=it.label;
+						webrtcbuttonbar.appendChild(fdiv);
+						fdiv.onclick=function(k){	
+							return function(){
+								selected_device=k;
+							}
+						}(it.deviceId)
+					}
+				}*/
+
+
+
+
+				return devices.filter(device => device.kind === type);
+			}
+
+			async function everythingReady(){
+				/*
+					checklist
+						getusermedia test,
+						audio input test,
+				*/
+
+				var equipChecklist=[];
+				var msglist=[];
+
+
+				const navimedia=await navigator.mediaDevices;
+				if(navimedia !== undefined){
+					equipChecklist.push(1);
+					msglist.push('navigator.mediaDevices ok')
+	
+					
+					const audios= await getConnectedDevices('audioinput');
+					if(audios && audios.length>0){
+						equipChecklist.push(1);
+						msglist.push('audio input ok')
+					}else{
+						equipChecklist.push(0);
+						msglist.push('audio input FAILED')
+					}
+				
+					const videos= await getConnectedDevices('videoinput');
+					if(videos && videos.length>0){
+						equipChecklist.push(1);
+						msglist.push('video input ok')
+					}else{
+						equipChecklist.push(0);
+						msglist.push('video input FAILED')
+					}
+
+
+	
+				}else{
+					equipChecklist.push(0);
+					equipChecklist.push(0);
+					const msg = 'navigator.mediaDevices is not found'
+					msglist.push(msg)
+				}
+		
+
+					// 카메라와 마이크 리스트
+
+					await navigator.mediaDevices.enumerateDevices()
+						.then(function(devices) {
+							var destr='';
+							var count=0;
+							devices.forEach(function(device) {
+
+								if(count==device.length-1){
+									destr=destr+device.kind + ": " + device.label;
+								}else{
+									destr=destr+device.kind + ": " + device.label+',';
+								}
+			
+								count+=1;
+
+							});
+						
+
+							socket.emit('fortabletreport',{msglist:'Connection Process[1] - statuscheck: '+equipChecklist+', explanation: '+destr,username:userinfo.username,modecheck:'webrtc',usertype:'wrssmentor'});
+						})
+						.catch(function(err) {
+							console.log(err.name + ": " + err.message);
+							msglist.push(err.name + ": " + err.message);
+							socket.emit('fortabletreport',{msglist:'Connection Process[0.5] - statuscheck: '+equipChecklist+', explanation: '+msglist,username:userinfo.username,modecheck:'webrtc',usertype:'wrssmentor'});
+							//return {equipcheck:equipChecklist, msglist:msglist}
+
+						});
+
+	
+				return {equipcheck:equipChecklist, msglist:msglist}
+
+			}
+
+			var stream
+
+			//socket.emit('wrssgetconnect',{mentorid:mentorid, username:userinfo.username,conoption:opt,usersocketid:userinfo.socketid});
+			socket.on('wrssgetconnectwrssafter',function(){
+				stream.getTracks().forEach(track=>{
+					track.enabled=false;
+				});
+	
+			});
+
+
+
+
+		
+			async function audioConntouser(iceservers,opt){
+				const equipCheck= await everythingReady();
+
+					var destroybutton=document.getElementById('buttondis');
+					if(destroybutton !==null){
+						destroybutton.click();
+						destroybutton.remove();
+					}
+
+					var prerestartbuttondiv=document.getElementById('restartbuttondiv');
+					if(prerestartbuttondiv){
+						prerestartbuttondiv.remove();
+					}
+
+					if(opt==1 || opt==2){
+						var constraints={video:{
+									//width:1280, 
+									//height:720,
+									deviceId:{
+										exact:selected_device
+									}
+
+								},audio:true}
+					}else{
+						var constraints={video:false,audio:true}
+					}
+					navigator.mediaDevices.getUserMedia(constraints).then(async s =>{
+						socket.emit('fortabletreport',{msglist:'Connection Process[2] - Successful Mentor media play',username:userinfo.username,modecheck:'webrtc',usertype:'wrssmentor'});
+					//navigator.mediaDevices.getUserMedia(constraints).then(async stream =>{
+						stream = s;
+						const configuration = {iceServers:iceservers};
+						peerConnection = new RTCPeerConnection(configuration);
+					
+
+
+					
+						stream.getTracks().forEach(track=>{
+							/*if(!onvideo){
+								if(track.kind=='video'){
+									track.enabled=false;
+								}else{
+									track.enabled=true;
+								}
+							}else{
+								track.enabled=true;
+							}*/
+							peerConnection.addTrack(track,stream);
+						});
+
+						stream.getAudioTracks()[0].onended = function(event){
+							socket.emit('fortabletreport',{msglist:'stream - onended',username:'wrss-'+mentor.mentorid,modecheck:'webrtc',usertype:'wrssmentor'});
+						};
+
+						//videoRaising('drawdiv')
+						var mentorvideo=document.getElementById('mentorvideo');
+						mentorvideo.srcObject = stream;
+						var webrtcdiv=document.getElementById('switchbox');
+
+
+
+						mentorvideo.onloadedmetadata = function(e){
+							mentorvideo.play();		
+						}
+
+						//var callready=document.getElementById('callready');
+						var buttondiv=document.createElement('div');
+
+						var buttondis=document.createElement('button');
+						buttondis.onclick=function(i){return function(){
+							i.close();
+							//videoDown();
+						}}(peerConnection);
+						buttondis.innerHTML='disConnect';
+						buttondis.id='buttondis';
+						buttondiv.appendChild(buttondis);
+						webrtcdiv.appendChild(buttondiv);
+
+
+						var restartbuttondiv=document.createElement('div');
+						restartbuttondiv.id='restartbuttondiv';
+						var restartbutton=document.createElement('button');
+						restartbutton.innerHTML='ICE_Restart';
+						restartbutton.onclick=function(i){
+							return async function(){
+							const offer = await i.createOffer({iceRestart:true});
+							socket.emit('webrtccallertoserver',{offer:offer,usersocketid:userinfo.socketid,mentormode:'wrss',wrssmentorsocketid:socket.id});
+		
+							}
+						}(peerConnection);
+						restartbuttondiv.appendChild(restartbutton);
+						webrtcdiv.appendChild(restartbuttondiv);
+						
+
+
+						peerConnection.onconnectionstatechange=function(event){
+							switch(peerConnection.connectionState){
+								case "connected":
+									socket.emit('fortabletreport',{msglist:'onconnectionstatechange - connected',username:'wrss-'+mentor.mentorid,modecheck:'webrtc',usertype:'wrssmentor'});
+									console.log('connected');	
+									webRTCcomm('connect')
+									break;
+								case "disconnected":
+									socket.emit('fortabletreport',{msglist:'onconnectionstatechange - disconnected',username:'wrss-'+mentor.mentorid,modecheck:'webrtc',usertype:'wrssmentor'});
+									console.log('disconnected')	
+									break;
+								case "new":
+									socket.emit('fortabletreport',{msglist:'onconnectionstatechange - new',username:'wrss-'+mentor.mentorid,modecheck:'webrtc',usertype:'wrssmentor'});
+									console.log('new');
+									break;
+								case "checking":
+									socket.emit('fortabletreport',{msglist:'onconnectionstatechange - checking',username:'wrss-'+mentor.mentorid,modecheck:'webrtc',usertype:'wrssmentor'});
+									console.log('checking');	
+									break;
+								case "completed":
+									socket.emit('fortabletreport',{msglist:'onconnectionstatechange - completed',username:'wrss-'+mentor.mentorid,modecheck:'webrtc',usertype:'wrssmentor'});
+									console.log('completed');
+									break;
+								case "closed":	
+									socket.emit('fortabletreport',{msglist:'onconnectionstatechange - closed',username:'wrss-'+mentor.mentorid,modecheck:'webrtc',usertype:'wrssmentor'});
+									console.log('closed');
+									break;
+								case "failed":
+									socket.emit('fortabletreport',{msglist:'onconnectionstatechange - failed',username:'wrss-'+mentor.mentorid,modecheck:'webrtc',usertype:'wrssmentor'});
+									console.log('failed');
+							
+									break;
+								
+								
+							}
+						}
+
+
+						const offer = await peerConnection.createOffer({iceRestart:true});
+						socket.emit('fortabletreport',{msglist:'Connection Process[3] - Mentor offer created',username:userinfo.username,modecheck:'webrtc',usertype:'wrssmentor'});
+						//const offer = await peerConnection.createOffer();
+						await peerConnection.setLocalDescription(offer);
+						socket.emit('webrtccallertoserver',{offer:offer,usersocketid:userinfo.socketid,mentormode:'wrss',wrssmentorsocketid:socket.id,username:userinfo.username});
+						socket.emit('fortabletreport',{msglist:'Connection Process[4] - Mentor Offer Setted and Sended to Mentee',username:userinfo.username,modecheck:'webrtc',usertype:'wrssmentor'});
+						//outoffer=offer;
+
+						socket.on('webrtcservertocaller', async message => {
+							if(message.answer){
+								//const remoteDesc = new RTCSessionDescription(message.answer);
+								socket.emit('fortabletreport',{msglist:'Connection Process[5] - Mentee Offer Arrived',username:userinfo.username,modecheck:'webrtc',usertype:'wrssmentor'});
+								await peerConnection.setRemoteDescription(message.answer)
+								socket.emit('fortabletreport',{msglist:'Connection Process[6] - Mentee Offer Setted',username:userinfo.username,modecheck:'webrtc',usertype:'wrssmentor'});
+							}
+						});	
+
+
+
+						peerConnection.onicecandidate = (e) => {	
+							console.log('Mentor onicecandidate - e.candidate');
+							socket.emit('webrtctoservernewicecandidate',{destination:'toresponder',newicecandidate:e.candidate,usersocketid:userinfo.socketid,mentormode:'wrss',wrssmentorsocketid:socket.id});
+							socket.emit('fortabletreport',{msglist:'Connection Process[7] - ICE Exchange',username:userinfo.username,modecheck:'webrtc',usertype:'wrssmentor'});
+						}
+
+						socket.on('webrtctocallernewicecandidate',async function(a){
+							if(a.newicecandidate){
+								await peerConnection.addIceCandidate(a.newicecandidate);
+								socket.emit('fortabletreport',{msglist:'Connection Process[8] - ICE Exchange',username:userinfo.username,modecheck:'webrtc',usertype:'wrssmentor'});
+							}
+						});
+
+						const remoteVideo = document.getElementById('menteevideo');
+						peerConnection.addEventListener('track',async (event) => {
+							remoteVideo.style.visibility='visible';
+							remoteStream.addTrack(event.track);
+							socket.emit('fortabletreport',{msglist:'Connection Process[9] - Mentee Track Arrived and Setted',username:userinfo.username,modecheck:'webrtc',usertype:'wrssmentor'});
+							remoteStream.getAudioTracks()[0].onended = function(event){
+								socket.emit('fortabletreport',{msglist:'remoteStream - onended',username:'wrss-'+mentor.mentorid,modecheck:'webrtc',usertype:'wrssmentor'});
+							};
+
+
+
+							remoteVideo.srcObject = remoteStream;
+
+						});
+
+
+					}).catch(e=> {
+					socket.emit('fortabletreport',{msglist:'Connection Process[1.5] - error Occurred and Failed at Openning Mentor Media ',username:userinfo.username,modecheck:'webrtc',usertype:'wrssmentor'});
+									
+					});
+
+	
+			}
+
+			const remoteStream = new MediaStream();
+
+
+
+
+			function getWebRTClog(){
+				socket.emit('getwebrtclog',{username:userinfo.username,mentorid:mentor.mentorid});
+			}
+			socket.on('getwebrtclogafter',function(a){
+				removeallele('webrtclog');
+				console.log(a.data);
+				tempAlert('Refreshed!',100,['white','purple'])
+				var webrtclog=document.getElementById('webrtclog');
+				for(var ia=0; ia<a.data.length; ia++){
+					var logdiv=document.createElement('div');
+					logdiv.className='logdiv';
+					var loga=document.createElement('a');
+					loga.innerHTML=a.data[ia];
+					var usertype=a.data[ia].split(":")[3].split(',')[0];
+					if(usertype==' mentee'){
+						logdiv.style.backgroundColor='#63ef32';
+					}
+					logdiv.appendChild(loga);
+					webrtclog.appendChild(logdiv);
+				}
+			});
+
+			function webRTCconnect(opt){
+				 socket.emit('vdrggetusersocketid',{opt:opt});
+				
+			}
+			
+
+			socket.on('vdrggetusersocketidafter',function(a){
+				audioConntouser(a.iceservers,a.opt);
+				getWebRTClog();
+			});
+
+
+			socket.on('vdrgreregistrationservicecheck',function(a){
+				/*
+				for(var ia=0; ia<a.userlist.length; ia++){
+					if(a.userlist[ia].connectionstate==1 && a.userlist[ia].username==userinfo.username){
+						userinfo.socketid=a.userlist[ia].menteesocketid;
+					}
+				}*/
+				console.log(a);
+
+
+				mentor.mentorsocketid=a.mentorsocketid;
+				userinfo.socketid=a.menteesocketid;
+				socket.emit('vdrgreregistrationserviceresponse',{socketid:socket.id,username:userinfo.username,mentorid:mentor.mentorid,position:'wrssmentor'});
+
+			});
+
+
+			function IGVcontrol(opt){
+				socket.emit('wrssigvcontrol',{menteesocketid:userinfo.socketid, igvcontrol:opt});
+			}
+
+			function instantPrb(){
+				var fslotlist=[];
+			
+				for(var ia=0; ia<fcptlist.length; ia++){
+					var pstr='';
+					for(var ib=0; ib<fcptlist[ia].prblist.length; ib++){
+						if(fcptlist[ia].prblist.length-1!=ib){
+							pstr=pstr+fcptlist[ia].prblist[ib][0]+',';
+						}else{
+							pstr=pstr+fcptlist[ia].prblist[ib][0];
+						}
+				
+					}
+					fslotlist[ia]=['','','','',fcptlist[ia].fcptname,'',pstr];
+				}
+	
+
+				socket.emit('callmyrcon',{slotlist:fslotlist,state:'instantprb',username:userinfo.username,menteesocketid:userinfo.socketid,mentorid:mentor.mentorid});
+			}
+
+
+			var gratio=.61804;
+			var wrssuser1canvasbox = document.getElementById('user1');
+			var wrssuser1tmpwidth=wrssuser1canvasbox.clientWidth;
+			var wrssuser1tmpheight=wrssuser1tmpwidth*gratio;
+
+			if(wrssuser1tmpheight>wrssuser1canvasbox.clientHeight){
+				var wrssuser1canvaswidth=wrssuser1canvasbox.clientHeight/gratio;
+			}else{
+				var wrssuser1canvaswidth=wrssuser1canvasbox.clientWidth;
+			}
+
+			var wrssuser1mypics=document.getElementById('wrssuser1mypics');
+			wrssuser1mypics.width=wrssuser1canvaswidth;
+			wrssuser1mypics.height=gratio*wrssuser1canvaswidth;
+			wrssuser1mypics.style.width=wrssuser1canvaswidth+'px';
+			wrssuser1mypics.style.height=gratio*wrssuser1canvaswidth+'px';
+				
+			const wrssuser1context = wrssuser1mypics.getContext('2d');
+
+
+			var wrssuser1stdpensize=1.5;
+			var wrssuser1apppensize=wrssuser1canvaswidth/1440;
+			var wrssuser1environdefine={background:['#336633',wrssuser1stdpensize*16,'background'],firstpen:['white',wrssuser1stdpensize,'firstpen'],secondpen:['#B43104',wrssuser1stdpensize,'secondpen'],eraser:{size:wrssuser1stdpensize*16,code:'eraser'},layer:{color:'blue',size:wrssuser1stdpensize,code:'layer'},layereraser:{size:wrssuser1stdpensize*16,code:'layereraser'}, picbackcolor:'#bbbbbb' };
+			var wrssuser1stat={color:wrssuser1environdefine.firstpen[0], size:wrssuser1environdefine.firstpen[1],code:wrssuser1environdefine.firstpen[2]};
+
+
+			//The x and y offset of the canvas from the edge of the page
+			var wrssuser1rect = wrssuser1mypics.getBoundingClientRect();
+
+			//self
+			let wrssuser1isDrawing = false;
+			let wuser1x = 0;
+			let wuser1y = 0;
+
+
+			//Add the event listeners for mousedown, mousemove, and mouseup
+			wrssuser1mypics.addEventListener('mousedown',e=>{
+				wuser1x = e.clientX-wrssuser1rect.left;
+				wuser1y = e.clientY-wrssuser1rect.top;
+				wrssuser1isDrawing = true;
+				socket.emit('wrssmentortomenteedraw',{pos:wrssconvertToratio(wuser1x,wuser1y),username:userinfo.username,mousestat:'down',sendmode:0,menteesocketid:userinfo.socketid})
+			});
+
+			wrssuser1mypics.addEventListener('mousemove',e=>{
+				if(wrssuser1isDrawing===true){
+					WRSSuser1drawLine(wrssuser1context,wuser1x,wuser1y,e.clientX-wrssuser1rect.left, e.clientY-wrssuser1rect.top,wrssuser1stat,0);
+					wuser1x = e.clientX - wrssuser1rect.left;
+					wuser1y = e.clientY - wrssuser1rect.top;
+					socket.emit('wrssmentortomenteedraw',{pos:wrssconvertToratio(wuser1x,wuser1y),username:userinfo.username,mousestat:'move',statoption:wrssuser1stat,sendmode:0,menteesocketid:userinfo.socketid})
+				}
+			});
+
+			window.addEventListener('mouseup',e => {
+				if(wrssuser1isDrawing === true){
+					WRSSuser1drawLine(wrssuser1context, wuser1x, wuser1y, e.clientX - wrssuser1rect.left, e.clientY - wrssuser1rect.top,wrssuser1stat,0);
+					wuser1x = 0;
+					wuser1y = 0;
+					wrssuser1isDrawing = false;
+				}
+			});
+
+
+
+
+
+			var touchX, touchY;
+			function getTouchPos(e) {
+				if (!e)var e = event;
+				if(e.touches) {
+					if (e.touches.length == 1) { // Only deal with one finger
+						var touch = e.touches[0]; // Get the information for finger #1
+						touchX=touch.pageX-touch.target.offsetLeft;
+						touchY=touch.pageY-touch.target.offsetTop;
+					}
+				}
+			}
+
+			function sketchpad_touchStart(){
+				getTouchPos();
+				wuser1x=touchX;
+				wuser1y=touchY;
+				WRSSuser1drawLine(wrssuser1context, wuser1x, wuser1y, touchX, touchY,wrssuser1stat,0);
+				socket.emit('wrssmentortomenteedraw',{pos:wrssconvertToratio(wuser1x,wuser1y),username:userinfo.username,mousestat:'down',sendmode:0,menteesocketid:userinfo.socketid})
+				event.preventDefault();	
+			}
+
+			function sketchpad_touchMove(e){
+				getTouchPos(e);
+				
+				WRSSuser1drawLine(wrssuser1context, wuser1x, wuser1y, touchX, touchY,wrssuser1stat,0);
+
+				wuser1x=touchX;
+				wuser1y=touchY;
+				socket.emit('wrssmentortomenteedraw',{pos:wrssconvertToratio(wuser1x,wuser1y),username:userinfo.username,mousestat:'move',statoption:wrssuser1stat,sendmode:0,menteesocketid:userinfo.socketid})
+				event.preventDefault();	
+			}
+
+			
+			wrssuser1mypics.addEventListener('touchstart',sketchpad_touchStart, false);
+			wrssuser1mypics.addEventListener('touchmove',sketchpad_touchMove,false);
+
+			/*
+
+
+			wrssuser1mypics.addEventListener('pointerdown', function(e) {
+				console.log('pointerdown')
+				wuser1x = e.clientX-wrssuser1rect.left;
+				wuser1y = e.clientY-wrssuser1rect.top;
+				wrssuser1isDrawing = true;
+				socket.emit('wrssmentortomenteedraw',{pos:wrssconvertToratio(wuser1x,wuser1y),username:userinfo.username,mousestat:'down',sendmode:0,menteesocketid:userinfo.socketid})
+
+			}, false)
+			wrssuser1mypics.addEventListener('pointermove', function(e) {
+				console.log('pointermove')
+				console.log(wrssuser1isDrawing);
+				if(wrssuser1isDrawing===true){
+					WRSSuser1drawLine(wrssuser1context,wuser1x,wuser1y,e.clientX-wrssuser1rect.left, e.clientY-wrssuser1rect.top,wrssuser1stat,0);
+					wuser1x = e.clientX - wrssuser1rect.left;
+					wuser1y = e.clientY - wrssuser1rect.top;
+					socket.emit('wrssmentortomenteedraw',{pos:wrssconvertToratio(wuser1x,wuser1y),username:userinfo.username,mousestat:'move',statoption:wrssuser1stat,sendmode:0,menteesocketid:userinfo.socketid})
+				}
+
+			}, false);
+
+			wrssuser1mypics.addEventListener('pointerup', function(e) {
+				console.log('pointerup')
+				if(wrssuser1isDrawing === true){
+					WRSSuser1drawLine(wrssuser1context, wuser1x, wuser1y, e.clientX - wrssuser1rect.left, e.clientY - wrssuser1rect.top,wrssuser1stat,0);
+					wuser1x = 0;
+					wuser1y = 0;
+					wrssuser1isDrawing = false;
+				}
+
+			}, false);
+
+
+
+			*/
+			//shsaredinputdiv
+			var wrssuser1backdiv=document.getElementById('wrssuser1backdiv');
+			wrssuser1backdiv.style.width=wrssuser1canvaswidth+'px';
+			wrssuser1backdiv.style.height=gratio*wrssuser1canvaswidth+'px';
+			wrssuser1backdiv.style.backgroundColor=wrssuser1environdefine.background[0];
+
+
+			socket.on('wrssscreenactionafter',function(a){
+				if(a.action=='eraseall'){
+					wrssuser1context.clearRect(0,0,wrssuser1canvaswidth, wrssuser1canvaswidth*gratio);
+				}
+			});
+			socket.on('wrssshareprbobjafter',function(a){
+				wrssuser1context.clearRect(0,0,wrssuser1canvaswidth, wrssuser1canvaswidth*gratio);
+				removeallele('wrssuser1backdiv');
+				var msgdiv=document.createElement('div');
+				msgdiv.id='msgdiv';
+				var msga=document.createElement('A');
+				msga.innerHTML=a.prbobj[1];
+				msga.style.color=wrssuser1environdefine.firstpen[0];
+				msgdiv.appendChild(msga);
+				wrssuser1backdiv.appendChild(msgdiv);
+
+				var fontfactor=2;
+				msga.style.fontSize=(wrssuser1canvaswidth*14/1440)*fontfactor;
+
+
+				if(a.prbobj[8]!=null){
+					var picdiv=document.createElement('div');
+					picdiv.id='wrsspicdiv';
+					var picdivimg=document.createElement('img');
+					picdivimg.src=a.prbobj[8];
+					picdiv.appendChild(picdivimg);
+					picdiv.style.padding='0 0 5% 0';
+					wrssuser1backdiv.appendChild(picdiv);
+
+					msgdiv.style.cssFloat='left';
+					picdiv.style.cssFloat='left';
+
+					msgdiv.style.width='60%';
+					picdiv.style.width='40%';
+
+					msga.style.display='inline-block';
+					msga.style.padding='5% 0 0 5%';
+				}else{
+					msgdiv.style.position='relative';
+					msgdiv.style.top='5%';
+					msgdiv.style.left='5%';
+					msgdiv.style.width='80%';
+				}
+
+				MathJax.Hub.Queue(["Typeset",MathJax.Hub,wrssuser1backdiv])	
+
+
+				var displayedprb=document.getElementById('displayedprb');
+				removeallele('displayedprb');
+				for(var ia=0; ia<a.prbcon.length; ia++){
+					var fdiv=document.createElement('div');
+					fdiv.className='mprbdiv';
+					var fdiva=document.createElement('a');
+					fdiva.innerHTML=a.prbcon[ia][1];
+					fdiv.appendChild(fdiva);
+
+					fdiv.onclick=function(j){
+						return function(){
+							var sharebox=document.createElement('div');
+							var color=['black','white']
+							var duration=5000;
+							sharebox.setAttribute("style","position:fixed;z-index:20;top:10%;left:35%;background-color:"+color[0]+";padding:5% 10%;color:"+color[1]+";");
+							var tdiv=document.createElement('div');
+							tdiv.innerHTML='share';
+							tdiv.onclick=function(k,l,m){
+								return function(){
+									socket.emit('vdrgsharehomework',{menteesocketid:k,mentorsocketid:l,userfile:m,auxaddr:'/wrsswritingpic/',username:userinfo.username,mode:'shareprb',prbid:j});
+									mentorLevelControl(1);
+								}
+							}(userinfo.socketid,mentor.mentorsocketid,j);
+							sharebox.appendChild(tdiv);
+							document.body.appendChild(sharebox);
+							setTimeout(function(){
+								sharebox.parentNode.removeChild(sharebox);
+							},duration);
+						}
+
+					}(a.prbcon[ia][0]);
+
+
+
+					if(a.prbcon[ia][8]!=null){
+						var imgdiv=document.createElement('div');
+						imgdiv.className='imgdiv';
+						var imgel=document.createElement('img');
+						imgel.src=a.prbcon[ia][8];
+						imgdiv.appendChild(imgel);
+						fdiv.appendChild(imgdiv);
+					}
+
+					var multipdiv=document.createElement('div');	
+					var multi1=document.createElement('div');
+					var multi1el=document.createElement('a');
+					multi1el.innerHTML=a.prbcon[ia][4];
+					multi1.appendChild(multi1el);
+					multipdiv.appendChild(multi1);
+
+					var multi2=document.createElement('div');
+					var multi2el=document.createElement('a');
+					multi2el.innerHTML=a.prbcon[ia][5];
+					multi2.appendChild(multi2el);
+					multipdiv.appendChild(multi2);
+
+					var multi3=document.createElement('div');
+					var multi3el=document.createElement('a');
+					multi3el.innerHTML=a.prbcon[ia][6];
+					multi3.appendChild(multi3el);
+					multipdiv.appendChild(multi3);
+
+					var multiA=document.createElement('div');
+					var multiAel=document.createElement('a');
+					multiAel.innerHTML=a.prbcon[ia][2];
+					multiA.appendChild(multiAel);
+					multiA.className='multia';
+					multipdiv.appendChild(multiA);
+
+					fdiv.appendChild(multipdiv);
+					fdiv.style.backgroundColor='#E762ED';
+
+					displayedprb.appendChild(fdiv);
+
+				}
+			
+				MathJax.Hub.Queue(["Typeset",MathJax.Hub,displayedprb])	
+
+			});
+
+
+
+
+			var puser1x=0, puser1y=0;
+			var puser2x=0, puser2y=0;
+			var puser3x=0, puser3y=0;
+
+
+			socket.on('wrsscopypicsofmentee',function(ma){
+
+
+				if(ma.username==userinfo.username){
+						var cuser1x=ma.pos[0]*(wrssuser1rect.right-wrssuser1rect.left);
+						var cuser1y=ma.pos[1]*(wrssuser1rect.bottom-wrssuser1rect.top);
+
+
+						if(ma.mousestat==='move'){
+							WRSSuser1drawLine(wrssuser1context,puser1x,puser1y, cuser1x, cuser1y,ma.statoption,1);
+							puser1x = cuser1x;
+							puser1y = cuser1y;
+						}else if(ma.mousestat==='up'){
+							WRSSuser1drawLine(wrssuser1context,puser1x,puser1y, cuser1x, cuser1y,ma.statoption,1);
+							puser1x = 0;
+							puser1y = 0;
+
+						}else if(ma.mousestat==='down'){
+							puser1x = cuser1x;
+							puser1y = cuser1y;
+						}
+
+
+
+
+				}
+
+			});
+			function removeallele(elename){
+				var ele=document.getElementById(elename)
+				while(ele.firstChild){
+					ele.removeChild(ele.firstChild);
+				}
+			}
+
+
+
+			function popupUsermode(username){
+				var usermodebox= document.createElement('div');
+				
+			}
+
+
+			function WRSSuser1drawLine(ctext,x1, y1, x2, y2,vstat,mode){
+				if(mode==0){
+					if(wrssuser1stat.code=='eraser'){	
+						ctext.beginPath();
+						ctext.globalCompositeOperation='destination-out';
+						ctext.lineWidth = wrssuser1apppensize*wrssuser1stat.size;
+						ctext.lineCap='round';
+						ctext.moveTo(x1, y1);
+						ctext.lineTo(x2, y2);
+						ctext.stroke();
+						ctext.closePath();
+
+					}else{
+						ctext.beginPath();
+						ctext.globalCompositeOperation='source-over';
+						ctext.strokeStyle = wrssuser1stat.color;	
+						ctext.lineWidth = wrssuser1apppensize*wrssuser1stat.size;
+						ctext.lineCap='round';
+						ctext.moveTo(x1, y1);
+						ctext.lineTo(x2, y2);
+						ctext.stroke();
+						ctext.closePath();
+
+					}
+				}else if(mode==1){
+					if(vstat.code=='eraser'){	
+						ctext.beginPath();
+						ctext.globalCompositeOperation='destination-out';
+						ctext.lineWidth = wrssuser1apppensize*vstat.size;
+						ctext.lineCap='round';
+						ctext.moveTo(x1, y1);
+						ctext.lineTo(x2, y2);
+						ctext.stroke();
+						ctext.closePath();
+
+					}else{
+						ctext.beginPath();
+						ctext.globalCompositeOperation='source-over';
+						ctext.strokeStyle = wrssuser1stat.color;	
+						ctext.lineWidth = wrssuser1apppensize*vstat.size;
+						ctext.lineCap='round';
+						ctext.moveTo(x1, y1);
+						ctext.lineTo(x2, y2);
+						ctext.stroke();
+						ctext.closePath();
+
+					}
+
+				}
+			}
+
+
+
+			socket.on('wrsssendscreeninfoafter',function(a){
+				const r=wrssuser1canvaswidth/a.imgobj.width;
+				wrssuser1context.clearRect(0,0,wrssuser1canvaswidth, wrssuser1canvaswidth*gratio);
+
+				var width=a.imgobj.width;
+				var height=a.imgobj.height;
+				var buffer = new Uint8ClampedArray(Math.floor(wrssuser1canvaswidth)*Math.floor(wrssuser1canvaswidth*gratio)*4);
+			
+				for(var ia=0; ia<a.imgobj.imgsupp.length; ia++){
+					var qpos=a.imgobj.imgsupp[ia][0]/4;
+					//extract x,y
+					var tx=qpos%a.imgobj.width;
+					var ty= (qpos-tx)/a.imgobj.width;
+					var nx=tx*r;
+					var ny=ty*r;
+					WRSSuser1drawLine(wrssuser1context,nx,ny,nx,ny,wrssuser1stat,0);
+				}
+
+
+
+			});
+			function wrssconvertToratio(rx, ry){
+				var canvaswt=wrssuser1rect.right-wrssuser1rect.left;
+				var canvashg=wrssuser1rect.bottom-wrssuser1rect.top;
+				var nx=rx/canvaswt;
+				var ny=ry/canvashg;
+				
+				return [nx,ny];
+			}
+
+
+			socket.on('rankcallafter',function(a){
+				removeallele('r2set');
+				var r2setdiv = document.getElementById('r2set');
+			
+				var indr2set=[];
+				for(var ia=0; ia<a.a.length; ia++){
+					var chk=0;
+					for(var ib=0; ib<indr2set.length; ib++){
+						if(indr2set[ib][0]==a.a[ia].parentcol){
+							chk=1;
+							break;
+						}
+					}	
+					if(chk==0){
+						indr2set.push([a.a[ia].parentcol,a.a[ia].r2listinfo]);
+					}
+				}
+
+				
+				r2obj=[];
+				for(var ia=0; ia<indr2set.length; ia++){
+					r2obj[ia]={r2id:indr2set[ia][0],r2listinfo:indr2set[ia][1],r1set:[]}
+					for(var ib=0; ib<a.a.length; ib++){
+						if(a.a[ib].parentcol==indr2set[ia][0]){
+							r2obj[ia].r1set.push({r1id:a.a[ib].childcol,r1prb:a.a[ib].prblist,r1listinfo:a.a[ib].listinfo})
+						}
+					}
+				}
+
+				for(var ia=0; ia<r2obj.length; ia++){
+					var r2div=document.createElement('div');
+					r2div.className='r2div';
+					r2div.id=r2obj[ia].r2id;
+			
+					var r2divadiv=document.createElement('div');
+					r2divadiv.className='r2divadiv';
+					var r2diva=document.createElement('a');
+					r2diva.innerHTML=ia+1+'. '+r2obj[ia].r2listinfo;
+					r2divadiv.appendChild(r2diva);
+					r2divadiv.onclick=function(i,j){return function(){r1Call(i,j); putColoron('r2div',j,['red','white']);}}(r2obj[ia].r1set,r2obj[ia].r2id);
+					r2div.appendChild(r2divadiv);
+
+
+
+
+					var r2prblist='';
+					for(var ib=0; ib<r2obj[ia].r1set.length; ib++){
+						if(ib==0){
+							r2prblist=r2obj[ia].r1set[ib].r1prb;
+						}else{
+							r2prblist=r2prblist+','+r2obj[ia].r1set[ib].r1prb;
+						}
+					}
+
+					r2div.setAttribute('data-prblist',r2prblist)
+
+					
+
+
+					var resultdisplaydiv=document.createElement('div');
+					resultdisplaydiv.className='r2resultdisplaydiv';
+
+					var wrssresultdiv=document.createElement('div');
+					resultdisplaydiv.appendChild(wrssresultdiv);
+					wrssresultdiv.className='wrsscount';
+					var hwresultdiv=document.createElement('div');
+					resultdisplaydiv.appendChild(hwresultdiv);
+					hwresultdiv.className='hwcount';
+					var indresultdiv=document.createElement('div');
+					indresultdiv.className='inscount';
+					resultdisplaydiv.appendChild(indresultdiv);
+					var glresultdiv=document.createElement('div');
+					resultdisplaydiv.appendChild(glresultdiv);
+					glresultdiv.className='glcount';
+
+
+					r2div.appendChild(resultdisplaydiv);
+
+					r2setdiv.appendChild(r2div);
+
+				}		
+				MathJax.Hub.Queue(["Typeset",MathJax.Hub,"r2set"])	
+				
+			});
+
+
+
+			function rankCall(){
+				socket.emit('rankcall');
+			}	
+			rankCall();
+
+
+
+			function resultDisplay(t){
+				if(userinfo.username){
+					socket.emit('showuserdataresult',{username:userinfo.username, time:t});
+				}
+			}           
+	
+
+			socket.on('showuserdataresultafter',function(a){
+
+				var rankcallbutton=document.getElementById('buttondiv');
+
+				var indprbww=[];
+				for(var ia=0; ia<a.wwpic.length; ia++){
+					var chk=0;
+					for(var ib=0; ib<indprbww.length; ib++){
+						if(indprbww[ib]==a.wwpic[ia].prbid){
+							chk=1;
+							break;
+						}
+					}
+					if(chk==0){
+						indprbww.push(a.wwpic[ia].prbid)
+					}
+				}
+
+				var prbpic=[];
+				for(var ia=0; ia<indprbww.length; ia++){
+					prbpic[ia]={prbid:indprbww[ia],pic:[]}
+					for(var ib=0;ib<a.wwpic.length; ib++){
+						if(a.wwpic[ib].prbid==indprbww[ia]){
+							prbpic[ia].pic.push([a.wwpic[ib].mpicid,a.wwpic[ib].ansresult]);
+						}
+					}
+				}
+				// '/usernote/wrsswritingpic/'+a.wrsspic...	
+
+
+
+				var indprbhw=[];
+				
+				for(var ia=0; ia<a.hw.length; ia++){
+					var chk=0;
+					for(var ib=0; ib<indprbhw.length; ib++){
+						if(indprbhw[ib]==a.hw[ia].prbid){
+							chk=1;
+							break;
+						}
+					}
+					if(chk==0){
+						indprbhw.push(a.hw[ia].prbid)
+					}
+				}
+		
+		
+				var hwprbpic=[];
+				for(var ia=0; ia<indprbhw.length; ia++){
+					hwprbpic[ia]={prbid:indprbhw[ia],pic:[]}
+					for(var ib=0;ib<a.hw.length; ib++){
+						if(a.hw[ib].prbid==indprbhw[ia]){
+							hwprbpic[ia].pic.push(a.hw[ib].mpicid);
+						}
+					}
+				}
+
+
+
+				var indprbgl=[];
+				
+				for(var ia=0; ia<a.glpic.length; ia++){
+					var chk=0;
+					for(var ib=0; ib<indprbgl.length; ib++){
+						if(indprbgl[ib]==a.glpic[ia].prbid){
+							chk=1;
+							break;
+						}
+					}
+					if(chk==0){
+						indprbgl.push(a.glpic[ia].prbid)
+					}
+				}
+		
+		
+				var glprbpic=[];
+				for(var ia=0; ia<indprbgl.length; ia++){
+					glprbpic[ia]={prbid:indprbgl[ia],pic:[],ans:[]}
+					for(var ib=0;ib<a.glpic.length; ib++){
+						if(a.glpic[ib].prbid==indprbgl[ia]){
+							glprbpic[ia].pic.push(a.glpic[ib].mpicid);
+							glprbpic[ia].ans.push(a.glpic[ib].ans);
+						}
+					}
+				}
+
+
+
+
+				rankcallbutton.setAttribute('data-wrssprbpic',JSON.stringify(prbpic));
+				rankcallbutton.setAttribute('data-hwprbpic',JSON.stringify(hwprbpic));
+				rankcallbutton.setAttribute('data-instruct',JSON.stringify(a.instruct));
+				rankcallbutton.setAttribute('data-glprbpic',JSON.stringify(glprbpic));
+
+
+				var r2setdiv=document.getElementsByClassName('r2div');
+				for(var ia=0; ia<r2setdiv.length; ia++){
+					var prblist=r2setdiv[ia].getAttribute('data-prblist').split(',');
+					
+					var wrnum= 0;
+					var wrssresult =[];
+					for(var ib=0; ib<prblist.length; ib++){
+						var chk=0; 
+						for(var ic=0; ic<prbpic.length; ic++){
+							if(prbpic[ic].prbid==prblist[ib]){
+								chk=1;
+								wrssresult.push([prbpic[ic].prbid, prbpic[ic].pic]);
+								break;
+							}
+						}
+						if(chk==1){
+							wrnum+=1;
+						}
+					}
+			
+					if(wrnum!=0){
+						r2setdiv[ia].getElementsByTagName('div')[1].getElementsByTagName('div')[0].innerHTML=wrnum;
+					
+					}else{
+						r2setdiv[ia].getElementsByTagName('div')[1].getElementsByTagName('div')[0].innerHTML='';
+					}
+
+
+					var hwnum=0;
+					var hwresult=[];
+					for(var ib=0; ib<prblist.length; ib++){
+						var chk=0;
+						for(var ic=0; ic<hwprbpic.length; ic++){
+							if(hwprbpic[ic].prbid==prblist[ib]){
+								chk=1;
+								hwresult.push([hwprbpic[ic].prbid,hwprbpic[ic].pic])
+								break;
+							}
+						}
+						if(chk==1){
+							hwnum+=1;
+						}
+					}
+					if(hwnum!=0){
+						r2setdiv[ia].getElementsByTagName('div')[1].getElementsByTagName('div')[1].innerHTML=hwnum;
+					}else{
+						r2setdiv[ia].getElementsByTagName('div')[1].getElementsByTagName('div')[1].innerHTML='';
+
+					}
+
+					var insnum=0;
+					var instructprb=[];
+					for(var ib=0; ib<prblist.length; ib++){
+						var chk=0;
+						for(var ic=0; ic<a.instruct.length; ic++){
+							if(a.instruct[ic].prbid==prblist[ib]){
+								instructprb.push(a.instruct[ic].prbid);
+								chk=1;
+								break;
+							}
+						}
+						if(chk==1){
+							insnum+=1;
+						}
+					}
+					if(insnum!=0){
+						r2setdiv[ia].getElementsByTagName('div')[1].getElementsByTagName('div')[2].innerHTML=insnum;
+					}else{
+						r2setdiv[ia].getElementsByTagName('div')[1].getElementsByTagName('div')[2].innerHTML='';
+
+					}
+
+
+					var glnum=0;
+					var glresult=[];
+					for(var ib=0; ib<prblist.length; ib++){
+						var chk=0;
+						for(var ic=0; ic<glprbpic.length; ic++){
+							if(glprbpic[ic].prbid==prblist[ib]){
+								chk=1;
+								glresult.push([glprbpic[ic].prbid,glprbpic[ic].pic,glprbpic[ic].ans])
+								break;
+							}
+						}
+						if(chk==1){
+							glnum+=1;
+						}
+					}
+					if(glnum!=0){
+						r2setdiv[ia].getElementsByTagName('div')[1].getElementsByTagName('div')[3].innerHTML=glnum;
+					}else{
+						r2setdiv[ia].getElementsByTagName('div')[1].getElementsByTagName('div')[3].innerHTML='';
+
+					}
+
+
+				}
+
+			});
+
+
+
+
+
+
+			function putColoron(classN, idN,colorN){
+				var cn=document.getElementsByClassName(classN);
+				for(var ia=0; ia<cn.length; ia++){	
+					cn[ia].style.color='';
+					cn[ia].style.backgroundColor='';
+				}
+				document.getElementById(idN).style.backgroundColor=colorN[0];
+				document.getElementById(idN).style.color=colorN[1];
+			}
+
+
+			function r1Call(r1obj,r2id){
+
+				var tempr1set=document.getElementById('tempr1set'+r2id);
+				if(tempr1set){
+					tempr1set.remove();
+				}else{
+					tempr1setclass=document.getElementsByClassName('tempr1set');
+					for(var ia=0; ia<tempr1setclass.length; ia++){
+						tempr1setclass[ia].remove();
+					}
+
+					var tempr1set=document.createElement('div');
+					tempr1set.id='tempr1set'+r2id;
+					tempr1set.className='tempr1set';
+
+
+					//removeallele('r1set')
+					//var r1set=document.getElementById('r1set');
+
+					var wrssprbpicget=document.getElementById('buttondiv').getAttribute('data-wrssprbpic');
+					var hwprbpicget=document.getElementById('buttondiv').getAttribute('data-hwprbpic');
+					var instructget=document.getElementById('buttondiv').getAttribute('data-instruct');
+					var glprbpicget=document.getElementById('buttondiv').getAttribute('data-glprbpic');
+
+
+					if(wrssprbpicget !== null){
+						var wrssprbpic=JSON.parse(wrssprbpicget);
+					}else{
+						var wrssprbpic=[];
+					}
+
+					if(hwprbpicget !== null){
+						var hwprbpic=JSON.parse(hwprbpicget);
+					}else{
+						var hwprbpic=[];
+					}
+
+
+					if(glprbpicget !== null){
+						var glprbpic=JSON.parse(glprbpicget);
+					}else{
+						var glprbpic=[];
+					}
+
+
+					if(instructget !== null){
+						var instruct=JSON.parse(instructget);
+					}else{
+						var instruct=[];
+					}
+
+
+
+					for(var ia=0; ia<r1obj.length; ia++){
+						var r1div=document.createElement('div');
+						r1div.className='r1div';
+						r1div.id=r1obj[ia].r1id;	
+
+						var r1divadiv=document.createElement('div');
+						r1divadiv.className='r1divadiv';
+						r1divadiv.id='rd'+r1obj[ia].r1id;
+						var r1diva=document.createElement('a');
+						r1diva.innerHTML=ia+1+'. '+r1obj[ia].r1listinfo;
+						r1divadiv.appendChild(r1diva);
+						r1div.appendChild(r1divadiv);
+
+						
+
+						var resultdisplaydiv=document.createElement('div');
+						resultdisplaydiv.className='r1resultdisplaydiv';
+					
+						var wrssresultdiv=document.createElement('div');
+						wrssresultdiv.className='wrsscount';
+						resultdisplaydiv.appendChild(wrssresultdiv);
+						var hwresultdiv=document.createElement('div');
+						hwresultdiv.className='hwcount';
+						resultdisplaydiv.appendChild(hwresultdiv);
+						var glresultdiv=document.createElement('div');
+						glresultdiv.className='glcount';
+						resultdisplaydiv.appendChild(glresultdiv);
+
+						var indresultdiv=document.createElement('div');
+						indresultdiv.className='inscount';
+						resultdisplaydiv.appendChild(indresultdiv);
+						r1div.appendChild(resultdisplaydiv);
+
+
+						var prblist = r1obj[ia].r1prb.split(',');
+
+						var wrnum= 0;
+						var wrssresult =[];
+						for(var ib=0; ib<prblist.length; ib++){
+							var chk=0; 
+							for(var ic=0; ic<wrssprbpic.length; ic++){
+								if(wrssprbpic[ic].prbid==prblist[ib]){
+									chk=1;
+									wrssresult.push([wrssprbpic[ic].prbid, wrssprbpic[ic].pic]);
+									break;
+								}
+							}
+							if(chk==1){
+								wrnum+=1;
+							}
+						}
+				
+						if(wrnum!=0){
+							wrssresultdiv.innerHTML=wrnum;
+						}else{
+							wrssresultdiv.innerHTML='';
+						}
+
+
+
+						var hwnum=0;
+						var hwresult=[];
+						for(var ib=0; ib<prblist.length; ib++){
+							var chk=0;
+							for(var ic=0; ic<hwprbpic.length; ic++){
+								if(hwprbpic[ic].prbid==prblist[ib]){
+									chk=1;
+									hwresult.push([hwprbpic[ic].prbid,hwprbpic[ic].pic])
+									break;
+								}
+							}
+							if(chk==1){
+								hwnum+=1;
+							}
+						}
+						if(hwnum!=0){
+							hwresultdiv.innerHTML=hwnum;
+						}else{
+							hwresultdiv.innerHTML='';
+
+						}
+
+
+
+						var glnum=0;
+						var glresult=[];
+						for(var ib=0; ib<prblist.length; ib++){
+							var chk=0;
+							for(var ic=0; ic<glprbpic.length; ic++){
+								if(glprbpic[ic].prbid==prblist[ib]){
+									chk=1;
+									glresult.push([glprbpic[ic].prbid,glprbpic[ic].pic])
+									break;
+								}
+							}
+							if(chk==1){
+								glnum+=1;
+							}
+						}
+						if(glnum!=0){
+							glresultdiv.innerHTML=glnum;
+						}else{
+							glresultdiv.innerHTML='';
+
+						}
+
+
+						var insnum=0;
+						var instructprb=[];
+						for(var ib=0; ib<prblist.length; ib++){
+							var chk=0;
+							for(var ic=0; ic<instruct.length; ic++){
+								if(instruct[ic].prbid==prblist[ib]){
+									instructprb.push(instruct[ic].prbid);
+									chk=1;
+									break;
+								}
+							}
+							if(chk==1){
+								insnum+=1;
+							}
+						}
+						if(insnum!=0){
+							indresultdiv.innerHTML=insnum;
+						}else{
+							indresultdiv.innerHTML='';
+						}
+
+
+
+						
+
+						r1div.onclick=function(i,j){return function(){callprblist(i,j);putColoron('r1divadiv','rd'+j,['purple','white'])}}(r1obj[ia].r1prb,r1obj[ia].r1id);
+						
+
+
+						tempr1set.appendChild(r1div);
+						//r1set.appendChild(r1div);
+						
+					}
+
+					var refnode=document.getElementById(r2id);
+					refnode.parentNode.insertBefore(tempr1set,refnode.nextSibling);
+					MathJax.Hub.Queue(["Typeset",MathJax.Hub,tempr1set])	
+				}
+
+
+
+
+
+
+
+
+				/*
+				removeallele('r1set')
+				var r1set=document.getElementById('r1set');
+				for(var ia=0; ia<r1obj.length; ia++){
+					var r1div=document.createElement('div');
+					r1div.className='r1div';
+					r1div.id=r1obj[ia].r1id;	
+					var r1diva=document.createElement('a');
+					r1diva.innerHTML=ia+1+'. '+r1obj[ia].r1listinfo;
+					r1div.appendChild(r1diva);
+					r1div.onclick=function(i,j){return function(){callprblist(i,j);putColoron('r1div',j,['blue','white'])}}(r1obj[ia].r1prb,r1obj[ia].r1id);
+					r1set.appendChild(r1div);
+					
+				}
+				MathJax.Hub.Queue(["Typeset",MathJax.Hub,"r1set"])	*/
+				
+			}	
+
+			function callprblist(plist,cptid){
+				socket.emit('vdrgcallprblist',{plist:plist,cptid:cptid});
+			}
+			socket.on('vdrggetprblist',function(p){
+				var wrssprbpicget=document.getElementById('buttondiv').getAttribute('data-wrssprbpic');
+				var hwprbpicget=document.getElementById('buttondiv').getAttribute('data-hwprbpic');
+				var glprbpicget=document.getElementById('buttondiv').getAttribute('data-glprbpic');
+				var instructget=document.getElementById('buttondiv').getAttribute('data-instruct');
+
+
+				if(wrssprbpicget !== null){
+					var wrssprbpic=JSON.parse(wrssprbpicget);
+				}else{
+					var wrssprbpic=[];
+				}
+
+				if(hwprbpicget !== null){
+					var hwprbpic=JSON.parse(hwprbpicget);
+				}else{
+					var hwprbpic=[];
+				}
+
+				if(glprbpicget !== null){
+					var glprbpic=JSON.parse(glprbpicget);
+				}else{
+					var glprbpic=[];
+				}
+
+
+				if(instructget !== null){
+					var instruct=JSON.parse(instructget);
+				}else{
+					var instruct=[];
+				}
+
+
+
+
+				removeallele('cptprblistdiv');
+				var cptprblistdiv=document.getElementById('cptprblistdiv');
+				for(var ia=0; ia<p.prbcon.length; ia++){
+					var cptprbdiv=document.createElement('div');
+					cptprbdiv.className='cptprbdiv';
+
+					var cptprbdivprb=document.createElement('div');
+					cptprbdivprb.className='cptprbdivprb';
+					var cptprbdivprba=document.createElement('a');
+					cptprbdivprba.innerHTML=p.prbcon[ia][1];
+					cptprbdivprb.appendChild(cptprbdivprba);
+
+
+					if(p.prbcon[ia][8]!=null){
+		
+						var cptprbpicdiv=document.createElement('div');
+						cptprbpicdiv.className='cptprbpicdiv';
+						var cptprbpic=document.createElement('img');
+						cptprbpic.src=p.prbcon[ia][8];
+						cptprbpicdiv.appendChild(cptprbpic);
+						cptprbdiv.appendChild(cptprbpicdiv);
+
+						cptprbpic.onclick=function(i){
+							return function(){
+								clickToChosen(i[0],i);
+							}
+						}(p.prbcon[ia]);
+
+					}
+
+					cptprbdiv.appendChild(cptprbdivprb);
+
+					var cptprbdivmultiple=document.createElement('div');
+					cptprbdivmultiple.className='cptprbdivmultiple';
+
+					var cptprbdivmultiplea0div=document.createElement('div');
+					var cptprbdivmultiplea0=document.createElement('a');
+					cptprbdivmultiplea0.innerHTML=p.prbcon[ia][4];
+					cptprbdivmultiplea0div.appendChild(cptprbdivmultiplea0);
+					cptprbdivmultiple.appendChild(cptprbdivmultiplea0div);
+
+					var cptprbdivmultiplea1=document.createElement('a');
+					cptprbdivmultiplea1.innerHTML=p.prbcon[ia][5];
+					var cptprbdivmultiplea1div=document.createElement('div');
+					cptprbdivmultiplea1div.appendChild(cptprbdivmultiplea1);
+					cptprbdivmultiple.appendChild(cptprbdivmultiplea1div);
+
+
+					var cptprbdivmultiplea2=document.createElement('a');
+					cptprbdivmultiplea2.innerHTML=p.prbcon[ia][6];
+					var cptprbdivmultiplea2div=document.createElement('div');
+					cptprbdivmultiplea2div.appendChild(cptprbdivmultiplea2);
+					cptprbdivmultiple.appendChild(cptprbdivmultiplea2div);
+
+
+					var cptprbdivmultipleaans=document.createElement('a');
+					cptprbdivmultipleaans.innerHTML=p.prbcon[ia][2];
+					cptprbdivmultipleaans.style.color='red';
+					cptprbdivmultipleaansdiv=document.createElement('div');
+					cptprbdivmultipleaansdiv.appendChild(cptprbdivmultipleaans);
+					cptprbdivmultiple.appendChild(cptprbdivmultipleaansdiv);
+					cptprbdiv.appendChild(cptprbdivmultiple);
+				
+
+
+
+					cptprbdivmultiple.onclick=function(i){
+						return function(){
+							clickToChosen(i[0],i);
+						}
+					}(p.prbcon[ia]);
+
+	
+					//chosenlist.push([item,selectTop(chosenlist)+1,ls]);
+					cptprbdiv.className='prblistset';
+					cptprbdiv.id=p.prbcon[ia][0];
+
+					cptprbdivprb.onclick=function(i){
+						return function(){
+							clickToChosen(i[0],i);
+						}
+					}(p.prbcon[ia]);
+		
+
+
+
+
+					var resultdisplaydiv=document.createElement('div');
+					resultdisplaydiv.className='prbresultdisplaydiv';
+				
+					var wrssresultdiv=document.createElement('div');
+					wrssresultdiv.className='wrssprb';
+					resultdisplaydiv.appendChild(wrssresultdiv);
+					var hwresultdiv=document.createElement('div');
+					hwresultdiv.className='hwprb';
+					resultdisplaydiv.appendChild(hwresultdiv);
+
+					var glresultdiv=document.createElement('div');
+					glresultdiv.className='glprb';
+					resultdisplaydiv.appendChild(glresultdiv);
+					var insresultdiv=document.createElement('div');
+					insresultdiv.className='insprb';
+					resultdisplaydiv.appendChild(insresultdiv);
+
+
+
+					var chk=0;
+					for(var ib=0; ib<wrssprbpic.length; ib++){
+						if(wrssprbpic[ib].prbid==p.prbcon[ia][0]){
+							chk=1;
+							break;
+						}
+					}
+					if(chk==1){
+						wrssresultdiv.style.backgroundColor='blue';
+						wrssresultdiv.onclick=function(i,j){
+							return function(){
+								pullwrsspic(i, j);
+							}
+						}(wrssprbpic[ib].pic,resultdisplaydiv);
+					}else{
+						wrssresultdiv.style.backgroundColor='';
+					}
+
+
+					function pullwrsspic(piclist,refnode){
+
+
+						var displaypic=document.getElementsByClassName('displaypic');
+						while(displaypic.length!=0){
+							displaypic[0].remove();
+						}
+
+
+						var pullwrsspic=document.createElement('div');
+						pullwrsspic.onclick=function(){
+				
+							var displaypic=document.getElementsByClassName('displaypic');
+							while(displaypic.length!=0){
+								displaypic[0].remove();
+							}
+
+						}
+
+
+
+						pullwrsspic.id='pullwrsspic';
+						pullwrsspic.className='displaypic';
+						for(var ie=0; ie<piclist.length; ie++){
+							var picdiv=document.createElement('div');
+							var picimg=document.createElement('img');
+							picimg.src='/usernote/wrsswritingpic/'+piclist[ie][0];
+							picdiv.appendChild(picimg);
+							pullwrsspic.appendChild(picdiv);
+						}
+						refnode.parentNode.insertBefore(pullwrsspic,refnode.nextSibling);
+
+						/*	
+						var tmppullhwpic=document.getElementById('pullwrsspic');
+						if(tmppullhwpic){
+							tmppullhwpic.remove();
+						}else{
+
+					
+						}*/
+
+						
+					}
+
+
+					var chk=0;
+					for(var ib=0; ib<hwprbpic.length; ib++){
+						if(hwprbpic[ib].prbid==p.prbcon[ia][0]){
+							chk=1;
+							break;
+						}
+					}
+					if(chk==1){
+						hwresultdiv.style.backgroundColor='red';
+						hwresultdiv.onclick=function(i,j){
+							return function(){
+								pullhwpic(i, j);
+							}
+						}(hwprbpic[ib].pic,resultdisplaydiv);
+
+
+
+					}else{
+						hwresultdiv.style.backgroundColor='';
+					}
+
+
+
+					function pullhwpic(piclist,refnode){
+						var displaypic=document.getElementsByClassName('displaypic');
+						while(displaypic.length!=0){
+							displaypic[0].remove();
+						}
+
+						/*	
+						var tmppullhwpic=document.getElementById('pullhwpic');
+						if(tmppullhwpic){
+							tmppullhwpic.remove();
+						}*/
+						var pullhwpic=document.createElement('div');
+						pullhwpic.onclick=function(){
+				
+							var displaypic=document.getElementsByClassName('displaypic');
+							while(displaypic.length!=0){
+								displaypic[0].remove();
+							}
+
+						}
+
+
+
+						pullhwpic.id='pullhwpic';
+						pullhwpic.className='displaypic';
+						for(var ie=0; ie<piclist.length; ie++){
+							var picdiv=document.createElement('div');
+							var picimg=document.createElement('img');
+							picimg.src='/usernote/mmcphomework/'+piclist[ie];
+							picdiv.appendChild(picimg);
+							pullhwpic.appendChild(picdiv);
+						}
+						refnode.parentNode.insertBefore(pullhwpic,refnode.nextSibling);
+						
+					}
+
+
+
+					var chk=0;
+					for(var ib=0; ib<glprbpic.length; ib++){
+						if(glprbpic[ib].prbid==p.prbcon[ia][0]){
+							chk=1;
+							break;
+						}
+					}
+					if(chk==1){
+						glresultdiv.style.backgroundColor='yellow';
+						glresultdiv.onclick=function(i,j){
+							return function(){
+								pullglpic(i, j);
+							}
+						}(glprbpic[ib].pic,resultdisplaydiv);
+
+
+
+					}else{
+						glresultdiv.style.backgroundColor='';
+					}
+
+
+
+					function pullglpic(piclist,refnode){
+						var displaypic=document.getElementsByClassName('displaypic');
+						while(displaypic.length!=0){
+							displaypic[0].remove();
+						}
+
+						/*	
+						var tmppullhwpic=document.getElementById('pullhwpic');
+						if(tmppullhwpic){
+							tmppullhwpic.remove();
+						}*/
+						var pullglpic=document.createElement('div');
+						pullglpic.onclick=function(){
+				
+							var displaypic=document.getElementsByClassName('displaypic');
+							while(displaypic.length!=0){
+								displaypic[0].remove();
+							}
+
+						}
+
+
+
+						pullglpic.id='pullglpic';
+						pullglpic.className='displaypic';
+						for(var ie=0; ie<piclist.length; ie++){
+							var picdiv=document.createElement('div');
+							var picimg=document.createElement('img');
+							picimg.src='/usernote/mmcppic/'+piclist[ie];
+							picdiv.appendChild(picimg);
+							pullglpic.appendChild(picdiv);
+						}
+						refnode.parentNode.insertBefore(pullglpic,refnode.nextSibling);
+						
+					}
+
+
+
+
+
+
+
+
+					var chk=0;
+					for(var ib=0; ib<instruct.length; ib++){
+						if(instruct[ib].prbid==p.prbcon[ia][0]){
+							chk=1;
+							break;
+						}
+					}
+					if(chk==1){
+						insresultdiv.style.backgroundColor='#7af0ed';
+						insresultdiv.onclick=function(){
+				
+							var displaypic=document.getElementsByClassName('displaypic');
+							while(displaypic.length!=0){
+								displaypic[0].remove();
+							}
+
+						}
+					}else{
+						insresultdiv.style.backgroundColor='';
+					}
+
+
+
+
+
+					cptprbdiv.appendChild(resultdisplaydiv);
+
+					cptprblistdiv.appendChild(cptprbdiv);
+				}	
+				MathJax.Hub.Queue(["Typeset",MathJax.Hub,"cptprblistidv"])	
+				chosenRepresent();
+			});
+
+
+			var chosenlist=[];
+			var stat={chosencolor:'#8AC8E1', fontcolor:'black'}
+			function chosenRepresent(){
+				removeAllRepresent('prblistset');
+				removeallele('chosendisplay')
+				if(chosenlist.length!=0){
+					var chosenlistl=chosenlist;
+
+
+					var chd=document.getElementById('chosendisplay');
+
+					for(var ia=0; ia<chosenlistl.length; ia++){
+						var rpdiv=document.getElementById(chosenlistl[ia][0]);
+						if(rpdiv){
+							rpdiv.style.backgroundColor=stat.chosencolor;
+							rpdiv.style.color=stat.fontcolor;
+						}
+
+
+						//chosendisplay
+
+						var cdiv=document.createElement('div');
+						cdiv.className='chosendisplaydiv';
+						cdiv.onclick=function(i){
+							return function(){
+								clickToChosen(i)
+							}
+						}(chosenlistl[ia][0]);
+						var cdiva=document.createElement('a');
+						cdiva.innerHTML=chosenlistl[ia][2];
+						cdiv.appendChild(cdiva);
+						chd.appendChild(cdiv);
+					}
+					MathJax.Hub.Queue(["Typeset",MathJax.Hub,chd])	
+
+					
+
+				}
+		
+			}
+
+
+
+			function removeAllRepresent(cname){
+				var rdiv=document.getElementsByClassName(cname);
+				for(var ia=0; ia<rdiv.length; ia++){
+					rdiv[ia].style.backgroundColor='';
+					rdiv[ia].style.color='';
+				}
+			}
+			function removeItemFromExist(liststr,item){
+				var liststrl=liststr;
+
+				var nlist=[];
+				for(var ia=0; ia<liststrl.length; ia++){
+					if(liststrl[ia][0]==item){
+					}else{
+						nlist.push(liststrl[ia]);
+					}
+				}
+				return nlist;	
+			}
+			function checkItemExist(liststr,item){
+				var liststrl=liststr;
+
+				var chk=0;
+				for(var ia=0; ia<liststrl.length; ia++){
+					if(liststrl[ia][0]==item){
+						chk=1;
+						break;
+					}
+				}
+
+				return chk;
+			}
+
+
+			var swap=function(array,i,j){
+				var temp=array[i];
+				array[i]=array[j];
+				array[j]=temp;
+			}
+
+	
+			var sortind=function(array){
+				for(var i=0; i<array.length; i++){
+					for(var j=1;j<array.length; j++){
+						if(array[j-1][1]>array[j][1]){
+							swap(array,j-1,j);
+						}
+					}
+				}
+				return array;
+			}
+
+
+
+
+			function selectTop(arr){
+				var t=0;
+				for(var ia=0; ia<arr.length; ia++){	
+					if(arr[ia][1]>t){
+						t=arr[ia][1];
+					}
+				}
+				return t;
+			}
+
+
+			function clickToChosen(item,ls){
+				var chk=checkItemExist(chosenlist,item);
+				if(chk==0){//no exist
+					chosenlist.push([item,selectTop(chosenlist)+1,ls]);
+				}else{
+					chosenlist=removeItemFromExist(chosenlist,item);
+				}
+				chosenlist=sortind(chosenlist);
+
+				chosenRepresent();
+
+			}	
+
+
+			function RandomString(length,opt){
+				if(!opt || opt==0){
+					var text='';
+					var possible='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-';
+					for(var ia=0; ia<length; ia++){
+						text+=possible.charAt(Math.floor(Math.random()*possible.length));
+					}
+					return text;
+				}
+			}
+
+			var fcptlist=[]; //fake cptlist
+			function collectAndCreate(){
+				var operationid=RandomString(10,0);
+				fcptlist.push({fcptname:operationid,prblist:chosenlist});
+				chosenlist=[];
+				chosenRepresent();
+				removeallele('fcptlistdiv');
+
+				var fcptlistdiv=document.getElementById('fcptlistdiv');
+				for(var ia=0; ia<fcptlist.length; ia++){
+					var fdiv=document.createElement('div');
+					fdiv.className='fcptdiv';
+					for(var ib=0; ib<fcptlist[ia].prblist.length; ib++){
+						var pdiv=document.createElement('div');
+						pdiv.className='pdiv';
+						var pdiva=document.createElement('a');
+						pdiva.innerHTML=fcptlist[ia].prblist[ib][2][1];
+						pdiv.appendChild(pdiva);
+						fdiv.appendChild(pdiv);
+					}
+			
+					fdiv.onclick=function(i){
+						return function(){
+							removeFcptlist(i);
+						}
+					}(fcptlist[ia].fcptname)
+
+					fcptlistdiv.appendChild(fdiv);
+				}
+				MathJax.Hub.Queue(["Typeset",MathJax.Hub,fcptlistdiv])	
+			}
+
+			function removeFcptlist(operationid){
+				var nfcptlist=[];
+				
+				for(var ia=0; ia<fcptlist.length; ia++){
+					if(fcptlist[ia].fcptname!=operationid){
+						nfcptlist.push(fcptlist[ia])
+					}
+				}
+
+
+				fcptlist=nfcptlist;
+
+				removeallele('fcptlistdiv');
+
+				var fcptlistdiv=document.getElementById('fcptlistdiv');
+				for(var ia=0; ia<fcptlist.length; ia++){
+					var fdiv=document.createElement('div');
+					fdiv.className='fcptdiv';
+
+					fdiv.onclick=function(i){
+						return function(){
+							removeFcptlist(i);
+						}
+					}(fcptlist[ia].fcptname)
+
+
+					for(var ib=0; ib<fcptlist[ia].prblist.length; ib++){
+						var pdiv=document.createElement('div');
+						pdiv.className='pdiv';
+						var pdiva=document.createElement('a');
+						pdiva.innerHTML=fcptlist[ia].prblist[ib][2][1];
+						pdiv.appendChild(pdiva);
+						fdiv.appendChild(pdiv);
+					}
+					fcptlistdiv.appendChild(fdiv);
+				}
+				MathJax.Hub.Queue(["Typeset",MathJax.Hub,fcptlistdiv])	
+
+
+			}
+
+			function turnpagetoNumber(){
+
+				var sendnum=document.getElementById('sendnum');
+	
+	
+				if(sendnum.value!=''){
+					var strlist='abcdefghijklmnopqrstuvwxyz!@#$%^&*()-=?><,.{}[]"/';
+					for(var ia=0; ia<sendnum.value.length; ia++){
+						var chk=0;
+						for(var ib=0; ib<strlist.length; ib++){
+							if(sendnum.value[ia]==strlist[ib]){
+								chk=1;
+								break;
+							}
+						}
+
+						if(chk==1){
+							break;
+						}
+					}
+
+					if(!chk){
+						socket.emit('mentortomenteeadjustpagenumber',{rcnum:parseInt(sendnum.value-1),usersocketid:userinfo.socketid});
+					}else{	
+						alert('it is not a integer only, Plz Insert integer only')
+					}
+					
+				}else{
+					alert('fill in the sendnum input');
+				}
+
+
+
+
+			}
+
+			//var mentor={mentorid:'#{mentorid}',mentorsocketid:''};
+			socket.on('disconnect',(reason)=>{
+				console.log('socket.io is disconnected')
+				socket.emit('fortabletreport',{a:'disconnected: reason - '+reason,username:'wrss-'+mentor.mentorid,modecheck:'socketcheck'});
+			});		
+			socket.on('error',()=>{
+				console.log('socket.io is in error')
+				socket.connect();
+				socket.emit('fortabletreport',{a:'error',username:'wrss-'+mentor.mentorid,modecheck:'socketcheck'});
+			})
+			socket.on('connect_error',()=>{
+				console.log('socket.io is in connect_error')
+				socket.connect();
+				socket.emit('fortabletreport',{a:'connect_error',username:'wrss-'+mentor.mentorid,modecheck:'socketcheck'});
+				
+			})
+
+			socket.on('connect_timeout',(timeout)=>{
+				console.log('socket.io is timeoust')
+				socket.emit('fortabletreport',{a:'socket is timeout',username:'wrss-'+mentor.mentorid,modecheck:'socketcheck'});
+			})
+			socket.on('reconnect',(attemptNumber)=>{
+				console.log('socket.io is reconnected , attempt number is : '+attemptNumber)
+				socket.emit('fortabletreport',{a:'reconnected, attempted number is '+attemptNumber,username:'wrss-'+mentor.mentorid,modecheck:'socketcheck'});
+			})
+			socket.on('reconnecting',(attemptNumber)=>{
+				console.log('socket.io is reconnectting , attpempt number is : '+attemptNumber)
+				socket.emit('fortabletreport',{a:'reconnecting, attempted number is : '+attemptNumber,username:'wrss-'+mentor.mentorid,modecheck:'socketcheck'});
+			})
+
+			socket.on('reconnect_error',(err)=>{
+				console.log('socket.io is reconnect_error '+err)
+				socket.emit('fortabletreport',{a:'reconnect_error',username:'wrss-'+mentor.mentorid,modecheck:'socketcheck'});
+			})
+
+			socket.on('reconnect_failed',()=>{
+				console.log('socket.io is reconnect_failed ')
+				socket.emit('fortabletreport',{a:'reconnect_failed',username:'wrss-'+mentor.mentorid,modecheck:'socketcheck'});
+			})
+
+

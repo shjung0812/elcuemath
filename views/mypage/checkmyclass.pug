@@ -1,0 +1,594 @@
+html
+	head
+		script(src='/socket.io/socket.io.js')
+		script(src='/util/psre/psreshown.js')
+		script(type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML")
+		style.
+			#stdlist {
+				width:5%;
+				float:left;
+				height:100%;
+				overflow:auto;
+			}
+			#classperiod {
+				width:30%;
+				float:left;
+				height:100%;
+				overflow:auto;
+			}
+			#prbdisplay {
+				width:70%;
+				float:left;
+				height:100%;
+				overflow:auto;
+			}
+			.classweek {
+				width:100%;
+				height:20%;
+			}
+			.days {
+				width:12%;
+				height:98%;
+				float:left;
+				text-align:center;
+			}
+			.weekdate {
+				border:1px dotted black;
+			}
+			.prbdetail {			
+				width:100%;
+				height:70%;
+				overflow:auto;
+				font-size:.3em;
+			}
+
+			#prbdrawer {
+				width:100%;
+				height:100%;
+			}
+			.prbbox {
+				width:80%;
+				padding:5% 8%;
+				border: 1px solid black;
+				margin:2% 0;
+				
+			}
+			.prbpicdiv {
+				width:80%;
+			}	
+			.prbpicdiv img {
+				width:100%;
+			}
+			.insta {
+				background-color:#64EE34;
+				//color:white;
+			}
+
+	body
+		div(id='prbdisplay')
+		div(id='classperiod')
+		
+		script.
+			var userinfo=!{JSON.stringify(userinfo)}
+			var socket = io('/vdrg');
+			socket.on('connect',()=>{
+				console.log('mmcp connection ready');
+			});
+
+
+			function removeallele(elename){
+				var ele=document.getElementById(elename)
+				while(ele.firstChild){
+					ele.removeChild(ele.firstChild);
+				}
+			}
+
+
+			function toDate(b){
+				let fullyear = b.getFullYear();
+				let month = b.getMonth()+1;
+				let day = b.getDate();
+				return fullyear+'-'+month+'-'+day;
+			}
+			var duringtime=600;
+			function calluserclasshistory(username){
+				socket.emit('showuserhistoryprbdisplay',{time:duringtime,username:username})
+			}
+			function displayPrb(prbset){
+				removeallele('prbdisplay');
+				var prbdrawer=document.createElement('div');
+				prbdrawer.id='prbdrawer';
+				var solveobj=[];
+				for(var ia=0; ia<prbset.length; ia++){
+
+					var prbbox=document.createElement('div');
+					prbbox.className='prbbox';
+
+					var prbcontent=document.createElement('div');
+					prbcontent.className='prbcontent';
+					var prbcontenta=document.createElement('a');
+					prbcontenta.innerHTML=prbset[ia][0][1];
+					prbcontent.appendChild(prbcontenta);
+
+					
+					prbbox.appendChild(prbcontent);
+
+
+					if(prbset[ia][2]=='instructprb'){
+						var prbevaluation=document.createElement('div');
+						prbevaluation.style.backgroundColor='#C9B3E1'
+	
+						prbevaluation.id='eval'+prbset[ia][0][0];
+						//prbbox.appendChild(directEval_install(prbevaluation,prbset[ia][0][0],userinfo.username,chosenusername,prbset[ia][1]));
+						prbdrawer.appendChild(prbbox);
+					}else if(prbset[ia][2]=='sharehwresult'){
+						var prbpicdiv=document.createElement('div');
+						prbpicdiv.className='prbpicdiv';
+						prbpicdiv.id='img'+prbset[ia][3];
+						var prbpic=document.createElement('img')
+						prbpic.src='/usernote/mmcphomework/'+prbset[ia][3];
+
+						var chk=0;
+						for(var ic=0; ic<solveobj.length; ic++){
+							if(solveobj[ic].solvepic==prbset[ia][3]){
+								chk=1;
+								break;
+							}
+							
+						}
+						if(chk==0){
+							solveobj.push({prbid:prbset[ia][0][0],solvepic:prbset[ia][3],evalresult:''});
+							prbpicdiv.appendChild(prbpic);
+							prbbox.appendChild(prbpicdiv);
+
+							prbdrawer.appendChild(prbbox);
+
+						}
+
+
+
+						//var prbevaluation=document.createElement('div');
+						//prbevaluation.style.backgroundColor='#C9F3E1'
+	
+						//prbevaluation.id='eval'+prbset[ia][0][0];
+						//prbbox.appendChild(directEval_install(prbevaluation,prbset[ia][0][0],userinfo.username,chosenusername,prbset[ia][1]));
+
+					}else{
+						console.log('err', prbset[ia][2]);
+					}
+
+					if(prbset[ia][0][8]!=null){
+						var prbpicdiv=document.createElement('div');
+						prbpicdiv.className='prbpicdiv';
+						var prbpic=document.createElement('img')
+						prbpic.src=prbset[ia][0][8];
+
+						prbpicdiv.appendChild(prbpic);
+						prbbox.appendChild(prbpicdiv);
+					}
+
+				}
+				
+				var prbdisplay=document.getElementById('prbdisplay')
+				prbdisplay.appendChild(prbdrawer);
+				MathJax.Hub.Queue(["Typeset",MathJax.Hub,prbdisplay]);
+				//shownFunc(solveobj,'img',1,userinfo,'');
+				//realtimeEqualizer('wjdtjrgus',userinfo,10000,'img','hw');
+			}
+			socket.on('showuserhistoryprbdisplayafter',function(a){
+				removeallele('classperiod');
+				removeallele('prbdisplay');
+
+
+				var dateref=new Date('2020-01-06').getTime()/1000/60/60/24; //monday start
+				//don't know about the reason but, the date indicate sunday but dateref indicate monday. so there is difference the written date and result date code. 
+				var dateoftoday=Math.floor(new Date().getTime()/1000/60/60/24);
+
+
+				if(a.plist.length!=0){
+					var fday=new Date(a.plist[0][4].split(' ')[0])
+					var dateoffirstpic=Math.floor(fday.getTime()/1000/60/60/24);
+				}else{
+					var dateoffirstpic=dateoftoday
+				}
+				var weekofhbegin=dateoffirstpic-(dateoffirstpic-dateref)%7;
+					
+				var weekofprocessing=weekofhbegin;
+
+				var class7data=[];
+				var num=1;
+
+				var test=0;
+				var stmaxmin=0;
+				while(weekofprocessing <= dateoftoday){
+					var begindate=new Date(weekofprocessing*1000*3600*24);
+					class7data.push({num:num, date:toDate(begindate),classdays:{mon:[],tue:[],wed:[],thu:[],fri:[],sat:[],sun:[]}})
+					for(var ia=0; ia<a.plist.length; ia++){
+						var odate=new Date(a.plist[ia][4].split(' ')[0]);
+						var dateofclass=Math.floor(odate.getTime()/1000/60/60/24);
+
+						if(weekofprocessing <= dateofclass && dateofclass< weekofprocessing+7){
+							var dayofclass=odate.getDay();
+							if(dayofclass==1){
+								class7data[class7data.length-1].classdays.mon.push({prb:a.plist[ia][0],instructkind:a.plist[ia][2],date:a.plist[ia][4],numid:a.plist[ia][6],cptinfo:a.plist[ia][5]})
+							}else if(dayofclass==2){
+								class7data[class7data.length-1].classdays.tue.push({prb:a.plist[ia][0],instructkind:a.plist[ia][2],date:a.plist[ia][4],numid:a.plist[ia][6],cptinfo:a.plist[ia][5]})
+							}else if(dayofclass==3){
+								class7data[class7data.length-1].classdays.wed.push({prb:a.plist[ia][0],instructkind:a.plist[ia][2],date:a.plist[ia][4],numid:a.plist[ia][6],cptinfo:a.plist[ia][5]})
+							}else if(dayofclass==4){
+								class7data[class7data.length-1].classdays.thu.push({prb:a.plist[ia][0],instructkind:a.plist[ia][2],date:a.plist[ia][4],numid:a.plist[ia][6],cptinfo:a.plist[ia][5]})
+							}else if(dayofclass==5){
+								class7data[class7data.length-1].classdays.fri.push({prb:a.plist[ia][0],instructkind:a.plist[ia][2],date:a.plist[ia][4],numid:a.plist[ia][6],cptinfo:a.plist[ia][5]})
+							}else if(dayofclass==6){
+								class7data[class7data.length-1].classdays.sat.push({prb:a.plist[ia][0],instructkind:a.plist[ia][2],date:a.plist[ia][4],numid:a.plist[ia][6],cptinfo:a.plist[ia][5]})
+							}else if(dayofclass==0){
+								class7data[class7data.length-1].classdays.sun.push({prb:a.plist[ia][0],instructkind:a.plist[ia][2],date:a.plist[ia][4],numid:a.plist[ia][6],cptinfo:a.plist[ia][5]})
+							}
+						}
+			
+
+					}
+					weekofprocessing=weekofprocessing+7;
+					num+=1;
+					test+=1;
+					if(test>10000){
+						console.log('infinite error');
+						break;
+					}
+
+				}
+
+				var classperiod=document.getElementById('classperiod');
+				for(var ia=class7data.length-1; ia >= 0; ia--){
+					var classweek=document.createElement('div');
+					classweek.className='classweek';
+				
+
+					var date=document.createElement('div');
+					date.className='days';
+					date.style.border='1px solid black';
+					var datea=document.createElement('a');
+					datea.innerHTML=class7data[ia].date;
+					date.appendChild(datea);
+					classweek.appendChild(date);
+					
+	
+					var day1=document.createElement('div');
+					day1.className='days';
+
+					var day1instruct=document.createElement('div');
+						
+					var day1instructa=document.createElement('a');
+					day1instructa.className='insta';
+					day1instructa.innerHTML=class7data[ia].classdays.mon.length;
+					day1instruct.appendChild(day1instructa);
+					day1.appendChild(day1instruct);
+
+					
+					var prbdetail1=document.createElement('div');
+					prbdetail1.className='prbdetail';
+					var prblistday1=[];
+					for(var ib=0; ib<class7data[ia].classdays.mon.length; ib++){
+						var fdiv=document.createElement('div');
+						var fdiva=document.createElement('a');
+						fdiva.innerHTML=class7data[ia].classdays.mon[ib].date;
+						fdiv.appendChild(fdiva);
+						prbdetail1.appendChild(fdiv);
+						prblistday1.push([class7data[ia].classdays.mon[ib].prb,class7data[ia].classdays.mon[ib].numid,class7data[ia].classdays.mon[ib].instructkind,class7data[ia].classdays.mon[ib].cptinfo]);
+					}
+
+					day1instruct.onclick=function(i){
+						return function(){
+							displayPrb(i);
+						}
+					}(prblistday1)
+					day1.appendChild(prbdetail1);
+					classweek.appendChild(day1);
+
+
+
+					var day2=document.createElement('div');
+					day2.className='days';
+					var day2instruct=document.createElement('div');
+					var day2instructa=document.createElement('a');
+					day2instructa.className='insta';
+					day2instructa.innerHTML=class7data[ia].classdays.tue.length;
+					day2instruct.appendChild(day2instructa);
+					day2.appendChild(day2instruct);
+
+					var prblistday2=[];
+					var prbdetail2=document.createElement('div');
+					prbdetail2.className='prbdetail';
+					for(var ib=0; ib<class7data[ia].classdays.tue.length; ib++){
+						var fdiv=document.createElement('div');
+						var fdiva=document.createElement('a');
+						fdiva.innerHTML=class7data[ia].classdays.tue[ib].date;
+						fdiv.appendChild(fdiva);
+						prbdetail2.appendChild(fdiv);
+						//prblistday2.push(class7data[ia].classdays.tue[ib].prb);
+						prblistday2.push([class7data[ia].classdays.tue[ib].prb,class7data[ia].classdays.tue[ib].numid,class7data[ia].classdays.tue[ib].instructkind,class7data[ia].classdays.tue[ib].cptinfo]);
+					}
+					day2.appendChild(prbdetail2);
+					classweek.appendChild(day2);
+
+					day2instruct.onclick=function(i){
+						return function(){
+							displayPrb(i);
+						}
+					}(prblistday2)
+					day2.appendChild(prbdetail2);
+
+
+
+
+
+
+					var day3=document.createElement('div');
+					day3.className='days';
+					var day3instruct=document.createElement('div');
+					var day3instructa=document.createElement('a');
+					day3instructa.className='insta';
+					day3instructa.innerHTML=class7data[ia].classdays.wed.length;
+					day3instruct.appendChild(day3instructa);
+					day3.appendChild(day3instruct);
+					//classweek.appendChild(day3);
+					var prblistday3=[];
+
+					var prbdetail3=document.createElement('div');
+					prbdetail3.className='prbdetail';
+					for(var ib=0; ib<class7data[ia].classdays.wed.length; ib++){
+						var fdiv=document.createElement('div');
+						var fdiva=document.createElement('a');
+						fdiva.innerHTML=class7data[ia].classdays.wed[ib].date;
+						fdiv.appendChild(fdiva);
+						prbdetail3.appendChild(fdiv);
+						//prblistday3.push(class7data[ia].classdays.wed[ib].prb);
+						prblistday3.push([class7data[ia].classdays.wed[ib].prb,class7data[ia].classdays.wed[ib].numid,class7data[ia].classdays.wed[ib].instructkind,class7data[ia].classdays.wed[ib].cptinfo]);
+					}
+					day3.appendChild(prbdetail3);
+					classweek.appendChild(day3);
+
+					day3instruct.onclick=function(i){
+						return function(){
+							displayPrb(i);
+						}
+					}(prblistday3)
+					day3.appendChild(prbdetail3);
+
+
+
+
+
+
+					var day4=document.createElement('div');
+					day4.className='days';
+					var day4instruct=document.createElement('div');
+					var day4instructa=document.createElement('a');
+					day4instructa.innerHTML=class7data[ia].classdays.thu.length;
+					day4instructa.className='insta';
+					day4instruct.appendChild(day4instructa);
+					day4.appendChild(day4instruct);
+					//classweek.appendChild(day4);
+
+					var prblistday4=[];
+					var prbdetail4=document.createElement('div');
+					prbdetail4.className='prbdetail';
+					for(var ib=0; ib<class7data[ia].classdays.thu.length; ib++){
+						var fdiv=document.createElement('div');
+						var fdiva=document.createElement('a');
+						fdiva.innerHTML=class7data[ia].classdays.thu[ib].date;
+						fdiv.appendChild(fdiva);
+						prbdetail4.appendChild(fdiv);
+						//prblistday4.push(class7data[ia].classdays.thu[ib].prb);
+						prblistday4.push([class7data[ia].classdays.thu[ib].prb,class7data[ia].classdays.thu[ib].numid,class7data[ia].classdays.thu[ib].instructkind,class7data[ia].classdays.thu[ib].cptinfo]);
+					}
+					day4.appendChild(prbdetail4);
+					classweek.appendChild(day4);
+
+					day4instruct.onclick=function(i){
+						return function(){
+							displayPrb(i);
+						}
+					}(prblistday4)
+					day4.appendChild(prbdetail4);
+
+
+
+					var day5=document.createElement('div');
+					day5.className='days';
+					var day5instruct=document.createElement('div');
+					var day5instructa=document.createElement('a');
+					day5instructa.className='insta';
+					day5instructa.innerHTML=class7data[ia].classdays.fri.length;
+					day5instruct.appendChild(day5instructa);
+					day5.appendChild(day5instruct);
+					//classweek.appendChild(day5);
+
+
+					var prblistday5=[];
+					var prbdetail5=document.createElement('div');
+					prbdetail5.className='prbdetail';
+					for(var ib=0; ib<class7data[ia].classdays.fri.length; ib++){
+						var fdiv=document.createElement('div');
+						var fdiva=document.createElement('a');
+						fdiva.innerHTML=class7data[ia].classdays.fri[ib].date;
+						fdiv.appendChild(fdiva);
+						prbdetail5.appendChild(fdiv);
+						//prblistday5.push(class7data[ia].classdays.fri[ib].prb);
+						prblistday5.push([class7data[ia].classdays.fri[ib].prb,class7data[ia].classdays.fri[ib].numid,class7data[ia].classdays.fri[ib].instructkind,class7data[ia].classdays.fri[ib].cptinfo]);
+					}
+					day5.appendChild(prbdetail5);
+					classweek.appendChild(day5);
+
+					day5instruct.onclick=function(i){
+						return function(){
+							displayPrb(i);
+						}
+					}(prblistday5)
+					day5.appendChild(prbdetail5);
+
+
+
+					var day6=document.createElement('div');
+					day6.className='days';
+					var day6instruct=document.createElement('div');
+					var day6instructa=document.createElement('a');
+					day6instructa.innerHTML=class7data[ia].classdays.sat.length;
+					day6instructa.className='insta';
+					day6instruct.appendChild(day6instructa);
+					day6.appendChild(day6instruct);
+					//classweek.appendChild(day6);
+
+					var prblistday6=[];
+					var prbdetail6=document.createElement('div');
+					prbdetail6.className='prbdetail';
+					for(var ib=0; ib<class7data[ia].classdays.sat.length; ib++){
+						var fdiv=document.createElement('div');
+						var fdiva=document.createElement('a');
+						fdiva.innerHTML=class7data[ia].classdays.sat[ib].date;
+						fdiv.appendChild(fdiva);
+						prbdetail6.appendChild(fdiv);
+						//prblistday6.push(class7data[ia].classdays.sat[ib].prb);
+						prblistday6.push([class7data[ia].classdays.sat[ib].prb,class7data[ia].classdays.sat[ib].numid,class7data[ia].classdays.sat[ib].instructkind,class7data[ia].classdays.sat[ib].cptinfo]);
+					}
+					day6.appendChild(prbdetail6);
+					classweek.appendChild(day6);
+
+					day6instruct.onclick=function(i){
+						return function(){
+							displayPrb(i);
+						}
+					}(prblistday6)
+					day6.appendChild(prbdetail6);
+
+
+
+					var day0=document.createElement('div');
+					day0.className='days';
+					var day0instruct=document.createElement('div');
+					var day0instructa=document.createElement('a');
+					day0instructa.className='insta';
+					day0instructa.innerHTML=class7data[ia].classdays.sun.length;
+					day0instruct.appendChild(day0instructa);
+					day0.appendChild(day0instruct);
+					//classweek.appendChild(day0);
+
+					var prbdetail0=document.createElement('div');
+					prbdetail0.className='prbdetail';
+					var prblistday0=[];
+					for(var ib=0; ib<class7data[ia].classdays.sun.length; ib++){
+						var fdiv=document.createElement('div');
+						var fdiva=document.createElement('a');
+						fdiva.innerHTML=class7data[ia].classdays.sun[ib].date;
+						fdiv.appendChild(fdiva);
+						prbdetail0.appendChild(fdiv);
+						//prblistday0.push(class7data[ia].classdays.sun[ib].prb);
+						prblistday0.push([class7data[ia].classdays.sun[ib].prb,class7data[ia].classdays.sun[ib].numid,class7data[ia].classdays.sun[ib].instructkind,class7data[ia].classdays.sun[ib].cptinfo]);
+					}
+					day0.appendChild(prbdetail0);
+					classweek.appendChild(day0);
+
+					day0instruct.onclick=function(i){
+						return function(){
+							displayPrb(i);
+						}
+					}(prblistday0)
+					day0.appendChild(prbdetail0);
+
+
+
+
+					classperiod.appendChild(classweek);
+
+				}	
+
+			});
+
+			function userColorset(username){
+				var colordiv=document.getElementsByClassName('usercolorset');
+				for(var ia=0; ia<colordiv.length; ia++){
+					colordiv[ia].style.backgroundColor='';
+					colordiv[ia].style.color='black';
+				}
+				document.getElementById('chosen'+username).style.backgroundColor='#DDF2BF';
+				document.getElementById('chosen'+username).childNodes[0].style.color='black';
+				
+			}
+
+
+			calluserclasshistory(userinfo);
+			/*
+			var chosenusername='';
+			socket.on('callstdlistafter',function(a){
+				var indstd=[];
+				for(var ia=0; ia<a.a.length; ia++){
+					var chk=0;
+					for(var ib=0; ib<indstd.length; ib++){
+						if(indstd[ib][0]==a.a[ia].username){
+							chk=1;
+							break;
+						}
+					}
+					if(chk==0){
+						indstd.push([a.a[ia].username,a.a[ia].DisplayName]);
+					}
+				}	
+
+				var mmcpsetobj=[];
+				for(var ia=0; ia<indstd.length; ia++){
+					mmcpsetobj[ia]={username:indstd[ia][0],mmcpcon:[],Displayname:indstd[ia][1]}
+					for(var ib=0; ib<a.a.length; ib++){
+						if(indstd[ia][0]==a.a[ib].username){
+							mmcpsetobj[ia].mmcpcon.push([a.a[ib].mmcpconid,a.a[ib].listinfo,a.a[ib].prblist])
+						}
+					}
+				}
+
+
+
+				var userlist=document.getElementById('stdlist');
+				for(var ia=0; ia<mmcpsetobj.length; ia++){
+					var fa=document.createElement('div');			
+					fa.className='usercolorset';
+					fa.id='chosen'+mmcpsetobj[ia].username;
+					
+					fa.onclick=function(i){
+						return function(){
+							userColorset(i);
+							calluserclasshistory(i);
+							chosenusername=i;
+						}
+					}(mmcpsetobj[ia].username);
+					var faa=document.createElement('a');
+					faa.className='usercolorset';
+					faa.style.color='black';
+					faa.style.textDecoration='none';
+
+					faa.innerHTML=mmcpsetobj[ia].Displayname;
+					fa.appendChild(faa);
+					userlist.appendChild(fa);
+				}
+				var dbutton=document.createElement('button');
+				dbutton.innerHTML='All time';
+				dbutton.onclick=function(){
+					return function(){
+						duringtime=1000;
+					}
+				}();
+				var rbutton=document.createElement('button');
+				rbutton.innerHTML='Recent time';
+				rbutton.onclick=function(){
+					return function(){
+						duringtime=30;
+					}
+				}();
+				userlist.appendChild(dbutton);
+				//userlist.appendChild(rbutton);
+
+
+			});
+			function callStdlist(){
+				socket.emit('callstdlist',{username:userinfo.username});
+			}
+			callStdlist();*/
+

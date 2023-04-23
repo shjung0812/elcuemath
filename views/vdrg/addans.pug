@@ -1,0 +1,416 @@
+html
+	head
+		title add ANS
+		script(src='/socket.io/socket.io.js')
+		script(src='/qprb/qprb.js')
+		script(type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML")
+		style.
+			#prbpanel {
+				width:100%;
+			}
+			#prblistdiv {
+				width:50%;
+				float:left;
+				height:100%;
+				overflow:auto;
+			}
+			#ansmultidiv {
+				width:50%;
+				float:left;
+				height:100%;
+				background-color:yellow;
+			}
+			#unassigned, #r2set, #r1set {
+				border:1mm ridge;
+			}
+			#ansmultidiv div div input {
+				width:100%;
+				height:100%;
+				font-size:2em;
+				padding:0 2% 0 2%;
+			}
+			.multibox div {
+				text-align:right;
+			}
+			.multibox {
+				width:100%;
+				height:10%;
+			}
+			.prbdivid {
+				background-color:blue;
+				cursor:pointer;
+			}
+			.prbimgdiv {
+				width:100%;
+				
+			}
+			.prbimgdiv img {
+				width:100%;
+			}
+	body
+		div(onclick='iniFunc(80,10,10)')
+			h2 add ANS
+
+		div(id='prbpanel')
+			div
+				a(id='multioptionadd',onclick='multiopt=0;putColoron("multioption","multioptionadd",["blue","white"]);makeMultiblank()' class='multioption') AddOption
+				a(id='multioptionup' onclick='multiopt=1;putColoron("multioption","multioptionup",["blue","white"])' class='multioption') UpdateOption	
+				
+			div(id='unassigned' onclick='callUnassigned()')
+				p Unassigned
+			div(id='r2set')
+			div(id='r1set')
+			div(id='prblistdiv')
+			div(id='ansmultidiv' onclick='displayMulti();onkeyDown();')
+				
+				div(class='multibox')
+					div(id='displayans')
+						a(id='displaymultiansa')
+					div
+						input(type='text' id='multians')
+				div(class='multibox')
+
+					div(id='displaymulti1')
+						a(id='displaymulti1a')
+					div
+						input(type='text' id='multi1' onclick='copyAns("multi1");')
+
+				div(class='multibox')
+					div(id='displaymulti2')
+						a(id='displaymulti2a')
+					div
+						input(type='text' id='multi2' onclick='//copyAns("multi2")')
+
+				div(class='multibox')
+
+					div(id='displaymulti3')
+						a(id='displaymulti3a')
+					div
+						input(type='text' id='multi3' onclick='//copyAns("multi3")')
+				div(class='multibox')
+					button(onclick='sendMultiple()') Send
+
+			
+
+		script.
+
+			var socket = io('/vdrg');
+			socket.on('connect',()=>{
+				console.log('connection ready');
+
+			});
+
+			var chosenprb='';
+			var multiopt=0;
+			putColoron("multioption","multioptionadd",["blue","white"]);
+
+			function makeMultiblank(){
+				var idlist=['multians','multi1','multi2','multi3']
+				for(var ia=0; ia<idlist.length ;ia++){
+					document.getElementById(idlist[ia]).value='';
+				}
+
+			}
+
+			function displayMulti(){
+				var idlist=['multians','multi1','multi2','multi3']
+				for(var ia=0; ia<idlist.length ;ia++){
+					var multival=document.getElementById(idlist[ia]);
+					document.getElementById('display'+idlist[ia]+'a').innerHTML=multival.value;
+				}
+		
+				var ansmultidiv=document.getElementById('ansmultidiv');
+				MathJax.Hub.Queue(["Typeset",MathJax.Hub,ansmultidiv])	
+			}
+
+			function callUnassigned(){
+				socket.emit('addanscallunassigned',{multiopt:multiopt});
+			}
+
+			function copyAns(target){
+				var ans=document.getElementById('multians').value;
+				var idlist=['multi1','multi2','multi3'];
+
+				for(var ia=0; ia<idlist.length; ia++){
+					var mul=document.getElementById(idlist[ia]);
+					if(mul.value==''){
+						mul.value=ans;
+					}
+				}
+				
+				
+			}
+
+			function insertAtCursor(myField, myValue, mn) {
+			    //IE support
+			    if (document.selection) {
+				myField.focus();
+				sel = document.selection.createRange();
+				sel.text = myValue;
+			    }
+			    //MOZILLA and others
+			    else if (myField.selectionStart || myField.selectionStart == '0') {
+				var startPos = myField.selectionStart;
+				var endPos = myField.selectionEnd;
+				const n=myField.value.substring(0,startPos).length+myValue.length;
+				myField.value = myField.value.substring(0, startPos)
+				    + myValue
+				    + myField.value.substring(endPos, myField.value.length);
+				setCaretToPos(myField,n-mn)
+			    } else {
+				myField.value += myValue;
+			    }
+			}
+			function setSelectionRange(input, selectionStart, selectionEnd) {
+			  if (input.setSelectionRange) {
+			    input.focus();
+			    input.setSelectionRange(selectionStart, selectionEnd);
+			  }
+			  else if (input.createTextRange) {
+			    var range = input.createTextRange();
+			    range.collapse(true);
+			    range.moveEnd('character', selectionEnd);
+			    range.moveStart('character', selectionStart);
+			    range.select();
+			  }
+			}
+
+			function setCaretToPos (input, pos) {
+			   setSelectionRange(input, pos, pos);
+			}
+
+			onkeyDown();
+
+
+			function onkeyDown(){
+				document.onkeydown = function(e){
+					if(e.ctrlKey && e.which==32 && !e.shiftKey){
+						insertAtCursor(e.srcElement,'\\(\\)',2);
+					}else if(e.ctrlKey && e.shiftKey && e.which!=32){
+						insertAtCursor(e.srcElement,'\\[\\]',2);
+					}else if(e.shiftKey && e.which==54){
+						e.preventDefault();
+						insertAtCursor(e.srcElement,'^{}',1);
+					}else if(e.shiftKey && e.which==112){
+						e.preventDefault();
+						insertAtCursor(e.srcElement,'\\frac{}{}',3);
+
+					}
+
+
+				}
+			}
+
+
+
+			function r1Call(r1obj){
+				removeall('r1set')
+				removeall('prblistdiv');	
+				var r1set=document.getElementById('r1set');
+				for(var ia=0; ia<r1obj.length; ia++){
+					var r1div=document.createElement('div');
+					r1div.className='r1div';
+					r1div.id=r1obj[ia].r1id;	
+					var r1diva=document.createElement('a');
+					r1diva.innerHTML=ia+1+'. '+r1obj[ia].r1listinfo;
+					r1div.appendChild(r1diva);
+
+					r1div.onclick=function(i,j){return function(){callPrblist(i);putColoron('r1div',j,['blue','white'])}}(r1obj[ia].r1prb,r1obj[ia].r1id);
+					r1set.appendChild(r1div);
+					
+				}
+				MathJax.Hub.Queue(["Typeset",MathJax.Hub,"r1set"])	
+				
+			}	
+
+
+
+
+			function rankCall(){
+				socket.emit('rdctrankcall');
+			}	
+			rankCall();
+			socket.on('rdctrankcallafter',function(a){
+				removeall('r2set');
+				var r2setdiv = document.getElementById('r2set');
+			
+				var indr2set=[];
+				for(var ia=0; ia<a.a.length; ia++){
+					var chk=0;
+					for(var ib=0; ib<indr2set.length; ib++){
+						if(indr2set[ib][0]==a.a[ia].parentcol){
+							chk=1;
+							break;
+						}
+					}	
+					if(chk==0){
+						indr2set.push([a.a[ia].parentcol,a.a[ia].r2listinfo]);
+					}
+				}
+
+				
+				r2obj=[];
+				for(var ia=0; ia<indr2set.length; ia++){
+					r2obj[ia]={r2id:indr2set[ia][0],r2listinfo:indr2set[ia][1],r1set:[]}
+					for(var ib=0; ib<a.a.length; ib++){
+						if(a.a[ib].parentcol==indr2set[ia][0]){
+							r2obj[ia].r1set.push({r1id:a.a[ib].childcol,r1prb:a.a[ib].prblist,r1listinfo:a.a[ib].listinfo})
+						}
+					}
+				}
+
+				for(var ia=0; ia<r2obj.length; ia++){
+					var r2divadiv=document.createElement('div');
+					r2divadiv.className='r2div';
+					r2divadiv.id=r2obj[ia].r2id;
+					var r2diva=document.createElement('a');
+					r2diva.innerHTML=ia+1+'. '+r2obj[ia].r2listinfo;
+					r2divadiv.appendChild(r2diva);
+					r2divadiv.onclick=function(i,j){return function(){r1Call(i); putColoron('r2div',j,['red','white']);}}(r2obj[ia].r1set,r2obj[ia].r2id);
+					r2setdiv.appendChild(r2divadiv);
+				}		
+				MathJax.Hub.Queue(["Typeset",MathJax.Hub,"r2set"])	
+				
+			});
+
+
+			function removeall(elename){
+				var ele=document.getElementById(elename)
+				while(ele.firstChild){
+					ele.removeChild(ele.firstChild);
+				}
+			}
+
+
+
+			function sendMultiple(){
+				var multians={}
+				multians.ans=document.getElementById('multians').value;
+				multians.mul1=document.getElementById('multi1').value;
+				multians.mul2=document.getElementById('multi2').value;
+				multians.mul3=document.getElementById('multi3').value;
+
+				var description=
+				`
+				module.exports={
+				spamprb:function(prbrows){
+				var prbchk=0;
+				var path=require('./prismpath.json');
+				var async=require('async');
+				var pr=require(path.prismbin+'prbtest');
+				var rst=pr.AnsFuncc([[1,10,1],[1,15,1]]);
+				var Nans=rst[1];
+
+				var cho1=\` `+multians.mul1.replace(/\\/g,"\\\\")+ ` \`;
+				var cho2=\` `+multians.mul2.replace(/\\/g,"\\\\")+ ` \`;
+				var cho3=\` `+multians.mul3.replace(/\\/g,"\\\\")+ ` \`;
+				var ans=\` `+multians.ans.replace(/\\/g,"\\\\")+ ` \`;
+				prbcontent=\`prbcontent=\`+prbrows;
+				eval(prbcontent);
+
+
+				return [prbcontent,ans,Nans,cho1,cho2,cho3,prbchk]
+				}
+				};
+				`
+
+				var title=chosenprb;
+				if(title==''){
+					alert('choose prb');
+				}else if(multians.mul1!='' && multians.mul2!='' && multians.mul3!='' && multians.ans!=''){
+					socket.emit('registeranstoprb',{description:description,title:title,multians:multians,multiopt:multiopt});
+				}else{
+					alert('fill the blank');
+				}
+				
+			}
+
+			socket.on('registeranstoprbafter',function(a){
+				document.getElementById(chosenprb).remove();
+				chosenprb='';
+				document.getElementById('multi3').value='';
+				document.getElementById('multi2').value='';
+				document.getElementById('multi1').value='';
+				document.getElementById('multians').value='';
+				
+			});
+			function putColoron(classN, idN,colorN){
+				var cn=document.getElementsByClassName(classN);
+				for(var ia=0; ia<cn.length; ia++){	
+					cn[ia].style.color='';
+					cn[ia].style.backgroundColor='';
+				}
+				document.getElementById(idN).style.backgroundColor=colorN[0];
+				document.getElementById(idN).style.color=colorN[1];
+			}
+
+
+
+
+			socket.on('vdrggetmultiafter',function(a){
+				if(multiopt==1){
+					var idlist=['multi1','multi2','multi3'];
+					var mul=document.getElementById('multians');
+					mul.value=a.multiv[1];
+					for(var ia=0; ia<idlist.length; ia++){
+						var mul=document.getElementById(idlist[ia]);
+						mul.value=a.multiv[ia+3];
+					}
+					displayMulti();
+				}
+				
+
+			});
+
+			socket.on('callprblistansafter',function(a){
+				removeall('prblistdiv');
+				var prblistdiv=document.getElementById('prblistdiv');
+				for(var ia=0; ia<a.plist.length; ia++){	
+				//for(var ia=a.plist.length-1; ia>=0; ia--){	
+					var prbcontdiv=document.createElement('div');
+					prbcontdiv.className='prblistdiv'
+					prbcontdiv.id=a.plist[ia][0];
+
+
+					var prbdivid=document.createElement('div');
+					prbdivid.className='prbdivid';
+					var prbdivida=document.createElement('A');
+					prbdivida.innerHTML=a.plist[ia][0];
+					prbdivid.appendChild(prbdivida);
+					prbcontdiv.appendChild(prbdivid);
+					prbdivid.onclick=function(i){
+						return function(){
+							editFunc(i,50,20,20);
+						}
+					}(a.plist[ia]);
+
+					prbcontdiv.onclick=function(i){return function(){
+						chosenprb=i[0];
+						putColoron('prblistdiv',i[0],['blue','white']);
+						socket.emit('vdrggetmulti',{prbid:i[0]});
+			
+					}}(a.plist[ia]);
+					var prbcontdiva=document.createElement('A');
+					prbcontdiva.innerHTML=a.plist[ia][1];
+					prbcontdiv.appendChild(prbcontdiva);
+
+
+					if(a.plist[ia][8]!=null){
+						var prbimgdiv=document.createElement('div');	
+						var prbimg=document.createElement('img');
+						prbimg.src=a.plist[ia][8];
+						prbimgdiv.appendChild(prbimg);
+						prbimgdiv.className='prbimgdiv';
+						prbcontdiv.appendChild(prbimgdiv);
+	
+					}
+					prblistdiv.appendChild(prbcontdiv);
+
+
+				}
+				MathJax.Hub.Queue(["Typeset",MathJax.Hub,prblistdiv])	
+				
+			});
+			function callPrblist(plist){
+				socket.emit('callprblistans',{plist:plist.split(','),multiopt:multiopt});
+			}

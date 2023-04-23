@@ -1,0 +1,149 @@
+html
+	head
+
+		script(src='/socket.io/socket.io.js')
+		style.
+			#mentorvideobox {
+				width:50%;
+				height:90%;
+				bacground-color:red;
+				overflow:auto;
+			}
+			#mentorvideobox video {
+				width:100%;
+			}
+	body
+
+		div(id='buttonbox')
+			button(onclick='audioConntouser(1)') Video on
+		div(id='videobox')
+		div(id='mentorvideobox')
+			video(id='mentorvideo' autoplay  playsinline controls='false' muted)
+		script.
+
+
+			var socket = io('/vdrg',{
+				transports:['websocket'],
+				upgrade:false
+			});
+
+
+			socket.on('connect',()=>{
+				console.log('connection ready');
+				//socket.emit('fortabletreport',{a:'connect '+socket.id+', getState : '+getState(),username:username,modecheck:'socketcheck'});
+
+			});
+
+
+
+			async function getConnectedDevices(type){
+				const devices = await navigator.mediaDevices.enumerateDevices();
+				return devices.filter(device => device.kind === type);
+			}
+
+			var selected_device = '';
+
+			async function selectDevices(){
+				const devices = await navigator.mediaDevices.enumerateDevices();
+
+				var webrtcbuttonbar=document.getElementById('buttonbox');
+
+				for(let it of devices){
+
+					
+					if(it.kind=='videoinput'){
+						selected_device=it.deviceId;
+						var fdiv=document.createElement('button');
+						fdiv.innerHTML=it.label;
+						fdiv.className='videoinput';
+						webrtcbuttonbar.appendChild(fdiv);
+						fdiv.onclick=function(k){	
+							return function(){
+								selected_device=k;
+							}
+						}(it.deviceId)
+					}
+				}
+			}
+			selectDevices();
+			async function everythingReady(){
+				/*
+					checklist
+						getusermedia test,
+						audio input test,
+				*/
+
+				var equipChecklist=[];
+				var msglist=[];
+
+				const navimedia=await navigator.mediaDevices;
+				if(navimedia !== undefined){
+					equipChecklist.push(1);
+					msglist.push('navigator.mediaDevices ok')
+	
+					const audios= await getConnectedDevices('audioinput');
+					if(audios && audios.length>0){
+						equipChecklist.push(1);
+						msglist.push('audio input ok')
+					}else{
+						equipChecklist.push(0);
+						msglist.push('audio input FAILED')
+					}
+				
+					const videos= await getConnectedDevices('videoinput');
+					if(videos && videos.length>0){
+						equipChecklist.push(1);
+						msglist.push('video input ok')
+					}else{
+						equipChecklist.push(0);
+						msglist.push('video input FAILED')
+					}
+
+				}else{
+					equipChecklist.push(0);
+					equipChecklist.push(0);
+					const msg = 'navigator.mediaDevices is not found'
+					msglist.push(msg)
+				}
+			
+				return {equipcheck:equipChecklist, msglist:msglist}
+
+			}
+
+			async function audioConntouser(opt){
+				const equipCheck= await everythingReady();
+				console.log(equipCheck);
+
+				const devices = await navigator.mediaDevices.enumerateDevices();
+				console.log(devices);
+
+				if(opt==1 || opt==2){
+					var constraints={
+						video:{
+							deviceId:{
+								exact:selected_device
+								//exact:devices[3].deviceId
+							}
+
+						},
+						audio:true
+					}
+					//var constraints={video:{width:1920, height:1080},audio:true}
+				}else{
+					var constraints={video:false,audio:true}
+				}
+				console.log(constraints);
+				navigator.mediaDevices.getUserMedia(constraints).then(async stream =>{
+
+				var mentorvideo=document.getElementById('mentorvideo');
+				mentorvideo.srcObject = stream;
+
+				mentorvideo.onloadedmetadata = function(e){
+					mentorvideo.play();		
+				}
+				});
+			
+			}
+
+
+

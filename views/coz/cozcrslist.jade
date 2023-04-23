@@ -1,0 +1,55 @@
+html
+	head
+		style.
+			a{
+				text-decoration:none;
+				color:black;
+			
+			}
+		script(src='/socket.io/socket.io.js')
+		script.
+			window.onload=function(){
+				var date=new Date();
+				var vyear=date.getFullYear();
+				var vmonth=date.getMonth()+1;
+				if(vmonth<10){
+					vmonth='0'+vmonth.toString();
+				}
+				var vday=date.getDate();
+				if(vday<10){
+					vday='0'+vday.toString();
+				}
+				var fulldate=vyear.toString()[2]+vyear.toString()[3]+vmonth+vday;
+				document.getElementById('titledate').innerHTML=	fulldate;
+			}
+
+			function removecrs(crsname){
+			
+				if(confirm(crsname+'의 모든 내용이 삭제됩니다!!')){
+					var socket=io('/coz');
+					socket.emit('cozrmcrs',{crsname:crsname});
+					socket.on('rstcozrmcrs',function(){
+						window.location.reload(true);
+					});
+				}else{
+					console.log('canceled');
+				}
+			}
+	body
+		div(id='back')
+			a(href='./page') Back
+		div(id='courselist')
+			div(id='MakingNewCourse')
+				div(id='titlebox')
+					a(id='titleprefix') GG
+					a(id='titledate')
+				div(id='titleinput')
+					form(action='./coztitle' method='get')
+						input(type='text' name='crsname' )
+						input(type='submit' value='Create New Course' id='submitinput')
+		div 
+			-for(var ia=0; ia<rs.length; ia++){
+				div
+					button(onclick='removecrs("'+rs[ia].crsname+'")' value='remove') remove
+					a(href='./coz?stchk=1&crs='+rs[ia].crsname)=rs[ia].crsname
+			-}

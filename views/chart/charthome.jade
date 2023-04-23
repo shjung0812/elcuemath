@@ -1,0 +1,33 @@
+html
+
+	head
+		script(src='https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.min.js')
+		style.
+			#chart {
+				//text-align:center;
+			}
+			#mychardiv {
+				margin:0 auto;
+				width:500px;
+				height:500px;
+				border:solid 1px;
+			}
+			#myChart {
+				width:100%;
+				height:100%;
+			}
+			#eq {
+				color:red;
+			}
+	body
+		div(id='chart')
+			div(id='eq')
+			div(id='mychardiv')
+				canvas(id='myChart')
+		div
+			div
+				button(onclick='updatechart("u")') Constant up
+			div
+				button(onclick='updatechart("d")') Constant down
+		script(type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML")
+		script(src='mtex/mtex.js')

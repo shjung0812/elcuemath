@@ -1,0 +1,26 @@
+html
+	
+	head
+		title Create TEXT
+		style.
+			a {
+				display:inline-block;
+			}
+	body
+		div
+			h2 Create Text 
+		div
+			form(action='/nusd/createtext', method='post')
+				p texttitle
+				input(type='texttitle', name='texttitle')
+				input(type='submit')
+		div
+			-for(var ia=0; ia<textlist.length; ia++){
+				div
+					-if(textlist[ia].terminalid==null){
+						a(href='./terminalconnect?oid='+textlist[ia].textid) set num
+					-}else{
+					-}
+					p=textlist[ia].texttitle
+			-}
+				

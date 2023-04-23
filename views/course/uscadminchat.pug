@@ -1,0 +1,88 @@
+html
+	head
+		style.
+			#ChatPanel{
+				position:absolute;
+				top:0;
+				height:100%;
+				width:100%;
+			}
+			#ChatView{
+				position:absolute;
+				height:90%;
+				bottom:10%;
+				width:100%;
+				padding:0 2%;
+				overflow:auto;
+			}
+			#ChatMsgBox{
+				position:absolute;
+				bottom:5%;
+				width:100%;
+				height:6%;
+			}
+			#USCmsg{
+				width:80%;
+				height:100%;
+				font-size:1.5em;
+			}
+			#USCsend{
+				position:absolute;
+				width:18%;
+				height:100%;
+			}
+	body
+		div(id='ChatPanel')
+			div(id='ChatView')
+				-for(var ia=0; ia<rs.length; ia++){
+					-if(rs[ia].userid==adminid){
+						p(style='color:green')=rs[ia].msgcont
+					-}else{
+						p=rs[ia].msgcont
+					-}
+				-}
+			div(id='ChatMsgBox')
+				input(id='USCmsg' type='text' )
+				input(id='USCsend' type='button' value='send' onclick='USCSend()')
+		script(src='/socket.io/socket.io.js')
+		script.
+			var userid='#{userid}';
+			var userskid;
+			var adminid='shjung';
+			var socket=io('/AdminChatting')
+			function USCSend(){
+				var msgsend=document.getElementById('USCmsg');
+				socket.emit('USSChattingAdminSend',{msgsend:msgsend.value,userskid:userskid,userid:userid,adminid:adminid})
+			}
+		
+			socket.on('USSChattingAdminRec',function(msgrec){
+
+				if(msgrec.userid==userid){
+					var USCPanel=document.getElementById('ChatView');
+					var USCbox=document.createElement('DIV');
+					var USCcont=document.createElement('P');
+					//userskid=msgrec.userskid;
+					USCcont.innerHTML=msgrec.msgrec;
+					if(msgrec.msgdiff==0){
+						USCcont.setAttribute('style','color:green;');
+					}
+					USCbox.appendChild(USCcont);
+					USCPanel.appendChild(USCbox);
+					USCPanel.scrollTop=USCPanel.scrollHeight;
+				}
+
+			
+			})
+
+			document.getElementById('USCmsg').addEventListener('keyup',function(event){
+				event.preventDefault();
+				if(event.keyCode==13){
+					document.getElementById('USCsend').click();
+					document.getElementById('USCmsg').value='';
+				}
+			});
+			window.onload=function(){
+				var scrollchat=document.getElementById('ChatView');
+				scrollchat.scrollTop=scrollchat.scrollHeight;
+			}
+		

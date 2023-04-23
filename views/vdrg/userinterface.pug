@@ -1,0 +1,3330 @@
+html
+	head
+		title Class Room
+		script(src='/socket.io/socket.io.js')
+		script(type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML")
+		script(src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.5.0-beta4/html2canvas.js" type="text/javascript" xml="space")
+		script(async src="https://www.googletagmanager.com/gtag/js?id=G-MPRPDZ50KW")
+		script.
+			window.dataLayer = window.dataLayer || [];
+			function gtag(){dataLayer.push(arguments);}
+			gtag('js', new Date());
+			gtag('config', 'G-MPRPDZ50KW');
+
+		meta(name='viewport' content='user-scalable=no, initial-scale-1.0, maximum-scale=1.0, minimum-scale=1.0, width=device-width')
+		style.
+
+			body {
+				margin:0;
+				padding:0;
+				overscroll-behavior: contain;
+			}
+
+			canvas {
+				//cursor: defalut;
+				cursor:url('/cursor/Dot.cur'), default;
+			}
+			#panel {
+				width:100%;
+				height:100%;
+			}
+			#headdiv {
+				width:100%;
+				height:8%;
+				background-color:#a9cce3;
+			}
+			#contdiv{
+				width:100%;
+				height:92%;
+			}
+			#prblistdiv{
+				width:60%;
+				height:100%;
+				float:left;
+				overflow:auto;	
+			}
+			#videolistdiv{
+				width:20%;
+				float:left;	
+			}
+			#videolistdiv video {
+				width:100%;
+			}
+			#optiondiv {
+				width:20%;
+				height:100%;
+				float:left;	
+			}
+
+			#indidiv {
+				float:left;
+				position:relative;
+				top:20%;
+				left:5%;
+			}
+
+			#pagecondiv {
+				float:right;
+				width:30%;
+				height:100%;
+			}
+			#previousdiv {
+				position:relative;
+				top:15%;
+				width:40%;
+				height:70%;
+				background-color:#aaaaaa;
+			}
+			#previousdiv button {
+				width:100%;
+				height:100%;
+				cursor:pointer;
+				word-break:break-word;
+			}
+			#nextdiv button {
+				width:100%;
+				height:100%;
+				cursor:pointer;
+			}
+			#nextdiv {
+
+				position:relative;
+				top:15%;
+				width:40%;
+				height:70%;
+				float:right;
+				background-color:#aaaaaa;
+			}
+			.prbboxdiv {
+				position:relative;
+				width:98%;
+				margin:5% 0 0 0;
+				border:1mm ridge;
+				min-height:40%;
+			}
+
+			.prbreadingdiv {
+				width:80%;
+				padding:0 10%;
+				overflow-x:auto;
+				overflow-y:hidden;
+			}
+
+			.prbreadingdiv a {
+				display:inline-block;
+				margin:5% 0 0 0;
+				width:100%;
+			}
+
+
+
+			#prbchoicediv {
+				background-color:#cccccc;
+				margin:5% 0 0 0;
+			}
+
+			.curtaindiv {
+				width:100%;
+				background-color:rgba(255,195,0,.4);
+				position:absolute;
+				height:100%;
+				bottom:0;
+				z-index:3;
+				
+			}
+			.curtaintextdiv{
+				position:absolute;
+				background-color:rgba(0,0,0,.6);
+				top:70%;
+				width:100%;
+				margin:0 auto;
+				text-align:center;
+				z-index:5;
+				cursor:pointer;
+			}
+			.curtaintextdiv a {
+				font-size:3em;
+				color:white;
+			}
+
+
+			.wrssprbmulti {
+				width:95%;
+				height:15%;
+				padding:3% 0 3% 5%;
+			}
+			.wrssprbmulti:hover {
+				color:white;
+				background-color:blue;
+				cursor:pointer;
+			}
+
+			.prbmulti {
+				width:95%;
+				padding:3% 0 3% 5%;
+			}
+			.prbmulti:hover {
+				color:white;
+				background-color:blue;
+				cursor:pointer;
+			}
+			.optiondiv {
+				position:absolute;
+				z-index:4;
+				width:100%;
+			}
+			.askcalltomentordiv {
+				width:50%;
+				float:left;
+				text-align:center;	
+				background-color:blue;
+				color:white;
+			}
+			.askcalltomentordiv:hover {
+				font-weight:bold;	
+				cursor:pointer;
+			}
+			.iknowitdiv {
+				width:50%;
+				float:left;
+				background-color:orange;
+				text-align:center;
+			}
+			.iknowitdiv:hover {
+				font-weight:bold;
+				cursor:pointer;
+			}
+
+			#savetoaskdiv {
+				width:100%;
+				height:100%;
+				overflow:auto;
+			}
+			.staprbdiv {
+				cursor:pointer;
+				font-size:1em;
+				width:98%;
+				border:1mm ridge;
+				height:20%;
+			}
+			#savetoaskdiv div div{
+				width:80%;
+				height:92%;
+				margin:4% 10%;
+			}
+
+			#sharepaperondiv {
+				width:100%;
+				height:100%;
+				position:absolute;
+				top:0;
+				left:0;
+				z-index:7;
+			}
+
+
+			#sharecanvasbox {
+				width:60%;
+				height:55%;
+				//margin:2% 0% 0  0%;
+
+			}
+			#sharepaperbox {
+				position:relative;
+				width:90%;
+				height:100%;
+				float:left;
+				background-color:#bbbbbb;
+			}
+			#sharepaperoptionbox {
+				width:10%;
+				height:100%;
+				overflow:hidden;
+				flaot:left;
+				background-color:#cccccc;
+			}
+			#sharedinputdiv {
+
+				position:absolute;
+				z-index:1;
+				top:0;
+				left:0;
+			}
+			#indicatePic{
+
+				position:absolute;
+				z-index:2;
+				top:0;
+				left:0;
+			}
+			#layerpic {
+
+				position:absolute;
+				z-index:3;
+				top:0;
+				left:0;
+			}
+			#tuserpic {
+
+				position:absolute;
+				z-index:3;
+				top:0;
+				left:0;
+			}
+
+			#myPics {	
+				position:absolute;
+				top:0;
+				left:0;
+				z-index:4;
+			}
+			#picdiv img {
+				width:80%;
+				margin:10% 10% 0 10%;
+			}
+			#wrsspicdiv img {
+				width:80%;
+				margin:10% 10% 0 10%;
+			}
+
+			.prbpicdiv {
+				width:100%;
+			}
+			.prbpicdiv img {
+				width:100%;
+			}
+			.videolistclass iframe {
+				width:100%;
+			}
+			#mentorvideobox {
+				position:fixed;
+				width:10%;
+				height:35%;
+				bottom:0%;
+				right:0%;
+				z-index:2;
+				visibility:hidden;
+			}
+			#mentorvideo {
+				width:100%;
+				height:50%;
+				object-fit:cover;
+				border: 1px solid black;	
+	
+			}
+			#selfvideo {
+				width:100%;
+				height:50%;
+				object-fit:cover;
+				//border: 1px solid black;	
+	
+			}
+
+			#mentorvideocontroldown{
+				height:10%;
+				position:absolute;
+				bottom:0;
+			}
+			#wrssdiv {
+				width:100%;
+				height:100%;
+				position:absolute;
+				top:0;
+				left:0;
+				z-index:6;
+				background-color:rgba(0,0,0,1);
+			}
+			#wrssbox {
+				position:relative;
+				background-color:black;
+
+			}
+			#wrsscanvasbox {
+				width:80%;
+				height:100%;
+				float:left;
+			}
+			#wrssmultiplebox {
+				width:20%;
+				height:100%;
+				background-color:black;
+				float:left;
+				color:white;
+				
+			}
+			#wrssmypics {
+				position:absolute;
+				z-index:5;
+			}
+			#wrssbackdiv {
+				position:absolute;
+				z-index:4;
+
+			}
+			#eraseall {
+				width:100%;
+				background-color:#bbbbbb;
+				cursor:pointer;
+				text-align:center;
+				padding:2% 0;
+			}
+			#completediv {
+				width:100%;
+				background-color:#aaaaaa;
+				cursor:pointer;
+				text-align:center;
+				padding:4% 0;
+			}
+
+			#penswitchingbox {
+				width:100%;
+				height:25%;
+				background-color:#aaaaaa;
+			}
+			#penswitchingbox div {
+				/*
+				cursor:pointer;
+				float:left;
+				width:33%;
+				height:10%;
+				text-align:center;
+				padding:20% 0;*/
+			}
+			#penboxlist {
+				width:100%;
+				height:90%;
+			}
+			#penboxlist div {
+				width:60%;
+				height:15%;
+				float:right;
+				cursor:pointer;
+			}
+			#penbox0, #penbox1 {
+				background-color:#aaaaaa;
+				font-size:1vw;
+			}
+			#eraserbox {
+				font-size:1vw;
+				text-align:right;
+				width:100%;
+				height:10%;
+				cursor:pointer;
+			}
+			#penswitchingbox2 {
+				position:absolute;
+				bottom:0%;
+				width:100%;
+				height:10%;
+				
+			}
+			#penboxlistunder {
+				cursor:pointer;
+				float:left;
+				width:55%;
+				height:90%;
+				text-align:center;
+				//padding:2% 0;
+				border:solid 1px black;
+			}
+
+			#penboxlistunder div {
+				width:10%;
+				height:100%;
+				float:left;
+			}
+			#eraserbox2 {
+				cursor:pointer;
+				float:left;
+				width:15%;
+				height:90%;
+				text-align:center;
+				//padding:2% 0;
+				border:solid 1px black;
+				background-color:#FFC100;
+			}
+			#penbox2, #penbox3 {
+				background-color:#aaaaaa;
+			}
+			#eraserbox2 a {
+				display:inline-block;
+				padding:10% 0;
+			}
+			#wrsspenswitchbox {
+				width:100%;
+				height:10%;
+				background-color:#888888;
+			}
+			#wrsspenswitchbox div {
+				float:left;
+				width:50%;
+				height:60%;
+				text-align:center;
+				cursor:pointer;
+				position:relative;
+				top:30%;
+			}
+
+			#pensizelist{
+				width:90%;
+				padding:20% 0% 0 10%;
+				height:20%;
+				float:right;
+			}
+			#pensizelist div:hover {
+				background-color:purple;
+				color:white;
+				
+			}
+			#pensizelist div {
+				width:17%;
+				
+				height:45%;
+				float:left;
+				font-size:.6vw;
+				font-size:.6vh;
+				border:solid 1px black;
+				cursor:pointer;
+				text-align:center;
+			}
+
+			#backgroundcolordiv {
+				width:100%;
+				height:20%;
+			}
+			#backgroundcolordiv div {
+				float:right;
+				cursor:pointer;
+				width:15%;
+				height:100%;
+			}
+			#buttondiv {
+				width:100%;
+			}
+			#savebutton {
+				width:50%;
+			}
+			#eraseallmine:hover{
+				background-color:purple;
+				color:white;
+			}
+			#eraseallmine {
+				width:80%;
+				padding:10% 0 10% 20%;
+				cursor:pointer;
+			}
+			#eraseallmineunder {
+				background-color;
+				color:black;
+				border:solid 1px black;
+			}
+			#eraseallmineunder a {
+				display:inline-block;
+				padding:35% 0;
+			}
+
+	body(onselectstart = "return false" ondragstart = "return false" oncontextmenu="return false")
+
+		div(id='panel')
+			div(id='headdiv')
+
+			div(id='contdiv')
+				div(id='optiondiv')
+				div(id='prblistdiv')
+				div(id='videolistdiv')
+
+		div(id='sharepaperondiv' onclick='')
+			div(id='sharepaperbox')
+				div(id='sharecanvasbox')
+					canvas(id='myPics')
+					canvas(id='layerpic')
+					canvas(id='tuserpic')
+					canvas(id='indicatePic')
+					div(id='sharedinputdiv')
+
+				div(id='penswitchingbox2')
+					
+					//div(id='penbox2' onclick='switchtoPen(0);')
+						//a Pen <br> White
+					//div(id='penbox3' onclick='switchtoPen(1);')
+						//a Pen <br> Black
+					
+					div(id='penboxlistunder')
+					div(id='eraserbox2' onclick='switchtoEraser();')
+						a Eraser
+
+
+
+			div(id='sharepaperoptionbox')
+				//div(id='fullscreendiv')
+					//Button(onclick='toFullscreen();') Full Screen
+				div(id='buttondiv')
+					//gtag('js', new Date());
+					Button(id='savebutton' onclick='screenSaveToServer();gtag("event","CapturingBoard")') 저장하기
+				//div
+					//a(href='./savedscreen?username='+userinfo.username target='_blank') Check Saved Screen
+				div(id='penswitchingbox')
+					//div(id='penbox0' onclick='switchtoPen(0);')
+						//a Pen <br> White
+					//div(id='penbox1' onclick='switchtoPen(1);')
+						//a Pen <br> Black
+					div(id='eraserbox' onclick='switchtoEraser();')
+						a Eraser
+					div(id='penboxlist')
+					div(id='eraseallmine' onclick='clearmyRect();gtag("event","clearBoard");')
+						a 내필기 모두 지우기
+					//div(id='eraseallmine' onclick='if(confirm("All things in board are going to be removed")){clearmyRect();gtag("event","clearBoard")};')
+					div(id='pensizelist')
+					div(id='backgroundcolordiv')
+				div(id='mentorvideobox')
+					video(id='selfvideo' autoplay  playsinline controls='false' muted)
+					video(id='mentorvideo' autoplay  playsinline controls='false')
+
+		div(id='wrssdiv')
+			div(id='wrssbox')
+				div(id='wrsscanvasbox')
+					canvas(id='wrssmypics')
+					div(id='wrssbackdiv')
+				div(id='wrssmultiplebox')
+
+		script.
+			var userinfo=!{JSON.stringify(userinfo)};
+			var username=userinfo.username;
+
+			gtag('event','InClassRoom',{'event_label':username});
+			var origin=window.location.origin;
+			var socket = io('/vdrg',{
+				transports:['websocket'],
+				upgrade:false
+			});
+
+
+			
+
+			var gratio=.61804;
+
+			window.onload=function(){
+				onSharepaperon(0);
+				WRSSon(0);
+			}
+
+
+
+
+
+			function eraserCursorRaise(opt){
+				var canvastag=document.getElementsByTagName('canvas')
+				if(opt=='on'){
+					for(var ia=0; ia<canvastag.length; ia++){
+						canvastag[ia].style.cursor="url('/cursor/cursor_small_black_empty.cur'), default"
+					}
+				}else if(opt=='onbig'){
+					for(var ia=0; ia<canvastag.length; ia++){
+						canvastag[ia].style.cursor="url('/cursor/cursor_big_black_empty.cur'), default"
+						//canvastag[ia].style.cursor="url('/cursor/eraser_Bigg.cur'), default"
+					}
+
+				}else{
+					for(var ia=0; ia<canvastag.length; ia++){
+						//canvastag[ia].style.cursor="url('/cursor/eraser_Bigg.cur'), default"
+						canvastag[ia].style.cursor="url('/cursor/Dot.cur'), default"
+					}
+
+				}
+			}
+
+			//sharedinputdiv.style.backgroundColor=environdefine.background[0];
+			var backgroundcolorlist=['#128543','#0e783b','#116a37','#145a32','#336633']
+			var bgc=document.getElementById('backgroundcolordiv');
+			for(var ia=0; ia<backgroundcolorlist.length; ia++){
+				var fdiv=document.createElement('div');
+				fdiv.onclick=function(i){
+					return function(){
+						var sharedinputdiv=document.getElementById('sharedinputdiv');
+						sharedinputdiv.style.backgroundColor=backgroundcolorlist[i];
+					}
+				}(ia);
+				fdiv.style.backgroundColor=backgroundcolorlist[ia];
+				bgc.appendChild(fdiv);
+
+
+			}	
+
+
+			var penboxlistunder=document.getElementById('penboxlistunder');
+			var pencolorlist=['white','black','red','blue','yellow'];
+			for(var ia=0; ia<pencolorlist.length; ia++){
+				var fdiv=document.createElement('div');
+				fdiv.onclick=function(i,j){
+					return function(){
+						stat.color=i;
+						//stat.size=environdefine.secondpen[1];
+						//environdefine.secondpen[0]=i;
+
+						gtag("event","change_Pen_Property")
+
+						if(j==0){
+							stat.code=environdefine.firstpen[2];
+							stat.size=environdefine.firstpen[1];
+						}else{
+							stat.code=environdefine.secondpen[2];
+							environdefine.secondpen[0]=i;
+							stat.size=environdefine.secondpen[1];
+						}
+						eraserCursorRaise('off');
+
+					}
+				}(pencolorlist[ia],ia);
+				fdiv.style.backgroundColor=pencolorlist[ia];
+				penboxlistunder.appendChild(fdiv);
+			}	
+			var eraseallmine=document.createElement('div');
+			var eraseallminea=document.createElement('a');
+			eraseallminea.innerHTML='remove all';
+			eraseallmine.appendChild(eraseallminea);
+			eraseallmine.id='eraseallmineunder'
+			eraseallmine.onclick=function(){
+				return function(){
+					if(confirm("All things in board are going to be removed")){clearmyRect();gtag("event","clearBoard")};
+					clearmyRect();
+				}
+			}();
+			penboxlistunder.appendChild(eraseallmine);
+
+
+
+			function selectBorder(ids,classname){
+				var fdiv=document.getElementsByClassName(classname);
+				for(var ia=0; ia<fdiv.length; ia++){
+					fdiv[ia].style.border='none';
+				}	
+				var idf=document.getElementById(ids)
+				if(idf){
+					idf.style.border='5px dotted grey';
+				}
+			}
+
+			var penboxlist=document.getElementById('penboxlist');
+			for(var ia=0; ia<pencolorlist.length; ia++){
+				var fdiv=document.createElement('div');
+				fdiv.className='pencolor';
+				fdiv.id='penid'+pencolorlist[ia];
+				fdiv.onclick=function(i,j){
+					return function(){
+						stat.color=i;
+						//stat.size=environdefine.secondpen[1];
+						//environdefine.secondpen[0]=i;
+						gtag("event","change_Pen_Property")
+
+
+
+						if(j==0){
+							stat.code=environdefine.firstpen[2];
+							stat.size=environdefine.firstpen[1];
+							//stat.size=stdpensize;
+						}else{
+							stat.code=environdefine.secondpen[2];
+							environdefine.secondpen[0]=i;
+							stat.size=environdefine.secondpen[1];
+							//stat.size=stdpensize;
+						}
+
+
+						eraserCursorRaise('off');
+						selectBorder('penid'+i,'pencolor');
+
+					}
+				}(pencolorlist[ia],ia);
+				fdiv.style.backgroundColor=pencolorlist[ia];
+				//fdiv.innerHTML=pencolorlist[ia];
+				penboxlist.appendChild(fdiv);
+			}	
+
+			selectBorder('penidblack','pencolor');
+
+
+
+			var pensizelistdiv=document.getElementById('pensizelist');
+			var pensizelist=[0.6,1,2,3,4];			
+			for(var ia=0; ia<pensizelist.length; ia++){
+				var fdiv=document.createElement('div');
+				fdiv.onclick=function(i){
+					return function(){
+						gtag("event","change_Pen_Property")
+						if(stat.code=='eraser'){
+							//environdefine.eraser.size=stdpensize*pensizelist[i];
+							var std=stdpensize*pensizelist[i]*16;
+							if(stat.size!=std){
+								stat.size=stdpensize*pensizelist[i]*16;
+							}else{
+								stat.size=stat.size*pensizelist[i];
+							}
+							if(i<3){
+								eraserCursorRaise('on');
+							}else{
+								eraserCursorRaise('onbig');
+							}
+						}else{
+							environdefine.firstpen[1]=stdpensize*pensizelist[i];
+							environdefine.secondpen[1]=stdpensize*pensizelist[i];
+							stat.size=stdpensize*pensizelist[i];
+						}
+					}
+				}(ia);
+				fdiv.innerHTML=pensizelist[ia]*100 +'%';
+				pensizelistdiv.appendChild(fdiv);
+			}
+
+
+			function sizeBigpic(){
+				var picdiv=document.getElementById('picdiv');
+				if(picdiv){
+					picdiv.style.width='100%';
+					picdiv.style.height='100%';
+					picdiv.style.position='absolute';
+				}					
+			}
+
+			function sizeSmallpic(){
+				var picdiv=document.getElementById('picdiv');
+				if(picdiv){
+					picdiv.style.width='40%';
+					picdiv.style.height='';
+					picdiv.style.position='static';
+				}					
+			}
+
+
+			function sizeControlpic(sz){
+				var picdiv=document.getElementById('picdiv');
+				if(picdiv){
+					picdiv.style.width=sz+'%';
+					picdiv.style.height=sz+'%';
+					picdiv.style.position='absolute';
+					picdiv.style.right=0;
+					picdiv.style.top=0;
+				}					
+
+			}
+
+			socket.on('vdrgpicsizecontrolafter',function(a){
+				if(a.size=='big'){
+					sizeBigpic();
+				}else if(a.size=='down'){
+					sizeSmallpic();
+				}else{
+					sizeControlpic(a.size)
+				}
+			});
+
+
+			function wrssSwitchto(opt){
+				if(opt==1){
+					wrssstat.color=wrssenvirondefine.firstpen[0];
+					wrssstat.size=wrssenvirondefine.firstpen[1];
+					wrssstat.code=wrssenvirondefine.firstpen[2];
+				
+				}else if(opt==0){
+					wrssstat.color='';
+					wrssstat.size=wrssenvirondefine.eraser.size;
+					wrssstat.code = wrssenvirondefine.eraser.code;
+
+				}
+			}
+
+
+			function switchtoPen(opt){
+				if(opt==0){
+					stat.color=environdefine.firstpen[0];
+					stat.size=environdefine.firstpen[1];
+					stat.code=environdefine.firstpen[2];
+				}else if(opt==1){
+					stat.color=environdefine.secondpen[0];
+					stat.size=environdefine.secondpen[1];
+					stat.code=environdefine.secondpen[2];
+
+				}else{
+					alert('error')
+				}
+
+			}
+
+			function switchtoEraser(){
+				gtag("event","change_Pen_Property")
+				stat.color=environdefine.eraser.color;
+				stat.size=environdefine.eraser.size;
+				stat.code=environdefine.eraser.code;
+
+				eraserCursorRaise('on');
+
+				
+			}
+
+			function sendScreenInfo(context,icanvaswidth){
+
+				var width = Math.floor(icanvaswidth);
+				var height =Math.floor(gratio*icanvaswidth);
+
+				var imageData = context.getImageData(0,0,icanvaswidth, icanvaswidth*gratio);
+
+				var imgsuppdata=[];
+				for(var ia=0; ia<imageData.data.length; ia=ia+4){
+					if(imageData.data[ia]!=0){
+						imgsuppdata.push([ia,imageData.data[ia]])
+					}
+				}
+
+				socket.emit('wrsssendscreeninfo',{username:userinfo.username,imgobj:{width:width, height:height,imgsupp:imgsuppdata},wrssmentorsocketid:mentorinfo.wrssmentorsocketid,prbinfo:solvedprb});
+
+			}
+
+			var wrssSendmode=0;
+			function wrssSendUserwriting(){
+				if(wrssSendmode==0){
+				}
+			}
+
+
+			var wrsscanvasbox = document.getElementById('wrsscanvasbox');
+			var wrsstmpwidth=wrsscanvasbox.offsetWidth;
+			var wrsstmpheight=wrsstmpwidth*gratio;
+
+			if(wrsstmpheight>wrsscanvasbox.offsetHeight){
+				var wrsscanvaswidth=wrsscanvasbox.offsetHeight/gratio;
+				var wrsswidthoriented=0;
+			}else{
+				var wrsscanvaswidth=wrsscanvasbox.offsetWidth;
+				var wrsswidthoriented=1;
+			}
+
+			var wrssmypics=document.getElementById('wrssmypics');
+			wrssmypics.width=wrsscanvaswidth;
+			wrssmypics.height=gratio*wrsscanvaswidth;
+			wrssmypics.style.width=wrsscanvaswidth+'px';
+			wrssmypics.style.height=gratio*wrsscanvaswidth+'px';
+
+
+				
+				
+			const wrsscontext = wrssmypics.getContext('2d');
+
+
+
+			var wrssstdpensize=1.5;
+			var wrssapppensize=wrsscanvaswidth/1440;
+			//var wrssapppensize=(canvaswidth*stdpensize/stdwidth);
+			var wrssenvirondefine={background:['#336633',wrssstdpensize*16,'background'],firstpen:['white',wrssstdpensize,'firstpen'],secondpen:['black',wrssstdpensize,'secondpen'],eraser:{size:wrssstdpensize*16,code:'eraser'},layer:{color:'blue',size:wrssstdpensize,code:'layer'},layereraser:{size:wrssstdpensize*16,code:'layereraser'}, picbackcolor:'#bbbbbb' };
+			//var wrssenvirondefine={background:['#336633',wrssstdpensize*16,'background'],firstpen:['white',wrssstdpensize,'firstpen'],secondpen:['#B43104',wrssstdpensize,'secondpen'],eraser:{size:wrssstdpensize*16,code:'eraser'},layer:{color:'blue',size:wrssstdpensize,code:'layer'},layereraser:{size:wrssstdpensize*16,code:'layereraser'}, picbackcolor:'#bbbbbb' };
+			var wrssstat={color:wrssenvirondefine.firstpen[0], size:wrssenvirondefine.firstpen[1],code:wrssenvirondefine.firstpen[2]};
+
+			//The x and y offset of the canvas from the edge of the page
+			var wrssrect = wrssmypics.getBoundingClientRect();
+
+			//self
+			let wrssisDrawing = false;
+			let wx = 0;
+			let wy = 0;
+
+			//Add the event listeners for mousedown, mousemove, and mouseup
+			wrssmypics.addEventListener('mousedown',e=>{	
+				wx = e.clientX-wrssrect.left;
+				wy = e.clientY-wrssrect.top;
+				wrssisDrawing = true;
+				socket.emit('wrssmenteetomentordraw',{pos:wrssconvertToratio(wx,wy),mousestat:'down',sendmode:wrssSendmode,username:username,wrssmentorsocketid:mentorinfo.wrssmentorsocketid})
+			});
+
+			wrssmypics.addEventListener('mousemove',e=>{
+				if(wrssisDrawing===true){
+					WRSSdrawLine(wrsscontext,wx,wy,e.clientX-wrssrect.left, e.clientY-wrssrect.top,wrssstat,0);
+					wx = e.clientX - wrssrect.left;
+					wy = e.clientY - wrssrect.top;
+					socket.emit('wrssmenteetomentordraw',{pos:wrssconvertToratio(wx,wy),mousestat:'move',statoption:wrssstat,sendmode:wrssSendmode,username:username,wrssmentorsocketid:mentorinfo.wrssmentorsocketid})
+				}
+			});
+
+			window.addEventListener('mouseup',e => {
+				if(wrssisDrawing === true){
+					WRSSdrawLine(wrsscontext, wx, wy, e.clientX - wrssrect.left, e.clientY - wrssrect.top,wrssstat,0);
+					wx = 0;
+					wy = 0;
+					wrssisDrawing = false;
+				}
+			});
+			function wrssconvertToratio(rx, ry){
+				var canvaswt=wrssrect.right-wrssrect.left;
+				var canvashg=wrssrect.bottom-wrssrect.top;
+				var nx=rx/canvaswt;
+				var ny=ry/canvashg;
+				
+				return [nx,ny];
+			}
+
+			//touchCanvas
+			var wrsstouchX, wrsstouchY;
+			function wrssgetTouchPos(e) {
+				if (!e)var e = event;
+				if(e.touches) {
+					if (e.touches.length == 1) { // Only deal with one finger
+						var touch = e.touches[0]; // Get the information for finger #1
+						wrsstouchX=touch.pageX-touch.target.offsetLeft;
+						wrsstouchY=touch.pageY-touch.target.offsetTop;
+					}
+				}
+			}
+
+			function wrsssketchpad_touchStart(){
+				wrssgetTouchPos();
+				x=wrsstouchX;
+				y=wrsstouchY;
+				WRSSdrawLine(wrsscontext,x,y,wrsstouchX, wrsstouchY,wrssstat,0);
+				socket.emit('wrssmenteetomentordraw',{pos:wrssconvertToratio(x,y),mousestat:'down',sendmode:wrssSendmode,username:username,wrssmentorsocketid:mentorinfo.wrssmentorsocketid})
+				event.preventDefault();	
+				//drawLine(context, x, y, wrsstouchX, wrsstouchY,stat,0);
+				//socket.emit('menteetomentordraw',{pos:convertToratio(x,y),mousestat:'down',statoption:stat,mentorsocketid:mentorinfo.mentorsocketid,username:username})
+			}
+
+			function wrsssketchpad_touchMove(e){
+				wrssgetTouchPos(e);
+				
+				//drawLine(context, x, y, touchX, touchY,stat,0);
+				WRSSdrawLine(wrsscontext,x,y,wrsstouchX, wrsstouchY,wrssstat,0);
+				x=wrsstouchX;
+				y=wrsstouchY;
+				socket.emit('wrssmenteetomentordraw',{pos:wrssconvertToratio(x,y),mousestat:'move',statoption:wrssstat,sendmode:wrssSendmode,username:username,wrssmentorsocketid:mentorinfo.wrssmentorsocketid})
+				event.preventDefault();	
+				//socket.emit('menteetomentordraw',{pos:convertToratio(x,y),mousestat:'move',statoption:stat,mentorsocketid:mentorinfo.mentorsocketid,username:username})
+			}
+
+
+
+			wrssmypics.addEventListener('touchstart',wrsssketchpad_touchStart, false);
+			wrssmypics.addEventListener('touchmove',wrsssketchpad_touchMove,false);
+
+
+
+
+
+
+
+
+
+			//shsaredinputdiv
+			var wrssbackdiv=document.getElementById('wrssbackdiv');
+			wrssbackdiv.style.width=wrsscanvaswidth+'px';
+			wrssbackdiv.style.height=gratio*wrsscanvaswidth+'px';
+			wrssbackdiv.style.backgroundColor=wrssenvirondefine.background[0];
+
+
+
+			function WRSSdrawLine(ctext,x1, y1, x2, y2,vstat,mode){
+				if(mode==0){
+					if(wrssstat.code=='eraser'){	
+						ctext.beginPath();
+						ctext.globalCompositeOperation='destination-out';
+						ctext.lineWidth = wrssapppensize*wrssstat.size;
+						ctext.lineCap='round';
+						ctext.moveTo(x1, y1);
+						ctext.lineTo(x2, y2);
+						ctext.stroke();
+						ctext.closePath();
+
+					}else{
+						ctext.beginPath();
+						ctext.globalCompositeOperation='source-over';
+						ctext.strokeStyle = wrssstat.color;	
+						ctext.lineWidth = wrssapppensize*wrssstat.size;
+						ctext.lineCap='round';
+						ctext.moveTo(x1, y1);
+						ctext.lineTo(x2, y2);
+						ctext.stroke();
+						ctext.closePath();
+
+					}
+				}else if(mode==1){
+					if(mode.code=='eraser'){	
+						ctext.beginPath();
+						ctext.globalCompositeOperation='destination-out';
+						ctext.lineWidth = wrssapppensize*vstat.size;
+						ctext.lineCap='round';
+						ctext.moveTo(x1, y1);
+						ctext.lineTo(x2, y2);
+						ctext.stroke();
+						ctext.closePath();
+
+					}else{
+						ctext.beginPath();
+						ctext.globalCompositeOperation='source-over';
+						ctext.strokeStyle = wrssstat.color;	
+						ctext.lineWidth = wrssapppensize*vstat.size;
+						ctext.lineCap='round';
+						ctext.moveTo(x1, y1);
+						ctext.lineTo(x2, y2);
+						ctext.stroke();
+						ctext.closePath();
+
+					}
+
+				}
+			}
+
+
+			var wprvx=0, wprvy=0;
+			socket.on('wrsscopypicsofmentor',function(ma){
+				//drawDot(copycontext,ma.pos[0],ma.pos[1]);
+
+
+				var cx=ma.pos[0]*(wrssrect.right-wrssrect.left);
+				var cy=ma.pos[1]*(wrssrect.bottom-wrssrect.top);
+				/*
+				if(ma.statoption.code=='layer' || ma.statoption.code=='layereraser'){
+					var can=lcon;
+				}else{
+					var can=wrsscontext;
+				}*/
+				var can=wrsscontext;
+				if(ma.mousestat==='move'){
+					WRSSdrawLine(can,wprvx,wprvy,cx,cy,ma.statoption,1);
+					wprvx = cx;
+					wprvy = cy;
+				}else if(ma.mousestat==='up'){
+					//drawLine(can, prvx, prvy,cx,cy,ma.statoption,1);
+					wprvx = null;
+					wprvy = null;
+
+
+					/*
+					indcon.fillStyle='#000000';
+					indcon.font='1vw Arial';
+					//indcon.fillText(String.fromCodePoint(emojis[getRandomInt(0,emojis.length)]),prvx,prvy);
+
+					setTimeout(function(){
+						indcon.clearRect(0,0,indicatepic.width,indicatepic.height)
+					},300);*/
+
+
+				}else if(ma.mousestat==='down'){
+					wprvx = cx;
+					wprvy = cy;
+					/*
+					indcon.fillStyle='#000000';
+					indcon.font='1vw Arial';
+					//indcon.fillText(String.fromCodePoint(emojis[getRandomInt(0,emojis.length)]),cx,cy);
+					indcon.fillText('o',cx,cy);
+
+					setTimeout(function(){
+						indcon.clearRect(0,0,indicatepic.width,indicatepic.height)
+					},300);*/
+
+				}
+			});
+
+
+
+		
+
+			var WRSSconst;
+			function WRSSon(opt){
+				if(opt==0){
+					document.getElementById('wrssdiv').style.display='none';
+					WRSSconst=0;
+				}else if(opt==1){
+					document.getElementById('wrssdiv').style.display='block';
+					WRSSconst=1;
+				}
+
+
+			}
+
+			function wrssWritingSaveToServer(wobj){
+				var sharediv=document.getElementById('wrssbackdiv');
+				var can3=document.createElement('canvas');
+				var ctx3=can3.getContext('2d');
+				can3.width=wrsscanvaswidth
+				can3.height=gratio*wrsscanvaswidth
+				can3.style.width=wrsscanvaswidth+'px';
+				can3.style.height=gratio*wrsscanvaswidth+'px';
+				html2canvas(sharediv).then(function(sharei){
+					ctx3.drawImage(sharei,0,0);
+					ctx3.drawImage(wrssmypics,0,0);
+					var b64Image=can3.toDataURL('image/png');
+					var blob = dataURItoBlob(b64Image);
+					var formData = new FormData();
+					formData.append('file',blob,'wrssWriting_'+username+'_'+Date.now()+'.png');
+					formData.append('username',wobj.username);
+					formData.append('cptid',wobj.cptid);
+					formData.append('prbid',wobj.prbid);
+					formData.append('ansresult',wobj.ansresult);
+				
+					var xhr = new XMLHttpRequest();
+					xhr.addEventListener('load',sendFinish);
+					function sendFinish(){
+					
+						wrsscontext.clearRect(0,0,wrsscanvaswidth, wrsscanvaswidth*gratio);
+						currprbobj={};
+						WRSSon(0);
+					}
+
+					xhr.open('post','/wrsswriting',true);
+					xhr.send(formData);
+
+				});
+	
+				function dataURItoBlob(dataURI){
+					var byteString = atob(dataURI.split(',')[1]);
+					var mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0]
+
+					var ab = new ArrayBuffer(byteString.length);
+					var ia = new Uint8Array(ab);
+					for(var i=0; i<byteString.length; i++){
+						ia[i] = byteString.charCodeAt(i);
+					}
+					var bb = new Blob([ab],{'type':mimeString});
+					return bb;
+				}	
+			}
+
+
+
+
+			var currprbobj={};
+			function WRSScall(num,prbobj){
+				WRSSon(1);
+				removeall('wrssbackdiv');
+				removeall('wrssmultiplebox');
+				//wrsscontext.clearRect(0,0,wrsscanvaswidth, wrsscanvaswidth*gratio);
+				var sharedinputdiv=document.getElementById('wrssbackdiv');
+
+				var msgdiv=document.createElement('div');
+				msgdiv.id='wrssmsgdiv';
+				var msga=document.createElement('A');
+				msga.innerHTML=prbobj.prbcon[1];
+				msga.style.color=wrssenvirondefine.firstpen[0];
+				msgdiv.appendChild(msga);
+				sharedinputdiv.appendChild(msgdiv);
+
+				var fontfactor=2;
+				msga.style.fontSize=(wrsscanvaswidth*14/1440)*fontfactor+'px';
+
+
+				if(prbobj.prbcon[8]!=null){
+					var picdiv=document.createElement('div');
+					picdiv.id='wrsspicdiv';
+					var picdivimg=document.createElement('img');
+					picdivimg.src=prbobj.prbcon[8];
+					picdiv.appendChild(picdivimg);
+					picdiv.style.padding='0 0 5% 0';
+					sharedinputdiv.appendChild(picdiv);
+
+					msgdiv.style.cssFloat='left';
+					picdiv.style.cssFloat='left';
+
+					msgdiv.style.width='60%';
+					picdiv.style.width='40%';
+
+					msga.style.display='inline-block';
+					msga.style.padding='5% 0 0 5%';
+				}else{
+					msgdiv.style.position='relative';
+					msgdiv.style.top='5%';
+					msgdiv.style.left='5%';
+					msgdiv.style.width='80%';
+				}
+
+
+				var prbchoicediv = document.getElementById('wrssmultiplebox');
+				var eraseall=document.createElement('div');
+				eraseall.id='eraseall';
+				var erasealla=document.createElement('a');
+				erasealla.innerHTML='모두지우기';
+				eraseall.appendChild(erasealla);
+				prbchoicediv.appendChild(eraseall);
+				eraseall.onclick=function(){
+					return function(){
+						wrsscontext.clearRect(0,0,wrsscanvaswidth, wrsscanvaswidth*gratio);
+						socket.emit('wrssscreenaction',{action:'eraseall',sendmode:0,username:username,wrssmentorsocketid:mentorinfo.wrssmentorsocketid})
+					}
+				}();
+				if(prbobj.prbcon[4]!='nofile' && prbobj.greyfilter!=1){
+					var prbmulti1=document.createElement('div');
+					var prbmulti2=document.createElement('div');
+					var prbmulti3=document.createElement('div');
+					var prbmulti4=document.createElement('div');
+					var prbmulti5=document.createElement('div');
+
+					prbmulti1.onclick=function(i,j,k,l,m){return function(){checkAns(i,j,k,l,m);}}(num,1,prbobj.cptid,prbobj.prbcon[3],prbobj.prbcon[0]);
+					prbmulti2.onclick=function(i,j,k,l,m){return function(){checkAns(i,j,k,l,m);}}(num,2,prbobj.cptid,prbobj.prbcon[3],prbobj.prbcon[0]);
+					prbmulti3.onclick=function(i,j,k,l,m){return function(){checkAns(i,j,k,l,m);}}(num,3,prbobj.cptid,prbobj.prbcon[3],prbobj.prbcon[0]);
+					prbmulti4.onclick=function(i,j,k,l,m){return function(){checkAns(i,j,k,l,m);}}(num,4,prbobj.cptid,prbobj.prbcon[3],prbobj.prbcon[0]);
+					prbmulti5.onclick=function(i,j,k,l,m ){return function(){checkAns(i,j,k,l,m);}}(num,5,prbobj.cptid,prbobj.prbcon[3],prbobj.prbcon[0]);
+
+
+					prbmulti1.className='wrssprbmulti';
+					prbmulti2.className='wrssprbmulti';
+					prbmulti3.className='wrssprbmulti';
+					prbmulti4.className='wrssprbmulti';
+					prbmulti5.className='wrssprbmulti';
+
+					
+					var prbmulti1a=document.createElement('a');
+					var prbmulti2a=document.createElement('a');
+					var prbmulti3a=document.createElement('a');
+					var prbmulti4a=document.createElement('a');
+					var prbmulti5a=document.createElement('a');
+
+				
+					prbmulti1a.innerHTML=prbobj.prbcon[4];
+					prbmulti2a.innerHTML=prbobj.prbcon[5];
+					prbmulti3a.innerHTML=prbobj.prbcon[6];
+					prbmulti4a.innerHTML='보기에 정답이 없습니다.';
+					prbmulti5a.innerHTML='잘 모르겠습니다.';
+
+					prbmulti1.appendChild(prbmulti1a);
+					prbmulti2.appendChild(prbmulti2a);
+					prbmulti3.appendChild(prbmulti3a);
+					prbmulti4.appendChild(prbmulti4a);
+					prbmulti5.appendChild(prbmulti5a);
+
+
+
+					prbchoicediv.appendChild(prbmulti1);
+					prbchoicediv.appendChild(prbmulti2);
+					prbchoicediv.appendChild(prbmulti3);
+					prbchoicediv.appendChild(prbmulti4);
+					prbchoicediv.appendChild(prbmulti5);
+
+				}else{
+					/*
+					var prbmulti1=document.createElement('div');
+					prbmulti1.onclick=function(){
+						return function(){
+							wrsscontext.clearRect(0,0,wrsscanvaswidth, wrsscanvaswidth*gratio);
+							WRSSon(0);
+
+						}
+					}();
+					prbmulti1.className='wrssprbmulti';
+					var prbmulti1a=document.createElement('a');
+					prbmulti1a.innerHTML='다음문제로 넘어가기';
+					prbmulti1.appendChild(prbmulti1a);
+					prbchoicediv.appendChild(prbmulti1);*/
+
+					var completediv = document.createElement('div');
+					completediv.onclick=function(i,j){
+						return function(){
+							wrssWritingSaveToServer({prbid:j, cptid:i, username:username,ansresult:3})
+							socket.emit('senduseractivity',{username:username,resultcode:3,prbid:j,hisopt:'prbsolve',rconinfo:[rconnum],cptinfo:i});
+
+						}
+					}(prbobj.cptid,prbobj.prbcon[0]);
+					completediv.id='completediv';
+					var completediva=document.createElement('a');
+					completediva.innerHTML='Complete';
+					completediv.appendChild(completediva);
+					prbchoicediv.appendChild(completediv);
+					//function checkAns(i,chnum,cptid,ans,prbid){
+					//prbmulti5.onclick=function(i,j,k,l,m ){return function(){checkAns(i,j,k,l,m);}}(num,5,prbobj.cptid,prbobj.prbcon[3],prbobj.prbcon[0]);
+
+
+				}
+			
+
+
+				var wrsspenswitchbox=document.createElement('div');
+				wrsspenswitchbox.id='wrsspenswitchbox';
+				var wrsstopen=document.createElement('div');
+				wrsstopen.onclick=function(){
+					wrssSwitchto(1)
+				}
+				var wrsstopena=document.createElement('a');
+				wrsstopena.innerHTML='pen';
+				wrsstopen.appendChild(wrsstopena);
+
+				var wrsstoeraser=document.createElement('div');
+				var wrsstoerasera=document.createElement('a');
+				wrsstoerasera.innerHTML='eraser';
+				wrsstoeraser.appendChild(wrsstoerasera);
+				wrsstoeraser.onclick=function(){
+					wrssSwitchto(0)
+				}
+				wrsspenswitchbox.appendChild(wrsstopen)
+				wrsspenswitchbox.appendChild(wrsstoeraser)
+				prbchoicediv.appendChild(wrsspenswitchbox);
+			
+
+
+				var wrssdiv=document.getElementById('wrssdiv');
+				if(typeof MathJax !== 'undefined'){
+					MathJax.Hub.Queue(["Typeset",MathJax.Hub,wrssdiv]);
+				}
+
+
+				sendScreenInfo(wrsscontext,wrsscanvaswidth)
+				currprbobj=prbobj.prbcon;
+				var prblist=[];
+				for(var ia=0; ia<prbanspanel.length; ia++){
+					prblist.push(prbanspanel[ia][0])
+				}
+				socket.emit('wrssshareprbobj',{prbobj:currprbobj,sendmode:0,username:username,wrssmentorsocketid:mentorinfo.wrssmentorsocketid,prblist:prblist})
+
+				//socket.emit('wrssshareprbobj',{prbobj:prbobj.prbcon,sendmode:0,username:username,wrssmentorsocketid:mentorinfo.wrssmentorsocketid})
+
+				/*
+
+	
+				var prbreadingdiv=document.createElement('div');
+				var prbreadingdiva=document.createElement('a');
+				prbreadingdiva.innerHTML=prbobj.prbcon[1];
+				prbreadingdiv.appendChild(prbreadingdiva);
+
+				if(prbobj.prbcon[8]!=null){
+					var prbpicdiv=document.createElement('div');
+					prbpicdiv.className='wrssprbpicdiv';
+					var prbimg=document.createElement('img');
+					prbimg.src=prbobj.prbcon[8];
+					prbpicdiv.appendChild(prbimg);
+					prbreadingdiv.appendChild(prbpicdiv);
+				}
+
+				wrssbackdiv.appendChild(prbreadingdiv);
+
+
+
+				var wrssdiv=document.getElementById('wrssdiv');
+				MathJax.Hub.Queue(["Typeset",MathJax.Hub,wrssdiv])*/
+
+
+				/*
+				removeall('sharedinputdiv');
+				var msgdiv=document.createElement('div');
+				msgdiv.id='msgdiv';
+				var msga=document.createElement('A');
+				msga.innerHTML=a.prbobj[1];
+				msga.style.color=environdefine.firstpen[0];
+				msgdiv.appendChild(msga);
+				sharedinputdiv.appendChild(msgdiv);
+
+				var fontfactor=2.5;
+				msga.style.fontSize=(canvaswidth*14/1440)*fontfactor+'px';
+
+				if(a.prbobj[8]!=null){
+					var picdiv=document.createElement('div');
+					picdiv.id='picdiv';
+					var picdivimg=document.createElement('img');
+					picdivimg.src=a.prbobj[8];
+					picdiv.appendChild(picdivimg);
+					//picdiv.style.backgroundColor=environdefine.picbackcolor;
+					picdiv.style.padding='0 0 5% 0';
+					sharedinputdiv.appendChild(picdiv);
+
+					msgdiv.style.cssFloat='left';
+					picdiv.style.cssFloat='left';
+
+					msgdiv.style.width='60%';
+					picdiv.style.width='40%';
+
+					msga.style.display='inline-block';
+					msga.style.padding='5% 0 0 5%';
+				}else{
+					msgdiv.style.position='relative';
+					msgdiv.style.top='5%';
+					msgdiv.style.left='5%';
+					msgdiv.style.width='80%';
+				}
+
+				MathJax.Hub.Queue(["Typeset",MathJax.Hub,"sharedinputdiv"])	
+				*/
+
+					
+			}
+			function WRSSoff(){
+				WRSSon(0);
+			}
+
+
+			socket.on('wrssaskscreeninfoafter',function(){
+				var prblist=[];
+				for(var ia=0; ia<prbanspanel.length; ia++){
+					prblist.push(prbanspanel[ia][0])
+				}
+				socket.emit('wrssshareprbobj',{prbobj:currprbobj,sendmode:0,username:username,wrssmentorsocketid:mentorinfo.wrssmentorsocketid,prblist:prblist})
+				sendScreenInfo(wrsscontext,wrsscanvaswidth)
+			});
+
+
+			function moveVideobox(to){
+				var mentorvideobox = document.getElementById('mentorvideobox');
+				if(mentorvideobox!== null ){
+					if(to=='up'){
+						mentorvideobox.style.top='0%';
+						mentorvideobox.style.bottom=null;
+					}else if(to=='down'){
+						mentorvideobox.style.top=null;
+						mentorvideobox.style.bottom= '0%';
+
+					}
+
+				}
+
+
+			}
+
+
+			function removeByclassname(elename){
+				var ele=document.getElementsByClassName(elename)
+				while(ele.length!=0){
+				//for(var ia=0; ia<ele.length; ia++){
+					ele[0].remove();
+				}
+			}
+
+
+			function videoDown(){
+				/*
+				var mentorvideobox = document.getElementById('mentorvideobox');
+				if(mentorvideobox!== null ){
+					mentorvideobox.remove();
+
+				}*/
+				document.getElementById('mentorvideo').style.visibility='hidden';
+				document.getElementById('selfvideo').style.visibility='hidden';
+				removeByclassname("videobutton")
+
+				console.log('videodown')
+
+
+
+			}
+			function videoRaising(container){
+				/*	
+				var mentorvideobox = document.getElementById('mentorvideobox');
+			
+				if(mentorvideobox!== null ){
+					mentorvideobox.remove();
+				}*/
+				removeByclassname("videobutton")
+				var mentorvideocontroltop=document.createElement('div');
+				mentorvideocontroltop.id='mentorvideocontroltop';
+				mentorvideocontroltop.className='videobutton'
+				var topbutton=document.createElement('button');
+				topbutton.innerHTML='비디오를 위로 이동';
+				topbutton.onclick=function(){moveVideobox("up")};
+				mentorvideocontroltop.appendChild(topbutton);
+				var sharepaperoptionbox = document.getElementById('sharepaperoptionbox');
+				sharepaperoptionbox.appendChild(mentorvideocontroltop);
+
+
+				var mentorvideocontroldown=document.createElement('div');
+				mentorvideocontroldown.id='mentorvideocontroldown';
+				mentorvideocontroldown.className='videobutton';
+				var downbutton=document.createElement('button');
+				downbutton.innerHTML='비디오를 아래로 이동';
+				downbutton.onclick=function(){moveVideobox("down")};
+				mentorvideocontroldown.appendChild(downbutton);
+				sharepaperoptionbox.appendChild(mentorvideocontroldown);
+
+			
+
+		
+				const remoteVideo = document.getElementById('mentorvideo');
+				console.log(remoteVideo.style.visibility);
+				if(remoteVideo.style.visibility=='hidden' || remoteVideo.style.visibility==''){
+					remoteVideo.style.visibility='visible';
+				}
+
+				remoteVideo.srcObject = remoteStream;
+				console.log('video up and sender stream is connected');
+
+	
+
+
+				//only show mentee self video when mentor video connected
+				var rtrack = remoteStream.getTracks();
+				console.log(rtrack);
+				var chk=0;
+				for(var ia=0; ia<rtrack.length; ia++){
+					if(rtrack[ia].kind=='video'){
+						chk=1;
+						break;
+					}
+				}
+				if(chk==1){
+				const selfVideo = document.getElementById('selfvideo');
+					if(selfVideo.style.visibility=='hidden' || selfVideo.style.visibility==''){
+						selfVideo.style.visibility='visible';
+					}
+
+					selfVideo.srcObject = stream;
+				}
+				console.log('video up and sender stream is connected');
+
+			}	
+
+			async function getConnectedDevices(type){
+				const devices = await navigator.mediaDevices.enumerateDevices();
+				return devices.filter(device => device.kind === type);
+			}
+
+
+
+			async function everythingReady(){
+				/*
+					checklist
+						getusermedia test,
+						audio input test,
+				*/
+
+				var equipChecklist=[];
+				var msglist=[];
+
+
+				const navimedia=await navigator.mediaDevices;
+				
+				//msglist.push(await navimedia.enumerateDevices());
+				//console.log(await navimedia.enumerateDevices());
+				if(navimedia !== undefined){
+
+					
+
+					equipChecklist.push(1);
+					msglist.push('navigator.mediaDevices ok')
+	
+					const audios= await getConnectedDevices('audioinput');
+					if(audios && audios.length>0){
+						equipChecklist.push(1);
+						msglist.push('audio input ok')
+					}else{
+						equipChecklist.push(0);
+						msglist.push('audio input FAILED')
+					}
+					
+					const videos= await getConnectedDevices('videoinput');
+					if(videos && videos.length>0){
+						equipChecklist.push(1);
+						msglist.push('video input ok')
+					}else{
+						equipChecklist.push(0);
+						msglist.push('video input FAILED')
+					}
+
+
+
+					if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) {
+						console.log("enumerateDevices()를 지원하지 않습니다.");
+						return;
+					}
+
+					// 카메라와 마이크 리스트
+
+					await navigator.mediaDevices.enumerateDevices()
+						.then(function(devices) {
+							var destr='';
+							var count=0;
+							devices.forEach(function(device) {
+
+								if(count==device.length-1){
+									destr=destr+device.kind + ": " + device.label;
+								}else{
+									destr=destr+device.kind + ": " + device.label+',';
+								}
+								console.log(device.kind + ": " + device.label);
+			
+								count+=1;
+
+							});
+						
+
+							socket.emit('fortabletreport',{msglist:'Connection Process[1] - statuscheck: '+equipChecklist+', explanation: '+destr,username:username,modecheck:'webrtc',usertype:'mentee'});
+						})
+						.catch(function(err) {
+							console.log(err.name + ": " + err.message);
+							msglist.push(err.name + ": " + err.message);
+							socket.emit('fortabletreport',{msglist:'Connection Process[0.5] - statuscheck: '+equipChecklist+', explanation: '+msglist,username:username,modecheck:'webrtc',usertype:'mentee'});
+							//return {equipcheck:equipChecklist, msglist:msglist}
+
+						});
+					return {equipcheck:equipChecklist, msglist:msglist}
+
+
+
+				}else{
+					equipChecklist.push(0);
+					equipChecklist.push(0);
+					const msg = 'navigator.mediaDevices is not found'
+					msglist.push(msg)
+					socket.emit('fortabletreport',{msglist:'statuscheck: '+equipChecklist+', explanation: '+msglist,username:username,modecheck:'webrtc',usertype:'mentee'});
+					return {equipcheck:equipChecklist, msglist:msglist}
+
+				}
+		
+				//socket.emit('fortabletreport',{msglist:'statuscheck: '+equipChecklist+', explanation: '+msglist,username:username,modecheck:'webrtc',usertype:'mentee'});
+				//return {equipcheck:equipChecklist, msglist:msglist}
+
+
+
+			}
+
+			
+			var statusobj={};
+			async function firstSetting(){
+				const statuscheck=await everythingReady()
+				//socket.emit('fortabletreport',{a:statuscheck,username:username,modecheck:'webrtc'});
+				statusobj.firstsetting=1;
+				if(1){ //statuscheck;
+					statusobj.audioready=1;
+					//RTCGo();
+				
+				}else{
+					statusobj.audioready=0;			
+					console.log('the connection cannot be established');
+				}
+			};
+
+
+			var ices;
+			var stream;
+			async function RTCGo(iceservers){
+				const fset = await everythingReady();
+				if(fset.equipcheck[2]){// if video is allowed
+					if(username=='eupium'){
+						var constraints = {
+							'video':false,
+							'audio':true
+						}
+
+					}else{
+						var constraints = {
+							'video':true,
+							'audio':true
+						}
+					
+					}
+				}else{ //if video is not allowed
+					var constraints = {
+						'video':false,
+						'audio':true
+					}
+				}
+
+
+					//socket.emit('fortabletreport',{msglist:'RTCGo before mentee Media play',username:username,modecheck:'webrtc',usertype:'mentee'});
+					navigator.mediaDevices.getUserMedia(constraints).then(s =>{
+						stream=s;
+						socket.emit('fortabletreport',{msglist:'Connection Process[2] - Successful user media play',username:username,modecheck:'webrtc',usertype:'mentee'});
+
+					var configuration = {iceServers:iceservers};
+					var peerConnection = new RTCPeerConnection(configuration);
+
+					stream.getTracks().forEach(track=>{
+						peerConnection.addTrack(track,stream);
+					});
+
+
+					stream.getAudioTracks()[0].onended = function(event){
+						socket.emit('fortabletreport',{msglist:'stream - onended',username:username,modecheck:'webrtc',usertype:'mentee'});
+					};
+
+				
+
+					function onLeave(){
+						remoteVideo.srcObject = null;
+						//peerConnection.close();
+						//peerConnection.onicecandidate = null;
+
+						peerConnection = null;
+
+						peerConnection = new RTCPeerConnection(configuration);
+
+						stream.getTracks().forEach(track=>{
+							peerConnection.addTrack(track,stream);
+						});
+					}
+		
+					peerConnection.onconnectionstatechange=function(event){
+						switch(peerConnection.connectionState){
+							case "connected":
+								console.log('connected');	
+								socket.emit('fortabletreport',{msglist:'onconnectionstatechange - connected',username:username,modecheck:'webrtc',usertype:'mentee'});
+								videoRaising('sharepaperoptionbox')
+								break;
+							case "disconnected":
+								console.log('disconnected');
+								socket.emit('fortabletreport',{msglist:'onconnectionstatechange - disconnected',username:username,modecheck:'webrtc',usertype:'mentee'});
+								//onLeave();
+								videoDown();
+								break;
+							case "new":
+								console.log('new');
+								socket.emit('fortabletreport',{msglist:'onconnectionstatechange - new',username:username,modecheck:'webrtc',usertype:'mentee'});
+								break;
+							case "checking":
+								console.log('checking');	
+								socket.emit('fortabletreport',{msglist:'onconnectionstatechange - checking',username:username,modecheck:'webrtc',usertype:'mentee'});
+								break;
+							case "completed":
+								socket.emit('fortabletreport',{msglist:'onconnectionstatechange - completed',username:username,modecheck:'webrtc',usertype:'mentee'});
+								console.log('completed');
+								break;
+							case "closed":	
+								console.log('closed');
+								socket.emit('fortabletreport',{msglist:'onconnectionstatechange - closed',username:username,modecheck:'webrtc',usertype:'mentee'});
+								break;
+							case "failed":
+								console.log('failed');
+								socket.emit('fortabletreport',{msglist:'onconnectionstatechange - failed',username:username,modecheck:'webrtc',usertype:'mentee'});
+								//peerConnection.restartIce();
+								break;
+							
+							
+						}
+					}
+
+
+
+
+					//mentorinfo.wrssmentorconnectionstate=a.wrssmentorconnectionstate;
+					socket.on('webrtcservertoresponder', (message) =>{
+						if(message.offer){
+							socket.emit('fortabletreport',{msglist:'Connection Process[3] - Mentor offer arrived',username:username,modecheck:'webrtc',usertype:'mentee'});
+							if(message.mentormode=='wrss'){
+								peerConnection.setRemoteDescription(message.offer)
+									.then(function(){
+										socket.emit('fortabletreport',{msglist:'Connection Process[4] - Mentor Offer  Setted',username:username,modecheck:'webrtc',usertype:'mentee'});
+										return peerConnection.createAnswer()
+					
+									})
+									.then(function(answer){
+										socket.emit('fortabletreport',{msglist:'Connection Process[5] - Mentee Offer Created',username:username,modecheck:'webrtc',usertype:'mentee'});
+										peerConnection.setLocalDescription(answer)
+										socket.emit('fortabletreport',{msglist:'Connection Process[6] - Mentee Offer Setted',username:username,modecheck:'webrtc',usertype:'mentee'});
+										return answer
+									})
+									.then(function(answer) {
+										socket.emit('webrtcrespondertoserver',{answer:answer,mentorsocketid:mentorinfo.wrssmentorsocketid});
+										socket.emit('fortabletreport',{msglist:'Connection Process[7] - Mentee Offer Sended to Mentor',username:username,modecheck:'webrtc',usertype:'mentee'});
+										//socket.emit('fortabletreport',{msglist:'remoteDescription departed',username:username,modecheck:'webrtc',usertype:'mentee'});
+	
+									})
+									.catch(e=> {
+										socket.emit('fortabletreport',{msglist:'Connection Process[3.5] - Error Occurred in Setting RemoteDescription',username:username,modecheck:'webrtc',usertype:'mentee'});
+									
+									});
+
+
+								
+							}else{/*
+								peerConnection.setRemoteDescription(new RTCSessionDescription(message.offer));
+								const answer = await peerConnection.createAnswer();
+								await peerConnection.setLocalDescription(answer);
+								socket.emit('webrtcrespondertoserver',{answer:answer,mentorsocketid:mentorinfo.mentorsocketid});*/
+							}
+
+						}
+					});
+
+					peerConnection.onicecandidate=(e) => {
+						console.log('onicecandidate ',e);
+						if(mentorinfo.wrssmentorconnectionstate==1){//wrssmentor first;
+							socket.emit('webrtctoservernewicecandidate',{destination:'tocaller',newicecandidate:e.candidate,mentorsocketid:mentorinfo.wrssmentorsocketid});
+							socket.emit('fortabletreport',{msglist:'Connection Process[8] - ICE Exchange',username:username,modecheck:'webrtc',usertype:'mentee'});
+						}else{
+							socket.emit('webrtctoservernewicecandidate',{destination:'tocaller',newicecandidate:e.candidate,mentorsocketid:mentorinfo.mentorsocketid});
+							socket.emit('fortabletreport',{msglist:'Connection Process[8] - ICE Exchange',username:username,modecheck:'webrtc',usertype:'mentee'});
+						}
+					};
+
+
+
+					socket.on('webrtctorespondernewicecandidate',async function(a){
+						if(a.newicecandidate){
+							console.log(a.newicecandidate,'responder');
+							await peerConnection.addIceCandidate(a.newicecandidate);
+							socket.emit('fortabletreport',{msglist:'Connection Process[9] - ICE Exchange',username:username,modecheck:'webrtc',usertype:'mentee'});
+						}
+					});
+
+
+					//const remoteVideo = document.getElementById('mentorvideo');
+					peerConnection.addEventListener('track',(event) => {
+						videoRaising('sharepaperoptionbox')
+						remoteStream.addTrack(event.track);
+						console.log(remoteStream,'remoteStream')
+						socket.emit('fortabletreport',{msglist:'Connection Process[10] - Mentor Track Arrived',username:username,modecheck:'webrtc',usertype:'mentee'});
+						remoteStream.getAudioTracks()[0].onended=function(){
+							socket.emit('fortabletreport',{msglist:'remoteStream ended',username:username,modecheck:'webrtc',usertype:'mentee'});
+						}
+
+					});
+		
+
+				}).catch(e=> {
+					socket.emit('fortabletreport',{msglist:'Connection Process[1.5] - error Occurred and Failed at Openning mentee user media ',username:username,modecheck:'webrtc',usertype:'mentee'});
+									
+				});
+
+
+
+			}
+
+
+
+
+			socket.on('wrssgetconnectafter',function(a){
+				console.log(a);
+				if(a.signalkind=='go'){
+					console.log('go');
+
+					var tracks = remoteStream.getTracks();
+					for(var ia=0; ia<tracks.length; ia++){
+						tracks[ia].enabled = true;
+					}
+					console.log(tracks);
+
+				}else if(a.signalkind=='stop'){
+					console.log('stop');
+					var tracks = remoteStream.getTracks();
+					for(var ia=0; ia<tracks.length; ia++){
+						tracks[ia].enabled = false;
+					}
+				
+				}else if(a.signalkind=='reload'){
+					console.log('reload');
+
+					//peerConnection.removeTrack(peerConnection.getReceivers());
+					//peerConnection.removeTrack();
+					//peerConnection.removeTrack(sender);
+					//peerConnection.close();
+					//peerConnection = null
+					//peerConnection = new RTCPeerConnection(configuration);
+
+					//socket.emit('communicationready');
+					//peerConnection.setConfiguration(configuration)
+					//peerConnection.restartIce();
+				
+					location.reload(true);
+
+				}else if(a.signalkind=='pcobjectreload'){
+					console.log('pcobjectreload');
+					//pcobjectReload();
+					socket.emit('communicationready');
+				}else {
+					console.log('error');
+				}
+			});
+
+
+
+			var remoteStream = new MediaStream();
+		
+			function toFullscreen(){
+				document.body.webkitRequestFullscreen();
+
+				//myPics,
+
+
+				let timerid=setTimeout(sizecontrole,1000);
+				function sizecontrole(){
+			
+					if(widthoriented==0){
+						var herewidth=window.innerHeight/gratio;
+					}else{
+						var herewidth=window.innerWidth;
+					}	
+
+					canvaswidth=herewidth;
+
+					myPics.width=herewidth;
+					myPics.height=gratio*herewidth;
+					myPics.style.width=herewidth+'px';
+					myPics.style.height=gratio*herewidth+'px';
+
+					layerpic.width=herewidth;
+					layerpic.height=gratio*herewidth;
+					layerpic.style.width=herewidth+'px';
+					layerpic.style.height=gratio*herewidth+'px';				
+
+					//indicatepic.width=herewidth;
+					//indicatepic.height=gratio*herewidth;
+					//indicatepic.style.width=herewidth+'px';
+					//indicatepic.style.height=herewidth*gratio+'px';
+
+					sharedinputdiv.style.width=herewidth+'px';
+					sharedinputdiv.style.height=herewidth*gratio+'px';
+
+					rect = myPics.getBoundingClientRect();
+
+					document.getElementById('fullscreendiv').remove();
+		
+				}
+
+			}
+
+
+			socket.on('connect',()=>{
+				console.log('connection ready');
+				socket.emit('vdrgsocketidregister',{socketid:socket.id,username:userinfo.username,position:userinfo.position});
+				//socket.emit('fortabletreport',{a:'connect '+socket.id+', getState : '+getState(),username:username,modecheck:'socketcheck'});
+
+			});
+
+
+
+			function pcobjectReload(){
+				socket.emit('communicationready');
+			}
+			socket.emit('communicationready');
+			socket.on('communicationreadyafter',function(a){
+				RTCGo(a.iceservers);
+			});
+
+
+			socket.on('chattingtouser',function(a){
+				if(a.chatoption==0){
+					removeall('sharedinputdiv');
+					var msgdiv=document.createElement('div');	
+					var msga=document.createElement('A');
+					msga.innerHTML=a.chatmsg;
+					msga.style.color=environdefine.firstpen[0];
+			
+					var fontfactor=3;
+					msga.style.fontSize=(canvaswidth*14/1440)*fontfactor+'px';
+					msgdiv.appendChild(msga);
+
+					msgdiv.style.padding='5% 0 0 5%';
+
+					sharedinputdiv.appendChild(msgdiv);
+
+					if(typeof MathJax !=='undefined'){
+						MathJax.Hub.Queue(["Typeset",MathJax.Hub,"sharedinputdiv"])	
+					}
+
+
+
+				}else if(a.chatoption==3){
+					
+					var chathistorydiv=document.getElementById('chathistory');
+					var msgdiv=document.createElement('div');	
+					msgdiv.style.textAlign='right';
+					var msga=document.createElement('A');
+					msga.innerHTML=a.chatmsg;
+					msgdiv.appendChild(msga);
+					chathistorydiv.appendChild(msgdiv);
+								}
+			});
+
+
+
+			function screenSaveToServer(){
+				var sharediv=document.getElementById('sharedinputdiv');
+				var can3=document.createElement('canvas');
+				var ctx3=can3.getContext('2d');
+				can3.width=canvaswidth
+				can3.height=gratio*canvaswidth
+				can3.style.width=canvaswidth+'px';
+				can3.style.height=gratio*canvaswidth+'px';
+				html2canvas(sharediv).then(function(sharei){
+					ctx3.drawImage(sharei,0,0);
+					ctx3.drawImage(layerpic,0,0);
+					ctx3.drawImage(tuserpic,0,0);
+					ctx3.drawImage(myPics,0,0);
+					var b64Image=can3.toDataURL('image/png');
+					var blob = dataURItoBlob(b64Image);
+					var formData = new FormData();
+					formData.append('file',blob,'screen_'+username+'_'+Date.now()+'.png');
+					formData.append('username',username);
+
+					
+					function sendFinish(){
+						socket.emit('reloadusernote',{username:userinfo.username});
+						tempAlert('화면이 저장되었습니다.',1000,['white','black']);
+					}
+				
+					var xhr = new XMLHttpRequest();
+					xhr.addEventListener('load',sendFinish);
+					
+
+					xhr.open('post','/xhr',true);
+					xhr.send(formData);
+
+				});
+	
+				function dataURItoBlob(dataURI){
+					var byteString = atob(dataURI.split(',')[1]);
+					var mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0]
+
+					var ab = new ArrayBuffer(byteString.length);
+					var ia = new Uint8Array(ab);
+					for(var i=0; i<byteString.length; i++){
+						ia[i] = byteString.charCodeAt(i);
+					}
+					var bb = new Blob([ab],{'type':mimeString});
+					return bb;
+				}	
+			}
+			socket.on('monitorfromservertomentee',function(a){
+				//wrssmentordata=a.mentorinfo
+				socket.emit('monitorfrommenteetoserver',{rconnum:rconnum,username:username});	
+			});
+
+			socket.on('wrssmonitorfromservertomentee',function(a){
+				socket.emit('wrssmonitorfrommenteetoserver',{rconnum:rconnum,menteeinfo:{username:username},wrssmentorsocketid:mentorinfo.wrssmentorsocketid});
+			});
+
+
+			function clearLcon(){
+				lcon.clearRect(0,0,layerpic.width, layerpic.height);
+			}
+
+			function clearmyRect(){
+				context.clearRect(0,0,myPics.width, myPics.height);	
+				socket.emit('eraseofmentee',{username:username, mentorsocketid:mentorinfo.mentorsocketid})
+			}
+
+			socket.on('eraseofmentor',function(ma){
+				if(ma.mode==0){
+					tcon.clearRect(0,0,myPics.width, myPics.height);	
+				}else{
+					clearLcon();
+				}
+			});
+
+
+
+			socket.on('vdrgsharedinputafter',function(a){// 문제 보낼때
+					removeall('sharedinputdiv');
+					var msgdiv=document.createElement('div');
+					msgdiv.id='msgdiv';
+					var msga=document.createElement('A');
+					msga.innerHTML=a.prbobj[1];
+					msga.style.color=environdefine.firstpen[0];
+					msgdiv.appendChild(msga);
+					sharedinputdiv.appendChild(msgdiv);
+
+					var fontfactor=2.5;
+					msga.style.fontSize=(canvaswidth*14/1440)*fontfactor+'px';
+
+					if(a.prbobj[8]!=null){
+						var picdiv=document.createElement('div');
+						picdiv.id='picdiv';
+						var picdivimg=document.createElement('img');
+						picdivimg.src=a.prbobj[8];
+						picdiv.appendChild(picdivimg);
+						//picdiv.style.backgroundColor=environdefine.picbackcolor;
+						//picdiv.style.padding='0 0 5% 0';
+						sharedinputdiv.appendChild(picdiv);
+
+						msgdiv.style.cssFloat='left';
+						picdiv.style.cssFloat='left';
+
+						msgdiv.style.width='60%';
+						picdiv.style.width='40%';
+
+						msga.style.display='inline-block';
+						msga.style.padding='5% 0 0 5%';
+					}else{
+						msgdiv.style.position='relative';
+						msgdiv.style.top='5%';
+						msgdiv.style.left='5%';
+						msgdiv.style.width='80%';
+					}
+
+					if(typeof MathJax !=='undefined'){
+						MathJax.Hub.Queue(["Typeset",MathJax.Hub,"sharedinputdiv"])	
+					}
+
+			});
+
+
+			//function tempAlert(msg,duration,color){
+			socket.on('vdrgmentorlevelcontrolafter',function(a){
+				var dscheck=document.getElementById('sharepaperondiv').style.display;
+				if(a.levelstatus=='up'){
+					if(dscheck=='none'){
+						//tempAlert("Screen will be appeared within 3s",3000,['blue','white']);
+						appear();
+						//setTimeout(appear,3000,['blue','white']);
+					}
+				}else if(a.levelstatus=='off'){
+					if(dscheck!='none'){
+						//tempAlert("Screen will be disappeared..",3000,['blue','white']);
+						//setTimeout(disappear,1000,['blue','white']);
+						disappear();
+					}
+					
+				}
+
+				function appear(){
+					onSharepaperon(1);
+				}
+				function disappear(){
+					onSharepaperon(0);
+				}
+			});
+
+
+
+			//Screen Sync Configuration
+			var stdwidth=1440;
+			var stdfont=14;
+			var stdpensize=1.5;
+
+			var marginratio=1;
+
+			var tmpwidth=window.innerWidth;
+			//var tmpwidth=window.screen.width;
+			var tmpheight=tmpwidth*gratio;
+
+
+			
+			if(tmpheight>window.innerHeight){
+			//if(tmpheight>window.screen.height){
+				var canvaswidth=window.innerHeight/gratio;
+				//var canvaswidth=window.screen.height/gratio;
+				var widthoriented=0;
+			}else{
+				var canvaswidth=window.innerWidth;
+				//var canvaswidth=window.screen.width;
+				var widthoriented=1;
+			}
+
+			var apppensize=(canvaswidth/stdwidth);
+
+			var environdefine={background:['#336633',stdpensize*16,'background'],firstpen:['white',stdpensize,'firstpen'],secondpen:['black',stdpensize,'secondpen'],eraser:{color:'',size:stdpensize*16,code:'eraser'},tuser:['#4aeef1','stdpensize','tuser'],layer:{color:'blue',size:stdpensize,code:'layer'},layereraser:{size:stdpensize*16,code:'layereraser'}, picbackcolor:'#bbbbbb' };
+			//var environdefine={background:['#336633',stdpensize*16,'background'],firstpen:['white',stdpensize,'firstpen'],secondpen:['#B43104',stdpensize,'secondpen'],eraser:{color:'',size:stdpensize*16,code:'eraser'},tuser:['#4aeef1','stdpensize','tuser'],layer:{color:'blue',size:stdpensize,code:'layer'},layereraser:{size:stdpensize*16,code:'layereraser'}, picbackcolor:'#bbbbbb' };
+
+			var stat={color:environdefine.firstpen[0], size:environdefine.firstpen[1],code:environdefine.firstpen[2]};
+
+			var notestat={size:2, color:'black'}
+
+
+			//shsaredinputdiv
+			var sharedinputdiv=document.getElementById('sharedinputdiv');
+			sharedinputdiv.style.width=canvaswidth+'px';
+			sharedinputdiv.style.height=canvaswidth*gratio+'px';
+			sharedinputdiv.style.backgroundColor=environdefine.background[0];
+
+
+			//indicate Picture ..for emiticon, let users knows where cursor is. 
+				// Stop due to the resource problem
+			var indicatepic=document.getElementById('indicatePic');
+			indicatepic.width=canvaswidth;
+			indicatepic.height=gratio*canvaswidth;
+			indicatepic.style.width=canvaswidth+'px';
+			indicatepic.style.height=canvaswidth*gratio+'px';
+			const indcon=indicatepic.getContext('2d');
+	
+			//layerpic
+			const layerpic=document.getElementById('layerpic');
+			layerpic.width=canvaswidth;
+			layerpic.height=gratio*canvaswidth;
+			layerpic.style.width=canvaswidth+'px';
+			layerpic.style.height=gratio*canvaswidth+'px';				
+			const lcon=layerpic.getContext('2d');
+
+			//tuserpic
+			const tuserpic=document.getElementById('tuserpic');
+			tuserpic.width=canvaswidth;
+			tuserpic.height=gratio*canvaswidth;
+			tuserpic.style.width=canvaswidth+'px';
+			tuserpic.style.height=gratio*canvaswidth+'px';				
+			const tcon=tuserpic.getContext('2d');
+
+			const myPics = document.getElementById('myPics');
+			myPics.width=canvaswidth
+			myPics.height=gratio*canvaswidth
+			myPics.style.width=canvaswidth+'px';
+			myPics.style.height=gratio*canvaswidth+'px';
+			const context = myPics.getContext('2d');
+
+
+			//self
+			let isDrawing = false;
+			let x = 0;
+			let y = 0;
+
+
+			//The x and y offset of the canvas from the edge of the page
+			var rect = myPics.getBoundingClientRect();
+
+			//Add the event listeners for mousedown, mousemove, and mouseup
+			myPics.addEventListener('mousedown',e=>{	
+				x = e.clientX-rect.left;
+				y = e.clientY-rect.top;
+				isDrawing = true;
+				socket.emit('menteetomentordraw',{pos:convertToratio(x,y),mousestat:'down',mentorsocketid:mentorinfo.mentorsocketid,username:username})
+			});
+
+			myPics.addEventListener('mousemove',e=>{
+				if(isDrawing===true){
+					drawLine(context,x,y,e.clientX-rect.left, e.clientY-rect.top,stat,0);
+					x = e.clientX - rect.left;
+					y = e.clientY - rect.top;
+					socket.emit('menteetomentordraw',{pos:convertToratio(x,y),mousestat:'move',statoption:stat,mentorsocketid:mentorinfo.mentorsocketid,username:username})
+				}
+			});
+
+			window.addEventListener('mouseup',e => {
+				if(isDrawing === true){
+					drawLine(context, x, y, e.clientX - rect.left, e.clientY - rect.top,stat,0);
+					//x = 0;
+					//y = 0;	
+					x=null;
+					y=null;
+					isDrawing = false;
+				}
+			});
+
+
+			//convert to Ratio;
+			function convertToratio(rx, ry){
+				var canvaswt=rect.right-rect.left;
+				var canvashg=rect.bottom-rect.top;
+				var nx=rx/canvaswt;
+				var ny=ry/canvashg;
+				
+				return [nx,ny];
+			}
+
+
+
+
+			function clearLcon(){
+				lcon.clearRect(0,0,layerpic.width, layerpic.height);
+			}
+
+
+
+			function drawLine(ctext,x1, y1, x2, y2,vstat,mode){
+				if(mode==0){//user
+					if(stat.code=='eraser'){	
+						ctext.beginPath();
+						ctext.globalCompositeOperation='destination-out';
+						ctext.lineWidth = apppensize*stat.size;
+						ctext.lineCap='round';
+						ctext.moveTo(x1, y1);
+						ctext.lineTo(x2, y2);
+						ctext.stroke();
+						ctext.closePath();
+					/*
+					}else if(stat.code=='secondpen'){
+						ctext.beginPath();
+						ctext.globalCompositeOperation='source-over';
+						ctext.strokeStyle = environdefine[stat.code][0];
+						//ctext.strokeStyle = environdefine[stat.code][0];
+						ctext.lineWidth = apppensize*stat.size;
+						ctext.lineCap='round';
+						ctext.moveTo(x1, y1);
+						ctext.lineTo(x2, y2);
+						ctext.stroke();
+						ctext.closePath();*/
+
+
+					}else{
+						ctext.beginPath();
+						ctext.globalCompositeOperation='source-over';
+						ctext.strokeStyle = stat.color;	
+						ctext.lineWidth = apppensize*stat.size;
+						ctext.lineCap='round';
+						ctext.moveTo(x1, y1);
+						ctext.lineTo(x2, y2);
+						ctext.stroke();
+						ctext.closePath();
+
+					}
+			
+
+
+				}else if(mode==1){//tuser,  have to use vstat instead stat
+					if(vstat.code=='eraser'){
+						ctext.beginPath();
+						ctext.globalCompositeOperation='destination-out';
+						ctext.lineWidth=apppensize*vstat.size;
+						ctext.lineCap='round';
+						ctext.moveTo(x1, y1);
+						ctext.lineTo(x2, y2);
+						ctext.stroke();
+						ctext.closePath();
+
+	
+					}else if(vstat.code=='layer'){
+						ctext.beginPath();
+						ctext.globalCompositeOperation='source-over';
+						ctext.strokeStyle = vstat.color;
+						//ctext.strokeStyle = environdefine[vstat.code].color;
+						ctext.lineWidth=apppensize*vstat.size;	
+						ctext.moveTo(x1,y1);
+						ctext.lineTo(x2,y2);
+						ctext.lineJoin='round';
+						ctext.lineCap='round';
+						ctext.stroke();
+						ctext.closePath();
+					}else if(vstat.code=='layereraser'){ 
+						console.log('tuser layereraser');
+						ctext.beginPath();
+						ctext.globalCompositeOperation='destination-out';
+						ctext.strokeStyle = vstat.color;
+						ctext.lineWidth = apppensize*vstat.size;
+						ctext.lineCap = 'round';
+						ctext.lineJoin='round';
+						ctext.moveTo(x1, y1);
+						ctext.lineTo(x2, y2);
+						ctext.stroke();
+						ctext.closePath();
+					}else if(vstat.code=='tusereraser'){
+						context.beginPath();
+						context.globalCompositeOperation='destination-out';
+						context.lineWidth=apppensize*vstat.size;
+						context.lineCap='round';
+						context.moveTo(x1, y1);
+						context.lineTo(x2, y2);
+						context.stroke();
+						context.closePath();
+					}else if(vstat.code=='secondpen'){
+						ctext.beginPath();
+						ctext.globalCompositeOperation='source-over';
+						ctext.strokeStyle = vstat.color;
+						//ctext.strokeStyle = environdefine[vstat.code][0];
+						ctext.lineWidth = apppensize*vstat.size;
+						ctext.lineCap='round';
+						ctext.moveTo(x1, y1);
+						ctext.lineTo(x2, y2);
+						ctext.stroke();
+						ctext.closePath();
+
+
+					}else {
+						ctext.beginPath();
+						ctext.globalCompositeOperation='source-over';
+						ctext.strokeStyle = environdefine.tuser[0];
+						//ctext.strokeStyle = environdefine[vstat.code][0];
+						ctext.lineWidth = apppensize*vstat.size;
+						ctext.lineCap='round';
+						ctext.moveTo(x1, y1);
+						ctext.lineTo(x2, y2);
+						ctext.stroke();
+						ctext.closePath();
+
+
+					}
+				}else if(mode==2){
+					if(stat.code=='eraser'){	
+						ctext.beginPath();
+						ctext.globalCompositeOperation='destination-out';
+						ctext.lineWidth = 32;
+						ctext.lineWidth = apppensize*stat.size;
+						ctext.lineCap='round';
+						ctext.moveTo(x1, y1);
+						ctext.lineTo(x2, y2);
+						ctext.stroke();
+						ctext.closePath();
+
+					}else{
+						ctext.beginPath();
+						ctext.globalCompositeOperation='source-over';
+						ctext.strokeStyle = notestat.color;	
+						ctext.lineWidth = notestat.size;
+						ctext.lineCap='round';
+						ctext.moveTo(x1, y1);
+						ctext.lineTo(x2, y2);
+						ctext.stroke();
+						ctext.closePath();
+
+					}
+
+
+				}
+
+			}
+
+
+			//touchCanvas
+			var touchX, touchY;
+			function getTouchPos(e) {
+				if (!e)var e = event;
+				if(e.touches) {
+					if (e.touches.length == 1) { // Only deal with one finger
+						var touch = e.touches[0]; // Get the information for finger #1
+						touchX=touch.pageX-touch.target.offsetLeft;
+						touchY=touch.pageY-touch.target.offsetTop;
+					}
+				}
+			}
+
+
+
+
+			function sketchpad_touchStart(){
+				getTouchPos();
+				x=touchX;
+				y=touchY;
+				drawLine(context, x, y, touchX, touchY,stat,0);
+				socket.emit('menteetomentordraw',{pos:convertToratio(x,y),mousestat:'down',statoption:stat,mentorsocketid:mentorinfo.mentorsocketid,username:username})
+				event.preventDefault();	
+			}
+
+			function sketchpad_touchMove(e){
+				getTouchPos(e);
+				
+				drawLine(context, x, y, touchX, touchY,stat,0);
+
+
+				if(stat.code=='eraser'){
+					//indcon.fillStyle='#4AA5f1';
+					//indcon.font='0.7vw Arial';
+					//indcon.fillText(String.fromCodePoint(emojis[getRandomInt(0,emojis.length)]),x,y);
+					//indcon.fillText('o',x,y);
+					indcon.strokeStyle='#000000';
+					indcon.beginPath();
+					indcon.arc(x,y,10,0,2*Math.PI,true)
+					indcon.closePath();
+					indcon.stroke();
+					indcon.fill();
+					//setTimeout(function(){
+						//indcon.clearRect(0,0,indicatepic.width,indicatepic.height)
+					//},1500);
+
+
+				}
+
+
+
+				x=touchX;
+				y=touchY;
+				socket.emit('menteetomentordraw',{pos:convertToratio(x,y),mousestat:'move',statoption:stat,mentorsocketid:mentorinfo.mentorsocketid,username:username})
+				event.preventDefault();	
+			}
+
+			function sketchpad_touchEnd(){
+				if(stat.code=='eraser'){
+					setTimeout(function(){
+						indcon.clearRect(0,0,indicatepic.width,indicatepic.height)
+					},100);
+				}
+
+			}
+			myPics.addEventListener('touchstart',sketchpad_touchStart, false);
+			myPics.addEventListener('touchmove',sketchpad_touchMove,false);
+			myPics.addEventListener('touchend',sketchpad_touchEnd,false);
+
+
+			function getRandomInt(min, max) {
+				min = Math.ceil(min);
+				max = Math.floor(max);
+				return Math.floor(Math.random() * (max - min)) + min; //최댓값은 제외, 최솟값은 포함
+			}
+
+			let emojis = [0x1F600, 0x1F601, 0x1F603, 0x1F603, 0x1F604, 0x1F605, 0x1F606,0x1F607, 0x1F609, 0x1F60A, 0x1F642, 0x1F643, 0x1F355, 0x1F354];
+			//copycanvas
+			var prvx=0, prvy=0;
+			socket.on('copypicsofmentor',function(ma){
+				//drawDot(copycontext,ma.pos[0],ma.pos[1]);
+
+
+				var cx=ma.pos[0]*(rect.right-rect.left);
+				var cy=ma.pos[1]*(rect.bottom-rect.top);
+
+				if(ma.statoption.code=='layer' || ma.statoption.code=='layereraser'){
+					var can=lcon;
+				}else{
+					var can=tcon;
+					//var can=context;
+				}
+				if(ma.mousestat==='move'){
+					drawLine(can,prvx,prvy,cx,cy,ma.statoption,1);
+					prvx = cx;
+					prvy = cy;
+				}else if(ma.mousestat==='up'){
+					prvx = null;
+					prvy = null;
+
+
+					//indcon.fillStyle='#0000ff';
+					//indcon.font='3vw Arial';
+					//indcon.fillText(String.fromCodePoint(emojis[getRandomInt(0,emojis.length)]),prvx,prvy);
+
+					//setTimeout(function(){
+						//indcon.clearRect(0,0,indicatepic.width,indicatepic.height)
+					//},300);
+
+
+				}else if(ma.mousestat==='down'){
+					prvx = cx;
+					prvy = cy;
+					//indcon.fillStyle='#4AA5f1';
+					//indcon.font='4vw Arial';
+					//indcon.fillText(String.fromCodePoint(emojis[getRandomInt(0,emojis.length)]),cx,cy);
+					//indcon.fillText('o',cx,cy);
+
+					//setTimeout(function(){
+						//indcon.clearRect(0,0,indicatepic.width,indicatepic.height)
+					//},300);
+
+				}
+			});
+
+
+			function onSharepaperon(opt){
+				if(opt==0){
+					document.getElementById('sharepaperondiv').style.display='none';
+				}else if(opt==1){
+					document.getElementById('sharepaperondiv').style.display='block';
+				}
+			}
+
+
+
+
+
+			function rmStalist(prbid,cptid){
+				var idx=-1;
+				for(var ia=0; ia<stalist.length; ia++){
+					if(stalist[ia][0]==prbid){
+						idx=ia;
+						break;
+					}
+				}
+				//const idx=stalist.indexOf(prbid);
+				if(idx>-1) stalist.splice(idx,1)
+				
+
+				socket.emit('rdctremovesta',{username:username,prbid:prbid,cptid:cptid});
+				staReload();				
+			}
+
+
+			var stalist=[];
+			socket.on('rdctcallsavetoasklistafter',function(a){
+				for(var ia=0; ia<a.stalist.length; ia++){
+					stalist[ia]=[a.stalist[ia], a.cptlist[ia]];
+				}
+				
+				var savetoaskdiv=document.createElement('div');
+				savetoaskdiv.id='savetoaskdiv';
+
+
+				for(var ia=0; ia<a.plist.length; ia++){
+					var staprbdiv=document.createElement('div');
+					staprbdiv.className='staprbdiv';
+					staprbdiv.onclick=function(i,j){return function(){rmStalist(i,j)}}(a.plist[ia][0],stalist[ia][1]);
+					var prbreadingdiv=document.createElement('div');
+					var prbreadingdiva=document.createElement('A');
+					prbreadingdiva.innerHTML=a.plist[ia][1];
+					prbreadingdiv.appendChild(prbreadingdiva);
+					staprbdiv.appendChild(prbreadingdiv);
+					savetoaskdiv.appendChild(staprbdiv);
+				}
+
+				//var headdiv=document.getElementById('headdiv');
+				var optiondiv=document.getElementById('optiondiv');
+				optiondiv.appendChild(savetoaskdiv);
+				if(typeof MathJax !=='undefined'){
+					MathJax.Hub.Queue(["Typeset",MathJax.Hub,optiondiv])	
+				}
+
+
+			});
+
+			
+			function callSavetoasklist(){
+				socket.emit('rdctcallsavetoasklist',{username:username});
+			}
+
+
+			socket.on('rdctsavetoasklistreloadafter',function(a){
+
+
+				removeall('savetoaskdiv');
+				var savetoaskdiv=document.getElementById('savetoaskdiv');
+				for(var ia=0; ia<a.plist.length; ia++){
+					var staprbdiv=document.createElement('div');
+					staprbdiv.className='staprbdiv';
+					staprbdiv.onclick=function(i,j){return function(){rmStalist(i,j)}}(a.plist[ia][0],stalist[ia][1]);
+					var prbreadingdiv=document.createElement('div');
+					var prbreadingdiva=document.createElement('A');
+					prbreadingdiva.innerHTML=a.plist[ia][1];
+					prbreadingdiv.appendChild(prbreadingdiva);
+					staprbdiv.appendChild(prbreadingdiv);
+					savetoaskdiv.appendChild(staprbdiv);
+				}
+
+				var optiondiv=document.getElementById('optiondiv');
+				optiondiv.appendChild(savetoaskdiv);
+				if(typeof MathJax !=='undefined'){
+					MathJax.Hub.Queue(["Typeset",MathJax.Hub,optiondiv])	
+				}
+
+
+
+
+
+			});
+			function staReload(){
+				var prblist=[];
+				for(var ia=0; ia<stalist.length; ia++){
+					prblist[ia]=stalist[ia][0];
+				}
+				socket.emit('rdctsavetoasklistreload',{username:username,prblist:prblist});
+			}
+			socket.on('rdctsavetoaskafter',function(a){
+				staReload();
+			});	
+			function addsavetoAsk(prbid,cptid){
+				var chkarray=[];
+
+				var limitnum=5;
+	
+				if(stalist.length>=limitnum){
+					chkarray[0]=0;
+				}else{
+					chkarray[0]=1;
+				}
+
+				var chk=0;
+				chkarray[1]=1;
+				for(var ia=0; ia<stalist.length; ia++){
+					if(stalist[ia][0]==prbid){
+						chkarray[1]=0;
+						break;
+					}
+				}
+
+				var rst=1;
+				for(var ia=0; ia<chkarray.length; ia++){
+					rst*=chkarray[ia];
+				}
+
+				if(rst!=1){
+					alert('Already added in the list', chkarray);
+				}else{
+					stalist.push([prbid,cptid]);
+					socket.emit('rdctsavetoask',{username:username,prbid:prbid,hisopt:'savetoask',rconinfo:[rconnum],cptid:cptid});
+				}
+			}	
+			function removeall(elename){
+				var ele=document.getElementById(elename)
+				while(ele.firstChild){
+					ele.removeChild(ele.firstChild);
+				}
+			}
+
+			function putColoron(classN, idN,colorN){
+				var cn=document.getElementsByClassName(classN);
+				for(var ia=0; ia<cn.length; ia++){	
+					cn[ia].style.color='';
+					cn[ia].style.backgroundColor='';
+				}
+				document.getElementById(idN).style.backgroundColor=colorN[0];
+				document.getElementById(idN).style.color=colorN[1];
+			}
+
+
+
+			function removeColor(classN){
+				var cn=document.getElementsByClassName(classN);
+				for(var ia=0; ia<cn.length; ia++){	
+					cn[ia].style.color='';
+					cn[ia].style.backgroundColor='';
+					cn[ia].style.border='';
+				}
+
+
+			}
+
+			function colorOnvid(vlist){
+				for(var ia=0; ia<vlist.length; ia++){
+					var vdiv=document.getElementById(vlist[ia][0]);
+					vdiv.style.backgroundColor='black';
+					vdiv.style.border='3px solid blue';
+				}
+			}
+
+
+			socket.on('rdctiknowitalreadyafter',function(){
+				if(IGV==0){
+					socket.emit('callmyrcon',{username:username,state:'curr',rconnum:rconnum});
+				}else{
+					socket.emit('callmyrcon',{username:username,state:'instantprbcurr',rconnum:rconnum,mentorid:mentorinfo.mentorid});
+					
+				}
+			});
+
+			function iknowitAlready(prbid){
+				socket.emit('rdctiknowitalready',{prbid:prbid,username:username,hisopt:'iknowitalready',rconinfo:[rconnum]});
+			}
+
+
+			var IGV=0;
+			var rconnum;
+			var rconnumlast;
+			var prbanspanel=[];
+			var solvedprb=[];
+			socket.on('callmyrconafter',function(a){
+				if(a.setigv==1){
+					IGV=1;
+					rconnum=0;
+				}else{
+					WRSSon(0);
+					//wrsscontext.clearRect(0,0,wrsscanvaswidth, wrsscanvaswidth*gratio);
+					
+				}
+				removeall('prblistdiv');
+				removeall('videolistdiv');
+				removeall('optiondiv');
+				removeall('headdiv');
+
+	
+				rconnum=a.rconnum;
+				rconnumlast=a.runlength;
+				prbanspanel=[];//initialization;
+
+
+				var headdiv=document.getElementById('headdiv');
+				var indidiv=document.createElement('div');
+				indidiv.id='indidiv';
+				indidiv.onclick=function(){
+					onSharepaperon(1);
+				}
+				var indidiva=document.createElement('A');
+				indidiva.innerHTML=rconnum+1+'/'+a.runlength;
+				indidiv.appendChild(indidiva);
+
+				headdiv.appendChild(indidiv);
+
+
+				var pagecondiv=document.createElement('div');
+				pagecondiv.id='pagecondiv';
+				headdiv.appendChild(pagecondiv);
+				
+				var nextdiv=document.createElement('div');
+				nextdiv.id='nextdiv';
+				var buttonn=document.createElement('button');
+				buttonn.innerHTML='Next';
+				buttonn.onclick=function(){callNextRcon();}
+				nextdiv.appendChild(buttonn);
+				pagecondiv.appendChild(nextdiv);
+
+				var previousdiv=document.createElement('div');
+				previousdiv.id='previousdiv';
+				var buttonp=document.createElement('button');
+				buttonp.innerHTML='Previous';
+				buttonp.onclick=function(){callPrvRcon();};
+				previousdiv.appendChild(buttonp);
+				pagecondiv.appendChild(previousdiv);
+
+				headdiv.appendChild(pagecondiv);
+				
+				
+
+				var prblistdiv=document.getElementById('prblistdiv');
+				for(var ia=0; ia<a.mycon.length; ia++){
+					if(a.mycon[ia].prbcon.length!=0){
+						prbanspanel.push([a.mycon[ia].prbid])
+
+						var prbboxdiv=document.createElement('div');
+						prbboxdiv.className='prbboxdiv';
+						prbboxdiv.id=a.mycon[ia].prbid+'box';
+
+						/*
+						prbboxdiv.onmouseover=function(i){return function(){
+							if(i.length!=0){
+								colorOnvid(i);
+							}
+						}}(a.mycon[ia].vidinfo);*/
+
+
+
+						if(a.mycon[ia].redfilter==1){
+							prbboxdiv.style.backgroundColor='#4B7C4B';
+						}
+
+						/*
+
+						prbboxdiv.onmouseout=function(i){return function(){
+							if(i.length!=0){
+								removeColor('videolistclass');
+	
+							}
+						}}(a.mycon[ia].vidinfo);*/
+	
+
+
+						var optiondiv=document.createElement('div');
+						optiondiv.className='optiondiv';
+						if(a.mycon[ia].greyfilter!=1){
+
+							var iknowitdiv=document.createElement('div');
+							//iknowitdiv.onclick=function(i){return function(){iknowitAlready(i)}}(a.mycon[ia].prbid);
+							iknowitdiva=document.createElement('A');
+							iknowitdiva.innerHTML='#';
+							//iknowitdiva.innerHTML='I know it Already';
+							iknowitdiv.className='iknowitdiv';
+							iknowitdiv.appendChild(iknowitdiva);
+							optiondiv.appendChild(iknowitdiv);
+
+							var askcalltomentordiv=document.createElement('div');
+							//askcalltomentordiv.onclick=function(i,j){return function(){addsavetoAsk(i,j)}}(a.mycon[ia].prbid,a.mycon[ia].cptid);
+							askcalltomentordiv.className='askcalltomentordiv';
+							var askcalltomentordiva=document.createElement('A');
+							askcalltomentordiva.innerHTML='#';
+							//askcalltomentordiva.innerHTML='Save to Ask';
+							askcalltomentordiv.appendChild(askcalltomentordiva);
+							optiondiv.appendChild(askcalltomentordiv);
+
+						}else{
+							prbboxdiv.style.backgroundColor='grey';
+						}
+
+			
+						prbboxdiv.appendChild(optiondiv);
+	
+						var prbreadingdiv=document.createElement('div');
+						prbreadingdiv.className='prbreadingdiv';
+						var prbreadingdiva=document.createElement('A');
+						prbreadingdiva.innerHTML=a.mycon[ia].prbcon[1];
+						prbreadingdiv.appendChild(prbreadingdiva);
+
+						if(a.mycon[ia].prbcon[8]!=null){
+							var prbpicdiv=document.createElement('div');
+							prbpicdiv.className='prbpicdiv';
+							var prbimg=document.createElement('img');
+							prbimg.src=a.mycon[ia].prbcon[8];
+							prbpicdiv.appendChild(prbimg);
+							prbreadingdiv.appendChild(prbpicdiv);
+						}
+
+						prbboxdiv.appendChild(prbreadingdiv);
+
+
+						var curtaindiv=document.createElement('div');
+						curtaindiv.className='curtaindiv';
+						var curtaintextdiv=document.createElement('div');
+						curtaintextdiv.className='curtaintextdiv';
+						var curtaintextdiva=document.createElement('a');
+						curtaintextdiva.innerHTML='클릭하여 문제풀기';
+						curtaintextdiv.appendChild(curtaintextdiva);
+						curtaintextdiv.onclick=function(i,j){
+							return function(){	
+								WRSScall(i,j)
+							}
+						}(ia,a.mycon[ia]);
+						prbboxdiv.appendChild(curtaindiv);
+						prbboxdiv.appendChild(curtaintextdiv);
+
+						prbboxdiv.onclick=function(i){
+							return function(){
+
+								solvedprb.push(i)
+								indicateSolvedprb();	
+							}
+						}(a.mycon[ia].prbid);
+					
+						
+
+						var prbchoicediv=document.createElement('div');
+						prbchoicediv.id='prbchoicediv';
+						if(a.mycon[ia].prbcon[4]!='nofile' && a.mycon[ia].greyfilter!=1){
+							prbanspanel[ia][1]=a.mycon[ia].prbcon[3];
+
+
+							/*
+							var prbmulti1=document.createElement('div');
+							var prbmulti2=document.createElement('div');
+							var prbmulti3=document.createElement('div');
+							var prbmulti4=document.createElement('div');
+							var prbmulti5=document.createElement('div');
+
+							prbmulti1.onclick=function(i,j,k){return function(){checkAns(i,j,k);}}(ia,1,a.mycon[ia].cptid);
+							prbmulti2.onclick=function(i,j,k){return function(){checkAns(i,j,k);}}(ia,2,a.mycon[ia].cptid);
+							prbmulti3.onclick=function(i,j,k){return function(){checkAns(i,j,k);}}(ia,3,a.mycon[ia].cptid);
+							prbmulti4.onclick=function(i,j,k){return function(){checkAns(i,j,k);}}(ia,4,a.mycon[ia].cptid);
+							prbmulti5.onclick=function(i,j,k){return function(){checkAns(i,j,k);}}(ia,5,a.mycon[ia].cptid);
+		
+							prbmulti1.className='prbmulti';
+							prbmulti2.className='prbmulti';
+							prbmulti3.className='prbmulti';
+							prbmulti4.className='prbmulti';
+							prbmulti5.className='prbmulti';
+
+							
+							var prbmulti1a=document.createElement('a');
+							var prbmulti2a=document.createElement('a');
+							var prbmulti3a=document.createElement('a');
+							var prbmulti4a=document.createElement('a');
+							var prbmulti5a=document.createElement('a');
+
+						
+							prbmulti1a.innerHTML=a.mycon[ia].prbcon[4];
+							prbmulti2a.innerHTML=a.mycon[ia].prbcon[5];
+							prbmulti3a.innerHTML=a.mycon[ia].prbcon[6];
+							prbmulti4a.innerHTML='보기에 정답이 없습니다.';
+							prbmulti5a.innerHTML='Dont Know';
+
+							prbmulti1.appendChild(prbmulti1a);
+							prbmulti2.appendChild(prbmulti2a);
+							prbmulti3.appendChild(prbmulti3a);
+							prbmulti4.appendChild(prbmulti4a);
+							prbmulti5.appendChild(prbmulti5a);
+
+
+
+							prbchoicediv.appendChild(prbmulti1);
+							prbchoicediv.appendChild(prbmulti2);
+							prbchoicediv.appendChild(prbmulti3);
+							prbchoicediv.appendChild(prbmulti4);
+
+							prbboxdiv.appendChild(prbchoicediv);
+							*/
+						}else{
+							prbanspanel[ia][1]='';
+						}
+						prblistdiv.appendChild(prbboxdiv);
+						
+					}
+					
+				}
+
+
+				if(typeof MathJax !== 'undefined'){
+					MathJax.Hub.Queue(["Typeset",MathJax.Hub,prblistdiv])	
+				}
+
+				/*
+				var vlist=[];
+				for(var ia=0; ia<a.mycon.length; ia++){
+					for(var ib=0; ib<a.mycon[ia].vidinfo.length; ib++){
+						var chk=0;
+						for(var ic=0; ic<vlist.length; ic++){
+							if(vlist[ic][0]==a.mycon[ia].vidinfo[ib][0]){
+								chk=1;
+								break;
+							}
+						}
+						if(chk==0){
+							vlist.push(a.mycon[ia].vidinfo[ib]);
+						}
+					}
+				}
+
+				var videolistdiv=document.getElementById('videolistdiv');
+				for(var ia=0; ia<vlist.length; ia++){
+					var videoboxdiv=document.createElement('div');
+			
+					videoboxdiv.className='videolistclass';
+					videoboxdiv.id=vlist[ia][0];
+					var videoboxvid=document.createElement('iframe');
+					videoboxvid.src=vlist[ia][1];
+					videoboxdiv.appendChild(videoboxvid);
+					videolistdiv.appendChild(videoboxdiv);
+				}
+				*/
+				callSavetoasklist();
+			
+				indicateSolvedprb();	
+			});
+
+			function indicateSolvedprb(){
+				
+				//prbboxdiv.className='prbboxdiv';
+				var prbclass= document.getElementsByClassName('prbboxdiv');
+				if(prbclass){
+					for(var ia=0; ia<prbclass.length; ia++){
+						prbclass[ia].style.border='';
+					}
+				}
+				for(var ia=0; ia<solvedprb.length; ia++){
+					var prbdiv=document.getElementById(solvedprb[ia]+'box');
+					if(prbdiv){
+						prbdiv.style.border='7px solid red';
+					}
+				}
+			}
+
+
+			function checkAns(i,chnum,cptid,ans,prbid){
+				// 0 wrong unintention
+				// 1 correct
+				// 2 confess dont'know
+
+				console.log(i,chnum,cptid,ans,prbid);
+
+				if(chnum==5){
+					tempAlert('곧 알려드릴게요.', 2000,['blue','white']);
+					socket.emit('senduseractivity',{username:username,resultcode:2,prbid:prbid,hisopt:'prbsolve',rconinfo:[rconnum],cptinfo:cptid});
+					wrssWritingSaveToServer({prbid:prbid, cptid:cptid, username:username,ansresult:2})
+				}else{
+					if(ans==chnum){
+						tempAlert('맞았습니다',2000,['#64FE2E','black']);
+						wrssWritingSaveToServer({prbid:prbid, cptid:cptid, username:username,ansresult:1})
+						socket.emit('senduseractivity',{username:username,resultcode:1,prbid:prbid,hisopt:'prbsolve',rconinfo:[rconnum],cptinfo:cptid});
+					}else{
+						tempAlert('틀렸네요 ㅠ ',2000,['red','white']);
+						wrssWritingSaveToServer({prbid:prbid, cptid:cptid, username:username,ansresult:0})
+						socket.emit('senduseractivity',{username:username,resultcode:0,prbid:prbid,hisopt:'prbsolve',rconinfo:[rconnum],cptinfo:cptid});
+					}
+
+				}
+				//wrsscontext.clearRect(0,0,wrsscanvaswidth, wrsscanvaswidth*gratio);
+				//WRSSon(0);
+	
+			}
+
+			function tempAlert(msg,duration,color){
+				var el = document.createElement("div");
+				el.setAttribute("style","position:absolute;z-index:20;top:10%;left:35%;background-color:"+color[0]+";padding:5% 10%;color:"+color[1]+";");
+				el.innerHTML = msg;
+				setTimeout(function(){
+					el.parentNode.removeChild(el);
+				},duration);
+				document.body.appendChild(el);
+			}
+
+
+
+
+
+			callMyRcon();
+			function callMyRcon(){
+
+				socket.emit('callmyrcon',{username:username,state:'ini'});
+			}
+
+			function callPrvRcon(){
+				if(rconnum==0){
+					tempAlert('this is first Section',1000,['purple','white']);	
+				}else{
+					if(IGV==1){
+						socket.emit('callmyrcon',{username:username,state:'instantprbprv',rconnum:rconnum-1,mentorid:mentorinfo.mentorid});
+					}else if(IGV==0){
+						socket.emit('callmyrcon',{username:username,state:'prv',rconnum:rconnum-1});
+					}
+
+				}
+				
+			}
+			function callNextRcon(){
+				if(rconnum==rconnumlast-1){
+					tempAlert('this is last Section',1000,['purple','white']);	
+				}else{
+					if(IGV==1){
+						socket.emit('callmyrcon',{username:username,state:'instantprbnext',rconnum:rconnum+1,mentorid:mentorinfo.mentorid});
+					}else if(IGV==0){
+						socket.emit('callmyrcon',{username:username,state:'next',rconnum:rconnum+1});
+					}
+				}
+			}
+
+			function turntoPage(rcnum){
+				socket.emit('callmyrcon',{username:username,state:'mentordriven',rconnum:rcnum,mentorsocketid:mentorinfo.mentorsocketid,igv:IGV,mentorid:mentorinfo.mentorid});
+				
+			}
+
+			socket.on('mentortomenteeadjustpagenumberafter',function(a){
+				turntoPage(a.rcnum);
+			});
+			
+
+
+			socket.on('vdrgsharehomeworkafter',function(a){
+				removeall('sharedinputdiv');
+				var sharedinputdiv=document.getElementById('sharedinputdiv');
+
+				var picdiv=document.createElement('div');
+				picdiv.id='picdiv';
+				var picdivimg=document.createElement('img');
+				picdivimg.src='/usernote'+a.auxaddr+a.userfile;
+				picdiv.appendChild(picdivimg);
+				sharedinputdiv.appendChild(picdiv);
+				picdiv.style.width='90%';
+				picdiv.style.height='90%';
+
+
+			});	
+
+			window.onblur = function () { 
+			  isTabActive = false; 
+
+				socket.emit('studentconcentrationcheck',{socketid:socket.id,username:username,mentorsocketid:mentorinfo.mentorsocketid,constatus:'distracted'});
+			}; 
+
+			var isTabActive;
+
+			window.onfocus = function () { 
+			  isTabActive = true; 
+			socket.emit('studentconcentrationcheck',{socketid:socket.id,username:username,mentorsocketid:mentorinfo.mentorsocketid,constatus:'focused'});
+			}; 
+
+
+			/*
+			var isTabActive;
+
+			window.onfocus = function () { 
+			  isTabActive = true; 
+			}; 
+
+			window.onblur = function () { 
+			  isTabActive = false; 
+
+			}; 
+
+			// test
+			setInterval(function () { 
+			  console.log(window.isTabActive ? 'active' : 'inactive'); 
+			}, 1000);*/
+
+			const getState = () => {
+				if(document.visibilityState==='hidden'){
+					return 'hidden';
+				}
+				if(document.hasFocus()){
+					return 'active';
+				}
+				return 'passive';
+			};
+			var mentorinfo={mentorid:'',mentorsocketid:'', connectionstate:0,wrssmentorsocketid:''};
+			socket.on('vdrgreregistrationservicecheck',function(a){
+				socket.emit('vdrgreregistrationserviceresponse',{socketid:socket.id,username:username,position:'mentee'});
+				mentorinfo.mentorid=a.mentorid;
+				//console.log(a);
+				if(a.mentorsocketid!='' && a.mentorsocketid!=mentorinfo.mentorsocketid){
+					//socket.emit('fortabletreport',{a:'mentorcenter: socketid is changed from '+mentorinfo.mentorsocketid+' to '+a.mentorsocketid+', getState : '+getState(),username:username,modecheck:'socketcheck'});
+					console.log('mentorsocketid changed')
+					mentorinfo.mentorsocketid=a.mentorsocketid;
+					mentorinfo.connectionstate=a.connectionstate;
+				}
+				if(a.wrssmentorsocketid!='' && a.wrssmentorsocketid!=mentorinfo.wrssmentorsocketid){	
+					//socket.emit('fortabletreport',{a:'wrssmentorcenter: socketid is changed from '+mentorinfo.wrssmentorsocketid+' to '+a.wrssmentorsocketid,username:username,modecheck:'socketcheck'});
+					console.log('wrssmentorsocketid changed')
+					mentorinfo.wrssmentorsocketid=a.wrssmentorsocketid;
+					mentorinfo.wrssmentorconnectionstate=a.wrssmentorconnectionstate;
+				}
+			});
+			/*
+			socket.on('vdrgreregistrationservicecheck',function(a){
+				console.log(mentorinfo);
+				socket.emit('vdrgreregistrationserviceresponse',{socketid:socket.id,username:username,position:'mentee'});
+				mentorinfo.mentorid=a.mentorid;
+				mentorinfo.mentorsocketid=a.mentorsocketid;
+				mentorinfo.connectionstate=a.connectionstate;
+				mentorinfo.wrssmentorsocketid=a.wrssmentorsocketid;
+				mentorinfo.wrssmentorconnectionstate=a.wrssmentorconnectionstate;
+			});*/
+
+
+
+			//SHORT CUT KEY
+			document.onkeydown = function(e){
+				if(e.shiftKey && e.which==32){//first pen
+					//clearLcon();
+					stat.color=environdefine.firstpen[0];
+					stat.size=environdefine.firstpen[1];
+					stat.code='firstpen';
+					wrssstat.color=wrssenvirondefine.firstpen[0];
+					wrssstat.size=wrssenvirondefine.firstpen[1];
+					wrssstat.code=wrssenvirondefine.firstpen[2];
+				}else if(e.shiftKey && e.which==81){//eraser;
+					stat.color=environdefine.eraser.color;
+					stat.size=environdefine.eraser.size;
+					stat.code=environdefine.eraser.code;
+					//var wrssenvirondefine={background:['#336633',wrssstdpensize*16,'background'],firstpen:['white',wrssstdpensize,'firstpen'],secondpen:['#B43104',wrssstdpensize,'secondpen'],eraser:{size:wrssstdpensize*16,code:'eraser'},layer:{color:'blue',size:wrssstdpensize,code:'layer'},layereraser:{size:wrssstdpensize*16,code:'layereraser'}, picbackcolor:'#bbbbbb' };
+					wrssstat.color='';
+					wrssstat.size=wrssenvirondefine.eraser.size;
+					wrssstat.code = wrssenvirondefine.eraser.code;
+				}else if(e.shiftKey && e.which==82){
+					stat.color=environdefine.secondpen[0];
+					stat.size=environdefine.secondpen[1];
+					stat.code='secondpen';
+
+				}else if(e.shiftKey && e.which==187){
+					stat.size=stat.size*2;
+				}else if(e.shiftKey && e.which==189){
+					stat.size=stat.size*(.5);
+				}
+			}
+
+			socket.on('wrssigvcontrolafter',function(a){
+				IGV=a.igvcontrol;
+				console.log(a,IGV);
+			});
+
+			
+			//socket.emit('studentconcentrationcheck',{});
+			socket.on('disconnect',(reason)=>{
+				console.log('socket.io is disconnected')
+				//socket.emit('fortabletreport',{a:'disconnected: reason - '+reason,username:username,modecheck:'socketcheck'});
+				//socket.connect();
+			});		
+			socket.on('error',()=>{
+				console.log('socket.io is in error')
+				socket.connect();
+				//socket.emit('fortabletreport',{a:'error',username:username,modecheck:'socketcheck'});
+			})
+			socket.on('connect_error',()=>{
+				console.log('socket.io is in connect_error')
+				socket.connect();
+				//socket.emit('fortabletreport',{a:'connect_error',username:username,modecheck:'socketcheck'});
+				
+			})
+
+			socket.on('connect_timeout',(timeout)=>{
+				console.log('socket.io is timeoust')
+				//socket.connect();
+				//socket.emit('fortabletreport',{a:'socket is timeout'+', getState : '+getState(),username:username,modecheck:'socketcheck'});
+			})
+			socket.on('reconnect',(attemptNumber)=>{
+				socket.emit('vdrgsocketidregister',{socketid:socket.id,username:userinfo.username,position:userinfo.position});
+				console.log('socket.io is reconnected , attempt number is : '+attemptNumber)
+				//socket.emit('fortabletreport',{a:'reconnected, attempted number is '+attemptNumber+', getState  : '+getState(),username:username,modecheck:'socketcheck'});
+			})
+
+			/*
+			socket.on('reconnecting',(attemptNumber)=>{
+				console.log('socket.io is reconnectting , attpempt number is : '+attemptNumber)
+				socket.emit('fortabletreport',{a:'reconnecting, attempted number is : '+attemptNumber,username:username,modecheck:'socketcheck'});
+			})
+
+			socket.on('reconnect_error',(err)=>{
+				console.log('socket.io is reconnect_error '+err)
+				socket.emit('fortabletreport',{a:'reconnect_error',username:username,modecheck:'socketcheck'});
+			})
+
+			socket.on('reconnect_failed',()=>{
+				console.log('socket.io is reconnect_failed ')
+				socket.emit('fortabletreport',{a:'reconnect_failed',username:username,modecheck:'socketcheck'});
+			})
+
+			
+			socket.on('socketstoptesttouser',function(){
+				socket.emit('socketstoptest',{mode:'fromuser',mentorinfo:mentorinfo, userinfo:userinfo});
+
+				everythingReady();
+				socket.emit('fortabletreport',{a:'IN USERPAGE CHECK: mentorcentersocketid is '+mentorinfo.mentorsocketid+', usersocketid is '+socket.id+', getState : '+getState(),username:username,modecheck:'socketcheck'});
+			});
+
+			document.addEventListener('freeze', (event) => {
+				logStateChange('frozen');
+			},{capture:true});
+
+			document.addEventListener('pagehide', (event) => {
+				if(event.persisted){
+					logStateChange('frozen');
+				}else{
+					logStateChange('terminated');
+				}
+			}, {capture:true});
+
+
+
+			let state = getState();
+		
+			const logStateChange = (nextState) => {
+				const prevState = state;
+				if(nextState !== prevState){
+					socket.emit('fortabletreport',{a:'IN USERPAGE CHECK: mentorcentersocketid is '+mentorinfo.mentorsocketid+', usersocketid is '+socket.id+`, State change: ${prevState} >>> ${nextState}`,username:username,modecheck:'getstatecheck'});
+					state = nextState;
+				}
+			}
+
+
+			['pageshow','focus','blur','visibilitychange','resume'].forEach((type) => {
+				window.addEventListener(type, ()=> logStateChange(getState()),{capture:true});
+			});
+			*/

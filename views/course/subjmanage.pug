@@ -1,0 +1,39 @@
+html
+	head
+		style.
+			a{
+				display:inline-block;
+				width:180px;
+			}
+	body
+		h2 subject management
+		div
+			a subjid
+			a grade
+			a userid
+			a subjname
+			a eduverid
+			form(action='./subjprocess' method='get')
+				input(type='text' name='subjid') 
+				input(type='text' name='grade') 
+				input(type='text' name='userid' value='shjung') 
+				input(type='text' name='subjname') 
+				input(type='text' name='eduverid' value=0) 
+				input(type='radio' name='action' value=0 checked)
+				span 추가	
+				input(type='radio' name='action' value=1)
+				span 수정
+				input(type='radio' name='action' value=2)
+				span 삭제
+				input(type='submit')
+		div
+			-for(var ia=0; ia<rs.length; ia++){
+				div
+					a=rs[ia].subjid
+					a=rs[ia].grade
+					a=rs[ia].userid
+					a=rs[ia].subjname
+					a=rs[ia].eduverid
+			-}
+		
+			

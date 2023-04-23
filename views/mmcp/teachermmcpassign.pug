@@ -1,0 +1,360 @@
+html
+	head
+		script(type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML")
+		script(src='/socket.io/socket.io.js')
+		
+		style.
+			#createzone {
+				width:100%;
+				height:10%;
+			}
+			#createzone div {
+				display:inline-block;
+				margin:0 3%;	
+			}
+			#prbdisplay {
+				width:40%;
+				float:left;
+				height:90%;
+			}
+
+			#registeredhwconid {
+				width:20%;
+				float:left;
+				height:90%;
+			}
+			#unassignedhwconid {
+				width:20%;
+				float:left;
+				height:90%;
+			}
+
+
+
+			#userlist{
+				width:20%;
+				float:left;
+				height:90%;
+			}
+			.stdlist {
+				width:100%;
+			}
+	
+
+	body
+
+		div(id='createzone')
+			//div
+				//a(onclick='createConnectready()') create
+				//input(type='radio' name='mmcp' id='mmcpassigncreate')
+			div
+				a update
+				input(type='radio' name='mmcp' id='mmcpassignupdate' checked)
+			div
+				a remove
+				input(type='radio' name='mmcp' id='mmcpassignremove')
+			div
+				a submit
+				input(type='submit' name='mmcp' onclick='clickSubmit()')
+
+		div(id='prbdisplay')
+		div(id='unassignedhwconid')
+		div(id='registeredhwconid')
+		div(id='userlist')
+		script.
+			var username=!{JSON.stringify(username)}
+			var socket = io('/mmcp');
+			socket.on('connect',()=>{
+				console.log('mmcp connection ready');
+			});
+
+			function clickSubmit(){
+				var mac=document.getElementById('mmcpassigncreate');
+				var mau=document.getElementById('mmcpassignupdate');
+				var mar=document.getElementById('mmcpassignremove');
+	
+				//if(mac.checked){
+					//createConnect();
+				//}else 
+				if(mau.checked){
+					updateConnect();		
+				}else if(mar.checked){
+					alert('remove');
+				}else{
+					alert('nothing is checked');	
+				}
+			}
+
+			function createConnect(){
+				var conname=document.getElementById('connectname');
+				if(conname.value!=''){
+					if(chosenlist!=''){
+						if(chosenuser!=''){
+							socket.emit('mmcpassigncreate',{ mmcpconnectid:chosenlist,userid:chosenuser,option:0});
+						}else{
+							alert('chosenuser is empty');
+						}
+					}else{
+						alert('chosenlist is empty');
+					}
+				}else{
+					alert('the input name is empty');
+				}
+			}
+
+
+
+			function createConnectready(){
+				var conname=document.getElementById('connectname');
+				conname.focus();
+				conname.value='';
+				document.getElementById('mmcpassigncreate').checked=true;
+				chosenlist='';
+				//chosenuser='';
+				chosenRepresent('mmcpconlist',chosenlist);
+				chosenRepresent('userdiv',chosenuser);
+				
+			}
+
+
+
+			
+			function updateConnect(){
+					if(chosenlist!=''){
+						if(chosenuser!=''){
+							var chosenlistl=chosenlist.split(',');
+							var bulkinsert='';
+							for(var ia=0; ia<chosenlistl.length; ia++){
+								if(chosenlistl.length-1==ia){
+									bulkinsert=bulkinsert+'("'+chosenuser+'","'+chosenlistl[ia]+'","'+username+'")';
+								}else{
+									bulkinsert=bulkinsert+'("'+chosenuser+'","'+chosenlistl[ia]+'","'+username+'")'+',';
+								}
+							}
+							socket.emit('mmcphwassignupdate',{mmcpconid:chosenlist,username:username,chosenuser:chosenuser,bulkinsert:bulkinsert});
+						}else{
+							alert('chosenuser is not specified');
+						}
+					}else{
+						alert('chosenlist is empty');
+					}
+
+			}
+
+
+			socket.on('mmcphwassignupdateafter',function(){
+				window.location.href='/mmcp/teachermmcpconnect'
+			});
+
+			socket.on('mmcpcallunassignedhwconidafter',function(a){
+				var unassidiv=document.getElementById('unassignedhwconid');
+				console.log('unassigned', a);
+				for(var ia=0; ia<a.hwconid.length; ia++){
+					var unass=document.createElement('div');
+					unass.className='hwcon'
+					unass.id=a.hwconid[ia].mmcpconid;
+					unass.onclick=function(i){
+						return function(){
+							clickToChosen(i,'hwcon',0);
+						}
+					}(a.hwconid[ia].mmcpconid);
+					var unassa=document.createElement('a');
+					unassa.innerHTML=a.hwconid[ia].mmcplistinfo;
+					unass.appendChild(unassa);
+					unassidiv.appendChild(unass);
+				}
+			});
+
+
+			function chosenRepresent(classN,chosenlist){
+				function removeAllRepresent(cname){
+					var rdiv=document.getElementsByClassName(cname);
+					for(var ia=0; ia<rdiv.length; ia++){
+						rdiv[ia].style.backgroundColor='';
+						rdiv[ia].style.color='';
+					}
+				}
+
+
+				removeAllRepresent(classN);
+				if(chosenlist!=''){
+					var chosenlistl=chosenlist.split(',');
+					for(var ia=0; ia<chosenlistl.length; ia++){
+						if(chosenlistl[ia]!=''){
+							var rpdiv=document.getElementById(chosenlistl[ia]);
+							rpdiv.style.backgroundColor=stat.chosencolor;
+							rpdiv.style.color=stat.fontcolor;
+						}
+					}
+				}
+		
+			}
+
+
+			function removeItemFromExist(liststr,item){
+				var liststrl=liststr.split(',');
+
+				var nlist='';
+				for(var ia=0; ia<liststrl.length; ia++){
+					if(liststrl[ia]==item){
+						/*if(ia==0){
+							nlist=nlist+item;
+						}else{
+							nlist=nlist+','+item;
+						}*/
+					}else{
+						if(nlist==''){
+							nlist=nlist+liststrl[ia];
+						}else{
+							nlist=nlist+','+liststrl[ia];
+						}
+					}
+				}
+				return nlist;	
+			}
+
+
+
+
+
+			function checkItemExist(liststr,item){
+				var liststrl=liststr.split(',');
+
+				var chk=0;
+				for(var ia=0; ia<liststrl.length; ia++){
+					if(liststrl[ia]==item){
+						chk=1;
+						break;
+					}
+				}
+
+				return chk;
+			}
+					
+
+
+
+			function clickToChosen(item,classN,opt){
+
+				if(opt==0){//not exclusive
+					var chk=checkItemExist(chosenlist,item);
+					if(chk==0){//no exist
+						if(chosenlist!=''){
+							chosenlist=chosenlist+','+item;
+						}else {
+							chosenlist=item;
+						}
+					}else{
+						chosenlist=removeItemFromExist(chosenlist,item);
+					}
+
+					chosenRepresent(classN,chosenlist);
+				}else if(opt==1){//exclusive
+					chosenuser=item;
+					chosenRepresent(classN,chosenuser);
+				}
+			}	
+
+			callStdlist();
+			function callStdlist(){
+				socket.emit('callstdlist',{username:username});
+			}
+
+			callUnassignedhwconid();
+			function callUnassignedhwconid(){
+				socket.emit('mmcpcallunassignedhwconid',{username:username})
+			}
+
+
+			var chosenlist = '';
+			var chosenuser = '';
+
+			var stat = {chosencolor:'blue', fontcolor:'white'}
+			socket.on('callstdlistafter',function(a){
+				var indusers=[];
+				for(var ia=0; ia<a.a.length; ia++){
+					var chk=0;
+					for(var ib=0; ib<indusers.length; ib++){
+						if(indusers[ib][0]==a.a[ia].username){
+							chk=1;
+							break;
+						}
+					}
+					if(chk==0){
+						indusers.push([a.a[ia].username,a.a[ia].DisplayName]);
+					}
+				}
+
+				var hwset=[];
+				for(var ia=0; ia<indusers.length; ia++){
+					hwset[ia]={username:indusers[ia][0], dname:indusers[ia][1],hwconid:[],hwconidstring:''}
+					for(var ib=0; ib<a.a.length; ib++){
+						if(a.a[ib].username==indusers[ia][0]){
+							if(a.a[ib].mmcpconid != null){
+								hwset[ia].hwconid.push([a.a[ib].mmcpconid, a.a[ib].prblist, a.a[ib].listinfo])
+							}
+						}
+					}
+					var hwconidstring='';
+					for(var ib=0; ib<hwset[ia].hwconid.length; ib++){
+						if(ib==hwset[ia].hwconid.length-1){
+							hwconidstring=hwconidstring+hwset[ia].hwconid[ib][0];
+						}else{
+							hwconidstring=hwconidstring+hwset[ia].hwconid[ib][0]+',';
+						}
+					}
+					hwset[ia].hwconidstring=hwconidstring;
+				
+				
+				}
+				console.log(hwset);
+				var userlistdiv=document.getElementById('userlist');
+				for(var ia=0; ia<hwset.length; ia++){
+					var userdiv=document.createElement('div');
+					userdiv.className='stdlist'
+					userdiv.onclick=function(i){
+						return function(){
+							displayHwconid(i.hwconid,i.hwconidstring)
+							clickToChosen(i.username,'stdlist',1);
+						}
+					}(hwset[ia]);
+					userdiv.id=hwset[ia].username;
+
+					var userdiva=document.createElement('a');
+					userdiva.innerHTML=hwset[ia].dname;
+					userdiv.appendChild(userdiva);
+					userlistdiv.appendChild(userdiv);
+				}
+			});
+		
+
+			function displayHwconid(hw,str){ // user owned hw list register
+				var hwconiddiv=document.getElementById('registeredhwconid');
+				removeallele('registeredhwconid');
+				for(var ia=0; ia<hw.length; ia++){
+					var hwdiv=document.createElement('div');
+					var hwdiva=document.createElement('a');
+					hwdiva.innerHTML=hw[ia][2];
+					hwdiv.appendChild(hwdiva);
+					hwdiv.onclick=function(i){
+						return function(){
+							clickToChosen(i,'hwcon',0)
+						}
+					}(hw[ia][0]);
+					hwdiv.className='hwcon';
+					hwdiv.id=hw[ia][0];
+					hwconiddiv.appendChild(hwdiv);
+				}				
+				chosenlist=str;
+				chosenRepresent('hwcon',chosenlist)
+			}			
+
+			function removeallele(parentid){
+				var parent=document.getElementById(parentid);
+				while(parent.firstChild){
+					parent.firstChild.remove();
+				}
+			}
+
+
+

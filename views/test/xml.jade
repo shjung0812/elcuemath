@@ -1,0 +1,37 @@
+html
+	body
+		h2 XML
+			p(id='num') 23
+			button(onclick='send()') Click
+		script.
+			var request = new XMLHttpRequest();
+			function send(){
+				var number = {
+					value:333
+					//value: document.getElementById('num').value
+				}
+				/*
+				var xhr = new window.XMLHttpRequest();
+				xhr.open('POST','/num',true);
+				xhr.setRequestHeader('Content-Type','application/json;charset=UTF-8');
+				xhr.send(JSON.stringify(number));
+				*/
+				request.open('post','/num',true);
+				request.responseType = 'json';
+				request.send();
+
+
+			}
+
+			request.onload = function(){
+				var sp=request.response;
+
+				request.open('post','/num',true);
+				request.responseType = 'json';
+				request.send();
+
+				console.log(sp.msg)
+
+
+			}
+

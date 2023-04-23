@@ -1,0 +1,784 @@
+html
+	head
+		title pug]/cpt/cprprbset.pug
+		style.
+			#crindexls{
+				margin:20px 10px;
+				box-shadow:0px 5px 5px 0px;
+				width:68%;
+				max-height:30%;
+				overflow:hidden;
+			}
+			#formtext{
+				//margin:20px 10px;
+				//box-shadow:0px 5px 5px 0px;
+				width:100%;
+				height:6%;
+			}
+			#createprbdiv {
+				float:left;
+				padding:0 5%;
+			}
+
+			#middlewrapdiv {
+				width:100%;
+				height:94%;
+			}
+			#prbproduct {
+				width:50%;
+				height:100%;
+				float:left;
+			}
+			#fixeddisplay {
+				width:50%;
+				height:100%;
+				float:left;
+			}
+			#chosenprb {
+				width:35%;
+				float:left;
+				//box-shadow:0px 5px 5px 0px;
+				//margin:20px 10px;
+				font-size:.7em;
+				height:100%;
+				overflow:auto;
+			}
+
+			#fcdisplay{
+				box-shadow:0px 5px 5px 0px;
+				height:100%;
+				float:left;
+				width:65%;
+				overflow-y:auto;
+			}
+			::-webkit-scrollbar {
+			}
+			#prbdisplay{
+				box-shadow:0px 5px 5px 0px;
+				height:100%;
+				overflow:scroll;
+			}
+			.prbbox {
+				width:90%;
+				height:auto;
+				box-shadow:0px 5px 5px 0px;
+				float:left;
+				margin:2% 0;
+				//margin:10px 5px;
+				padding:5%;
+				//padding:2px;
+				overflow:auto;
+			}
+			.prbbox a {
+				display:block;		
+			}
+			.chosenprbs {
+				cursor:pointer;
+			}
+			.r2div:hover {
+				background-color:blue;
+				color:white;
+			}
+			.r1div{
+				cursor:pointer;
+				margin:2% 0 0 0;
+			}			
+			.r1div:hover {
+				background-color:blue;
+				color:white;
+			}
+			.choiceplist {
+				float:left;
+			}
+			.choiceplist:hover {
+				background-color:purple;
+				color:white;
+			}
+
+			.setlist {
+				border: 1px ridge;
+				margin:2% 0 2% 0;
+				cursor:pointer;
+			}
+			.imgdiv {
+				width:100%;
+			}
+			.imgdiv img {
+				width:100%;
+			}
+			#clunass {
+				margin:5% 0;
+			}
+			#clunass:hover {
+				background-color:purple;
+				color:white;
+			}
+			.prborder {
+				//margin:5% 10%;
+				color:black;
+				text-decoration:none;
+			}
+			.prborder:hover {
+				background-color:purple;
+				color:white;
+			}
+
+			#cpdr2set div{
+				margin:0 0 0 5%;
+				
+			}
+			#tempr1box {
+				margin:0 0 0 10%;
+			}
+
+			#otherbutton {
+				//display:inline-block;
+			}
+			#otherbutton a {
+				text-decoration:none;
+				margin:0 2%;
+			}
+			#formtag {
+				width:30%;
+				float:left;
+			}
+		script(src='/socket.io/socket.io.js')
+		script(type='text/javascript' src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML")
+		script(src='/cpt/prbdisplay.js')
+		script.
+			var asprbidlist='';
+			function chklist(pcp,list){
+				var achk=0;
+				var o1aspcplist=list.split(',');
+				for(var ie=0; ie<o1aspcplist.length; ie++){
+					if(pcp==o1aspcplist[ie]){
+						achk=1;
+					}
+				}
+				return [achk,o1aspcplist];
+			}
+			function removeallcolor(classname){
+				var allpcp=document.getElementsByClassName(classname)
+				for(var ia=0; ia<allpcp.length; ia++){
+					allpcp[ia].style.backgroundColor='';
+					//allpcp[ia].style.borderStyle='none';
+				}
+			}
+			function RemovePrbDisplay(){
+				var vdiv=document.getElementById('prbdisplay');
+				while(vdiv.firstChild){
+					vdiv.removeChild(vdiv.firstChild);
+				}
+			}
+			function putprbid(prbid){
+				var prbchk=chklist(prbid,asprbidlist)
+				var vadd;
+				if(asprbidlist==''){
+					document.getElementById('prbidls').value=prbid;
+					asprbidlist=prbid;
+					vadd=1;
+				}else{
+					
+					if(prbchk[0]==0){
+						asprbidlist=asprbidlist+','+prbid;
+						vadd=1;
+					}else{
+						asprbidlist='';
+						var idx=prbchk[1].indexOf(prbid);
+						prbchk[1].splice(idx,1);
+						for(var ia=0; ia<prbchk[1].length; ia++){
+							if(prbchk[1].length-1==ia){
+								asprbidlist=asprbidlist+prbchk[1][ia];
+							}else{	
+								asprbidlist=asprbidlist+prbchk[1][ia]+',';
+							}
+						}
+						vadd=0;
+					}
+					document.getElementById('prbidls').value=asprbidlist;
+				}
+				var asprb;
+				var fcprb;
+				if(asprbidlist==''){
+					removeallcolor('prbbox')
+				
+				}else{
+					removeallcolor('prbbox')
+					var o1asprbidlist=asprbidlist.split(',');
+					for(var ia=0; ia<o1asprbidlist.length; ia++){
+						
+						asprb=document.getElementById(o1asprbidlist[ia])
+						fcprb=document.getElementById('fc'+o1asprbidlist[ia]);
+						if(asprb){
+							asprb.style.backgroundColor='green';
+						}
+						if(fcprb){
+							fcprb.style.backgroundColor='green';
+						}
+					}
+						//document.getElementById(prbase[ia][0]).style.backgroundColor='black';
+				}
+				//focusprbid(asprbidlist);
+				var fcd=document.getElementById('fcdisplay');
+				if(vadd==1){//추가됨
+					var fcdisplay=fcd.childNodes;
+					var tmv;
+					var achk;
+					achk=0;
+					for(var id=0; id<fcdisplay.length; id++){
+						tmv='';
+						for(var ie=2; ie<fcdisplay[id].id.length; ie++){
+							tmv=tmv+fcdisplay[id].id[ie];
+						}
+						if(prbid==tmv){
+							achk=1;
+						}
+					}
+					if(achk==0){
+						var pdiv=document.getElementById(prbid);
+						var cdiv=document.createElement('DIV');
+						var va0=document.createElement('A');
+						var va1=document.createElement('A');
+
+						va0.innerHTML=pdiv.childNodes[0].innerHTML;
+						
+						va1.innerHTML=pdiv.childNodes[1].innerHTML;
+						cdiv.appendChild(va0);
+						cdiv.appendChild(va1);
+			
+						cdiv.setAttribute('class','prbbox')
+						cdiv.setAttribute('id','fc'+prbid)
+						cdiv.style.backgroundColor='green';
+						cdiv.onclick=function(j){return function() {putprbid(j);};}(prbid);
+						
+
+
+
+						fcd.appendChild(cdiv);
+						
+						
+					}
+						
+				}else{//삭제됨
+					var elm=document.getElementById('fc'+prbid);
+					elm.parentElement.removeChild(elm);
+				
+				}
+				
+				
+			}
+			function putcolorondiv(){
+				var asprb;
+				var fcprb;
+				if(asprbidlist==''){
+					removeallcolor('prbbox')
+				
+				}else{
+					removeallcolor('prbbox')
+					var o1asprbidlist=asprbidlist.split(',');
+					for(var ia=0; ia<o1asprbidlist.length; ia++){
+						
+						asprb=document.getElementById(o1asprbidlist[ia])
+						fcprb=document.getElementById('fc'+o1asprbidlist[ia])
+						
+						if(asprb){
+							asprb.style.backgroundColor='green';
+						}
+						if(fcprb){
+							fcprb.style.backgroundColor='green';
+						}
+					}
+				}
+			}
+			var putcolorid='';
+			function putcoloronme(id){
+				if(putcolorid!=''){
+					var fdiv=document.getElementById(putcolorid);
+					if(fdiv){
+						document.getElementById(putcolorid).style.backgroundColor=''
+					}
+				}
+				putcolorid=id;
+				document.getElementById(id).style.backgroundColor='#79A36C';
+				//document.getElementById(id).style.backgroundColor='yellow';
+			}
+			function focusdisplay(prblist,listinfo,cptid){
+				removefocusdisplay();
+				var socket=io('/cpt');
+				socket.emit('cptfocus',{prblist:prblist});
+				asprbidlist=prblist;
+				socket.on('cptfocusprbcon',function(rc){
+					var vdiv;
+					var va0;
+					var va1;
+					var fdiv=document.getElementById('fcdisplay');
+					for(var ia=0; ia<rc.ps.length; ia++){
+						vdiv=document.createElement('DIV');	
+						vdiv.className='chosenprbs';
+						va0=document.createElement('A');
+						va0.onclick=function(i,j){return function(){editFunc(i,50,20,20)}}(rc.ps[ia]);
+						va1=document.createElement('A');
+						va0.innerHTML=rc.ps[ia][0];
+						va1.innerHTML=rc.ps[ia][1];
+						vdiv.appendChild(va0);
+						vdiv.appendChild(va1);
+
+
+						//choice
+						var choicediv= document.createElement('div');
+
+						var cho0div=document.createElement('div');
+						var cho0diva=document.createElement('a');
+						cho0diva.innerHTML=rc.ps[ia][4];
+						cho0div.appendChild(cho0diva);
+						choicediv.appendChild(cho0div);
+
+						var cho1div=document.createElement('div');
+						var cho1diva=document.createElement('a');
+						cho1diva.innerHTML=rc.ps[ia][5];
+						cho1div.appendChild(cho1diva);
+						choicediv.appendChild(cho1div);
+
+						var cho2div=document.createElement('div');
+						var cho2diva=document.createElement('a');
+						cho2diva.innerHTML=rc.ps[ia][6];
+						cho2div.appendChild(cho2diva);
+						choicediv.appendChild(cho2div);
+
+						var ansdiv=document.createElement('div');
+						var ansdiva=document.createElement('a');
+						ansdiva.innerHTML=rc.ps[ia][2];
+						ansdiv.appendChild(ansdiva);
+						choicediv.appendChild(ansdiv);
+
+
+
+
+						vdiv.appendChild(choicediv);
+
+
+
+						vdiv.setAttribute('class','prbbox')
+						vdiv.setAttribute('id','fc'+rc.ps[ia][0])
+						vdiv.onclick=function(j){return function() {putprbid(j);};}(rc.ps[ia][0]);
+
+						if(rc.ps[ia][8]!=null){
+							var imgdiv=document.createElement('div');
+							var imgsrc=document.createElement('img');
+							imgdiv.className='imgdiv';
+							imgsrc.src=rc.ps[ia][8];
+							imgdiv.appendChild(imgsrc);
+							vdiv.appendChild(imgdiv);
+						}
+
+						fdiv.appendChild(vdiv);
+					
+						
+					}
+					addtoiptext(prblist);
+					MathJax.Hub.Queue(["Typeset",MathJax.Hub,fdiv])	
+				});
+				document.getElementById('listinfo').value=listinfo;
+				document.getElementById('cptid').value=cptid;
+				
+
+				
+			}
+			function removefocusdisplay(){
+				var fdiv=document.getElementById('fcdisplay');
+				while(fdiv.firstChild){
+					fdiv.removeChild(fdiv.firstChild);
+				}
+			}
+			function addtoiptext(prblist){
+				/*
+				if(asprbidlist==''){
+					asprbidlist=prblist;
+				}else{
+					var o1asprbidlist=asprbidlist.split(',');
+					var o1prblist=prblist.split(',');
+					var achk;
+					for(var ib=0; ib<o1prblist.length; ib++){
+						achk=0;
+						for(var ia=0; ia<o1asprbidlist.length; ia++){
+							if(o1asprbidlist[ia]==o1prblist[ib]){
+								achk=1;
+							}	
+						}
+						if(achk==0){
+							o1asprbidlist.push(o1prblist[ib]);
+						}
+					}
+					asprbidlist='';
+					for(var ic=0; ic<o1asprbidlist.length; ic++){
+						if(ic==o1asprbidlist-1){
+							asprbidlist=asprbidlist+o1asprbidlist[ic];
+						}else{
+							asprbidlist=asprbidlist+o1asprbidlist[ic]+',';
+						}
+					}
+	
+				}*/
+				document.getElementById('prbidls').value=asprbidlist;
+
+				var asprb;
+				var fcprb;
+				if(asprbidlist==''){
+					removeallcolor('prbbox')
+				
+				}else{
+					removeallcolor('prbbox')
+					var o1asprbidlist=asprbidlist.split(',');
+					for(var ia=0; ia<o1asprbidlist.length; ia++){
+						asprb=document.getElementById(o1asprbidlist[ia])
+						fcprb=document.getElementById('fc'+o1asprbidlist[ia])
+						if(asprb){
+							asprb.style.backgroundColor='green';
+						}
+						if(fcprb){
+							fcprb.style.backgroundColor='green';
+						}
+					}
+						//document.getElementById(prbase[ia][0]).style.backgroundColor='black';
+				}
+			}
+		
+	
+	body
+		div(id='formtext')
+
+			//div
+				//div
+					//button(onclick='cptprbdisplay("",80,10,10)') Cpt Prbdisplay
+			div
+				div(id='createprbdiv')
+					button(onclick='iniFunc(80,10,10)') CreatePrb
+
+				form(action='./cpt/form' method='get' target='dummyframe' id='formtag')
+					input(type='hidden' name='prblist' id='prbidls')
+					input(type='hidden' name='cptid' id='cptid')
+					input(type='text' name='listinfo' id='listinfo')
+					| prbinfo
+					input(type='radio' name='rd' value=0 checked id='rcreate')
+					a(onclick='changeOption(1)') create
+					input(type='radio' name='rd' value=1 id='rupdate')
+					|update
+					input(type='radio' name='rd' value=2)
+					|remove
+					input(type='submit' value='click')
+				iframe(name='dummyframe', id='dummyframe', style='display:none;')
+				div(id='otherbutton')
+					a(href='/admin/cpt?stchk=4') R2Create
+					a(href='/admin/cpt?stchk=6') R1Order
+					a(href='/admin/createcontents') Create Contents option
+		div(id='middlewrapdiv')
+			div(id='prbproduct')
+				div(id='chosenprb')
+					div(class='chosenprbs')
+						a(onclick='callUnassprb()', id='clunass') UnassignedProblem
+					div
+						input(type='text', id='schtext')
+						button(onclick="searchByWord()") Search
+					div(id='r3set' class='setlist')
+					div(id='r2set' class='setlist')
+					div(id='r1set' class='setlist')
+
+				div(id='fcdisplay')
+			div(id='fixeddisplay')
+				div(id='prbdisplay')
+				div(id='exadddisplay')
+
+		script(src='/socket.io/socket.io.js')
+		script(src='/qprb/qprb.js')
+		script.
+
+			var socket=io('/cpt');
+
+
+			function initializeVar(){
+
+				asprbidlist='';
+				document.getElementById('prbidls').value='';
+				//document.getElementById('cptid').value='';
+			}
+
+
+			function searchByWord(){
+				var wd=document.getElementById('schtext');
+				socket.emit('cpt',{opt:3,sch:wd.value});
+			}
+			document.getElementById('dummyframe').onload=function(){
+				initializeVar();
+				putcolorondiv();
+				alert('updated, it will be fully displayed after reload page');
+			}
+			socket.on('callunassprbafter',function(a){
+				socket.emit('cpt',{pcsid:a.fl,opt:1});
+			});
+			function callUnassprb(){
+				socket.emit('callunassprb');
+			}
+			function putColoron(classN, idN,colorN){
+				var cn=document.getElementsByClassName(classN);
+				for(var ia=0; ia<cn.length; ia++){	
+					cn[ia].style.color='';
+					cn[ia].style.backgroundColor='';
+				}
+				document.getElementById(idN).style.backgroundColor=colorN[0];
+				document.getElementById(idN).style.color=colorN[1];
+			}
+
+
+
+			socket.on('cptcallr1after',function(a){
+				removeallele('r1set');
+				var tempbox=document.getElementById('tempr1box');
+				if(tempbox){
+					tempbox.remove();
+				}
+				//var r1setdiv=document.getElementById('r1set');
+				var r1setdiv=document.createElement('div');
+				r1setdiv.id='tempr1box';
+				for(var ia=0; ia<a.b.length; ia++){
+					var r1div=document.createElement('div');
+					r1div.onclick=function(i,j,k,l){
+						return function(){
+							focusdisplay(i,j,k);
+							putcoloronme(k);
+							changeOption(0);
+						}
+					}(a.b[ia].prblist,a.b[ia].listinfo,a.b[ia].cptid,ia);
+					r1div.id=a.b[ia].cptid;
+					r1div.className='r1div';
+					var r1diva=document.createElement('a');
+					r1diva.innerHTML=ia+1+'] '+a.b[ia].listinfo;
+					r1div.appendChild(r1diva);
+
+					var r1callr0=document.createElement('div');
+					r1callr0.className='choiceplist';
+					r1callr0.innerHTML='Choice plist';
+					r1callr0.onclick=function(i){
+						return function(){
+							socket.emit('cpdcallr0',{plist:i});
+						}
+					}(a.b[ia].prblist);
+
+
+					var callprborder=document.createElement('a');
+					callprborder.innerHTML='prborder';
+					callprborder.className='prborder';
+					callprborder.target='_black';
+					callprborder.href="/admin/cpt?stchk=5&plist="+a.b[ia].prblist+"&cptid="+a.b[ia].cptid;
+					
+
+					r1setdiv.appendChild(r1div);
+					r1setdiv.appendChild(r1callr0);
+					r1setdiv.appendChild(callprborder);
+				}
+				if(a.b[0]!==undefined){
+					var refnode=document.getElementById(a.b[0].parentcol);
+					refnode.parentNode.insertBefore(r1setdiv,refnode.nextSibling);
+				}
+				MathJax.Hub.Queue(["Typeset",MathJax.Hub,r1setdiv])	
+			});
+
+
+
+			function callR1(r2id){
+				socket.emit('cptcallr1',{r2id:r2id});
+			}
+
+
+
+			socket.on('cptcallr2after',function(a){
+				removeallele('r2set');
+				var r2setdiv=document.getElementById('r2set');
+				for(var ia=0; ia<a.b.length; ia++){
+					var r2div=document.createElement('div');
+					r2div.onclick=function(i){
+						return function(){
+							callR1(i);
+							putColoron('r2div',i,['blue','white']);
+
+						}
+					}(a.b[ia].r2id);
+					r2div.id=a.b[ia].r2id;
+					r2div.className='r2div';
+					var r2diva=document.createElement('a');
+					r2diva.innerHTML=ia+1+') '+a.b[ia].r2listinfo;
+					r2div.appendChild(r2diva);
+					r2setdiv.appendChild(r2div);
+				}
+			});
+
+
+
+
+			function callR2(r3id){
+				socket.emit('cptcallr2',{r3id:r3id});
+			}
+
+
+			socket.on('cptcallr3setafter',function(a){
+				var r3set=document.getElementById('r3set');
+				/*
+				for(var ia=0; ia<a.a.length; ia++){
+					var r3setdiv=document.createElement('div');
+					var r3setdiva=document.createElement('A');
+					r3setdiv.onclick=function(i){
+						return function(){
+							callR2(i);
+						}
+					}(a.a[ia].r3id)
+
+					r3setdiva.innerHTML=a.a[ia].listinfo;
+					r3setdiv.appendChild(r3setdiva);
+					r3set.appendChild(r3setdiv);
+				}*/
+				callR2(a.a[0].r3id);
+			});
+
+			function removeallele(parentid){
+				var parent=document.getElementById(parentid);
+				while(parent.firstChild){
+					parent.firstChild.remove();
+				}
+			}
+
+
+			callR3set();
+			function callR3set(){
+				socket.emit('cptcallr3set');
+			}
+			function tempAlert(msg,duration,color){
+				var el = document.createElement("div");
+				el.setAttribute("style","position:absolute;z-index:20;top:10%;left:35%;background-color:"+color[0]+";padding:5% 10%;color:"+color[1]+";");
+				el.innerHTML = msg;
+				setTimeout(function(){
+					el.parentNode.removeChild(el);
+				},duration);
+				document.body.appendChild(el);
+			}
+
+
+			function checkR1IncludeList(prbid,cptset){
+				var includeList=[];
+				for(var ia=0; ia<cptset.length; ia++){
+					var plist=cptset[ia].prblist.split(',');
+					var chk=0; 
+					for(var ib=0; ib<plist.length; ib++){
+						if(plist[ib]==prbid){
+							chk=1;
+							break;
+						}
+					}
+					if(chk==1){
+						includeList.push((cptset[ia].r2order+1)+'# '+cptset[ia].r2listinfo+' #'+(cptset[ia].r1order+1)+'# '+cptset[ia].listinfo)
+					}
+				}
+
+				var msg=''
+				for(var ic=0; ic<includeList.length; ic++){
+					msg=msg+includeList[ic]+'<br>';
+				}
+				tempAlert(msg,3000,['purple','white']);				
+				
+			}
+			socket.on('cptprbcon',function(rc){
+				RemovePrbDisplay();
+				var prbdisplay=document.getElementById('prbdisplay');
+				var vdiv;
+				var va0;
+				var va1;
+
+				for(var ia=0; ia<rc.crprbcon.length; ia++){
+					vdiv=document.createElement('DIV');
+					vdiv.className='chosenprbs';
+					va0=document.createElement('A');
+					va1=document.createElement('A');
+				
+					va0.innerHTML=rc.crprbcon[ia][0];
+					va0.onclick=function(i){return function(){
+						editFunc(i,50,20,20)}}(rc.crprbcon[ia]);
+					va1.innerHTML=rc.crprbcon[ia][1];
+
+					
+					
+					vdiv.appendChild(va0);	
+					vdiv.appendChild(va1);
+
+
+
+					//choice
+					var choicediv= document.createElement('div');
+
+					var cho0div=document.createElement('div');
+					var cho0diva=document.createElement('a');
+					cho0diva.innerHTML=rc.crprbcon[ia][4];
+					cho0div.appendChild(cho0diva);
+					choicediv.appendChild(cho0div);
+
+					var cho1div=document.createElement('div');
+					var cho1diva=document.createElement('a');
+					cho1diva.innerHTML=rc.crprbcon[ia][5];
+					cho1div.appendChild(cho1diva);
+					choicediv.appendChild(cho1div);
+
+					var cho2div=document.createElement('div');
+					var cho2diva=document.createElement('a');
+					cho2diva.innerHTML=rc.crprbcon[ia][6];
+					cho2div.appendChild(cho2diva);
+					choicediv.appendChild(cho2div);
+
+					var ansdiv=document.createElement('div');
+					var ansdiva=document.createElement('a');
+					ansdiva.innerHTML=rc.crprbcon[ia][2];
+					ansdiv.appendChild(ansdiva);
+					choicediv.appendChild(ansdiv);
+
+					vdiv.appendChild(choicediv);
+					choicediv.onclick=function(i,j){	
+						return function(){
+							checkR1IncludeList(i,j);
+						}
+					}(rc.crprbcon[ia][0],rc.cps);
+
+
+
+
+					vdiv.setAttribute('class','prbbox');	
+					vdiv.setAttribute('id',rc.crprbcon[ia][0]);	
+					va1.onclick=function(j){return function() {putprbid(j);};}(rc.crprbcon[ia][0]);
+					//vdiv.onclick=function(j){return function() {putprbid(j);};}(rc.crprbcon[ia][0]);
+
+					if(rc.crprbcon[ia][8]!=null){
+						var imgdiv=document.createElement('div');
+						var imgsrc=document.createElement('img');
+						imgdiv.className='imgdiv';
+						imgsrc.src=rc.crprbcon[ia][8];
+						imgdiv.appendChild(imgsrc);
+						vdiv.appendChild(imgdiv);
+					}
+
+
+
+					prbdisplay.appendChild(vdiv);
+					putcolorondiv();
+				
+				}	
+				MathJax.Hub.Queue(["Typeset",MathJax.Hub,prbdisplay])	
+				
+			});
+
+			function changeOption(op){
+				if(op==0){
+					document.getElementById('rupdate').checked='true';
+				}else if(op==1){
+					document.getElementById('rcreate').checked='true';
+					removefocusdisplay();
+					document.getElementById('listinfo').value='';
+					document.getElementById('cptid').value='';
+					
+				}
+			}
+			

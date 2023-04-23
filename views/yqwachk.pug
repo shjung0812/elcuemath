@@ -1,0 +1,20 @@
+html
+	head
+		style.
+			a {
+				display:inline-block;
+				text-decoration:none;
+				width:20%;
+				color:black;
+			}
+	body
+		div
+			a(href='./page') Back
+		div
+			-for(var ia=0; ia<rs.length; ia++){
+				div
+					a=rs[ia].username
+					a=rs[ia].contact
+					a=rs[ia].explanation
+					a=rs[ia].createtime
+			-}

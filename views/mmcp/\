@@ -1,0 +1,458 @@
+html
+	head
+		script(type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML")
+		title SOlve Space
+		script(src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.5.0-beta4/html2canvas.js" type="text/javascript" xml="space")
+		script(src='/socket.io/socket.io.js')
+		style.
+			canvas {
+			}
+
+			body {
+				padding:0;
+				margin:0;
+			}
+			#waitingbody{
+				position:absolute;
+				z-index:10;
+				width:100%;
+				height:100%;
+				background-color:yellow;
+			}
+			#solvebody {
+				width:100%;
+				height:100%;
+			}
+
+			#solvecanvas {
+				width:80%;
+				height:100%;
+				float:left;
+				background-color:black;
+			}
+			#optionbody {
+				width:20%;
+				height:100%;
+				float:left;
+			}
+
+			#myPics {
+				position:absolute;
+				z-index:3;
+			}
+	
+			#layerpic {
+				z-index:1;
+			}
+			#shareinputdiv {
+				position:absolute;
+				z-index:2;
+			}
+			#shareinputdiv div {
+				position:relative;
+				width:80%;
+				word-break:break-all;
+				top:10%;
+				left:10%;
+			}
+
+
+	body
+		div(id='waitingbody')
+			div 
+				h1(id='waitingmsg') Hello To the World
+			
+		div(id='solvebody')
+			div(id='solvecanvas')
+				div(id='canvascontainer')
+					canvas(id='myPics')
+					div(id='shareinputdiv')
+					canvas(id='layerpic')
+			div(id='optionbody')
+				div(id='timezone')
+					p(id='timep')
+			
+				div(id='complteteself')
+					button(onclick='completeSolve();') Complete
+		script.
+			var socket = io('/mmcp');
+			socket.on('connect',()=>{
+				console.log('mmcp connection ready');
+			});
+
+
+
+
+			//commander center
+			var mmcp=!{JSON.stringify(mmcp)};
+			console.log(mmcp);
+
+			function waitingScreenoff(){
+				var waitingbody=document.getElementById('waitingbody');
+				waitingbody.style.display='none';
+				callSolvespace();
+			}
+
+
+			function waitingScreenon(){
+				var waitingbody=document.getElementById('waitingbody');
+				waitingbody.style.display='block';
+
+				
+				askTocommander();
+
+			}
+
+
+
+			var myint;
+			function callSolvespace(){
+				var timeal=mmcp[roundnum].solutiontime;
+				var timp=document.getElementById('timep');
+				
+				function solveTimer(){
+					if(timeal==0){
+						socket.emit('callcompletesingleprb')
+						timep.innerHTML='';
+						clearInterval(myint);
+					}else{
+						timep.innerHTML=timeal;
+						timeal-=1;
+					}
+
+				}
+				myint=setInterval(solveTimer,1000);
+			}
+
+			function completeSolve(){
+				timep.innerHTML='';
+				var fsobj=JSON.stringify({babo:'my god!!!'});
+				socket.emit('callcompletesingleprb')
+				//screenSaveToServer(fsobj,function(a,b){
+					//socket.emit('callcompletesingleprb')
+				//});
+				clearInterval(myint);
+			}
+
+			socket.on('callcompletesingleprbafter',function(){
+				roundnum++;
+				waitingScreenon();
+					
+			});
+			
+			var roundnum=0;
+
+			var resultrecord=[];
+
+
+			//Self Drawing 
+			let isDrawing = false;
+			let x = 0;
+			let y = 0;
+		
+
+			var environdefine={background:['#11a527',32,'background'],firstpen:['white',2,'firstpen'],secondpen:['red',2,'secondpen'],eraser:['',32,'eraser'],layer:{color:'blue',size:1.5,code:'layer'} };
+			var stat={color:environdefine.firstpen[0], size:environdefine.firstpen[1],code:environdefine.firstpen[2]};
+		
+
+
+			var canvaswidth=window.innerWidth*.8;
+			var canvasheight=window.innerHeight;
+
+
+			//shareinputdiv
+			var shareinputdiv = document.getElementById('shareinputdiv');
+			shareinputdiv.style.width=canvaswidth + 'px';
+			shareinputdiv.style.height=canvasheight+'px';
+
+
+	
+
+
+			const myPics = document.getElementById('myPics');
+
+
+
+			// Not style, Canvas should be changed. 	
+			myPics.width=canvaswidth
+			myPics.height=canvasheight;
+			myPics.style.width=canvaswidth+'px';
+			myPics.style.height=canvasheight+'px';
+
+
+			const context = myPics.getContext('2d');
+
+			//The x and y offset of the canvas from the edge of the page
+			const rect = myPics.getBoundingClientRect();
+
+
+			//layerpic
+			const layerpic=document.getElementById('layerpic');
+
+			layerpic.width=canvaswidth;
+			layerpic.height=canvasheight;
+			layerpic.style.width=canvaswidth+'px';
+			layerpic.style.height=canvasheight+'px';
+
+			const lcon=layerpic.getContext('2d')
+
+			lcon.fillStyle=environdefine.background[0];
+			lcon.fillRect(0,0,myPics.width, myPics.height);
+
+
+
+
+
+
+
+
+			//Add the event listeners for mousedown, mousemove, and mouseup
+			myPics.addEventListener('mousedown',e=>{
+				x = e.clientX-rect.left;
+				y = e.clientY-rect.top;
+				isDrawing = true;
+			});
+
+			myPics.addEventListener('mousemove',e=>{
+				if(isDrawing===true){
+					drawLine(context,x,y,e.clientX-rect.left, e.clientY-rect.top,stat,0);
+					x = e.clientX - rect.left;
+					y = e.clientY - rect.top;
+				}
+			});
+
+			window.addEventListener('mouseup',e => {
+				if(isDrawing === true){
+					drawLine(context, x, y, e.clientX - rect.left, e.clientY - rect.top,stat,0);
+					x = 0;
+					y = 0;
+					isDrawing = false;
+				}
+			});
+
+
+			function drawLine(context,x1, y1, x2, y2,vstat,mode){
+				if(mode==0){//user
+					if(stat.code=='layer'){
+						lcon.beginPath();
+						lcon.strokeStyle = stat.color;
+						lcon.lineWidth = stat.size;
+						lcon.lineCap = 'round';
+						lcon.lineJoin='round';
+						lcon.moveTo(x1, y1);
+						lcon.lineTo(x2, y2);
+						lcon.stroke();
+						lcon.closePath();
+					}else if(stat.code=='eraser'){ 
+						context.beginPath();
+						context.globalCompositeOperation='destination-out';
+						context.lineWidth=stat.size;
+						context.moveTo(x1, y1);
+						context.lineTo(x2, y2);
+						context.lineJoin='round';
+						context.lineCap='round';
+						context.stroke();
+						context.closePath();
+
+
+					}else{ 
+						context.beginPath();
+						context.globalCompositeOperation='source-over';
+						context.strokeStyle = stat.color;
+						context.lineWidth = stat.size;
+						context.lineCap = 'round';
+						context.lineJoin='round';
+						context.moveTo(x1, y1);
+						context.lineTo(x2, y2);
+						context.stroke();
+						context.closePath();
+					}
+				}else if(mode==1){//tuser
+					if(vstat.code=='eraser'){
+						context.beginPath();
+						context.globalCompositeOperation='destination-out';	
+						context.lineWidth=vstat.size;
+						context.lineCap='round';
+						context.moveTo(x1,y1);
+						context.lineTo(x2,y2);
+						context.stroke();
+						context.closePath();
+					}else{
+						context.beginPath();
+						context.globalCompositeOperation='source-over';
+						context.strokeStyle = environdefine[vstat.code][0];
+						context.lineWidth = vstat.size;
+						context.lineCap = 'round';
+						context.lineJoin='round';
+						context.moveTo(x1, y1);
+						context.lineTo(x2, y2);
+						context.stroke();
+						context.closePath();
+					}
+				}
+				
+			}
+
+			var touchX, touchY;
+			function getTouchPos(e) {
+				if (!e)var e = event;
+				if(e.touches) {
+					if (e.touches.length == 1) { // Only deal with one finger
+						var touch = e.touches[0]; // Get the information for finger #1
+						touchX=touch.pageX-touch.target.offsetLeft;
+						touchY=touch.pageY-touch.target.offsetTop;
+					}
+				}
+			}
+
+			function sketchpad_touchStart(){
+				getTouchPos();
+				x=touchX;
+				y=touchY;
+				drawLine(context, x, y, touchX, touchY,stat,0);
+				event.preventDefault();	
+			}
+
+			function sketchpad_touchMove(e){
+				getTouchPos(e);
+				
+				drawLine(context, x, y, touchX, touchY,stat,0);
+
+				x=touchX;
+				y=touchY;
+				event.preventDefault();	
+			}
+
+			
+			myPics.addEventListener('touchstart',sketchpad_touchStart, false);
+			myPics.addEventListener('touchmove',sketchpad_touchMove,false);
+
+			function currentRoundready(){
+				removeallele('shareinputdiv');
+				var shareinputdiv=document.getElementById('shareinputdiv');
+				var msgdiv=document.createElement('div');	
+				var msga=document.createElement('A');
+				msga.innerHTML=mmcp[roundnum].prb[1];
+				msga.style.color='white';
+				msga.style.fontSize='1.5vw';
+				msgdiv.appendChild(msga);
+				shareinputdiv.appendChild(msgdiv);
+
+
+				
+				if(MathJax){
+					//MathJax.Hub.Queue(["Typeset",MathJax.Hub,shareinputdiv]);
+					alert('yes');
+				}else{
+					console.log(MathJax);
+					alert('NO!!!!');
+				}
+
+				clearLcon();
+				clearCanvas();
+
+		
+			}
+			function clearLcon(){
+				lcon.clearRect(0,0,layerpic.width, layerpic.height)
+				lcon.fillStyle=environdefine.background[0];
+				lcon.fillRect(0,0,layerpic.width, layerpic.height);
+			}
+
+			function clearCanvas(){
+				//screenSaveToServer(function(){
+				context.clearRect(0,0,myPics.width, myPics.height)
+				//});
+			}
+
+			
+			function removeallele(parentid){
+				var parent=document.getElementById(parentid);
+				while(parent.firstChild){
+					parent.firstChild.remove();
+				}
+			}
+
+
+			function screenSaveToServer(fsobj,callback){
+
+
+				var sharediv=document.getElementById('shareinputdiv');
+				var can3=document.createElement('canvas');
+				var ctx3=can3.getContext('2d');
+				can3.width=canvaswidth
+				can3.height=canvasheight
+				can3.style.width=canvaswidth+'px';
+				can3.style.height=canvasheight+'px';
+
+				html2canvas(sharediv).then(function(sharei){
+					
+					ctx3.drawImage(layerpic,0,0);
+					ctx3.drawImage(sharei,0,0);
+					ctx3.drawImage(myPics,0,0);
+
+					var b64Image=can3.toDataURL('image/png');
+					var blob = dataURItoBlob(b64Image);
+					//callback(blob, b64Image);	
+	
+					var formData = new FormData();
+					
+					formData.append('file',blob,'screen_'+'bob'+'_'+Date.now()+'.png');
+					formData.append('fsob',fsobj);
+
+					
+					function sendFinish(){
+						//socket.emit('reloadusernote',{username:'bob'});
+
+						roundnum++;
+						waitingScreenon();	
+					}
+				
+					var xhr = new XMLHttpRequest();
+					xhr.addEventListener('load',sendFinish);
+					//callback();	
+
+					xhr.open('post','/mmcp',true);
+					xhr.send(formData);
+
+				});
+				function dataURItoBlob(dataURI){
+					var byteString = atob(dataURI.split(',')[1]);
+					var mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0]
+
+					var ab = new ArrayBuffer(byteString.length);
+					var ia = new Uint8Array(ab);
+					for(var i=0; i<byteString.length; i++){
+						ia[i] = byteString.charCodeAt(i);
+					}
+					var bb = new Blob([ab],{'type':mimeString});
+					return bb;
+				}	
+			}
+			function tempAlert(msg,duration){
+				var el = document.createElement("div");
+				el.setAttribute("style","position:absolute;top:10%;left:35%;background-color:white;padding:5% 10%;z-index:2;");
+				el.innerHTML = msg;
+				setTimeout(function(){
+					el.parentNode.removeChild(el);
+				},duration);
+				document.body.appendChild(el);
+			}
+
+			function askTocommander(){
+				if(roundnum<mmcp.length){
+					//resultrecord[roundnum]={};
+					currentRoundready();
+					setTimeout(waitingScreenoff,3000);
+				}else{
+					document.getElementById('waitingmsg').innerHTML='ENDED';
+					alert('ENDED');
+				}
+			}
+
+
+
+			askTocommander();
+			window.onload=function(){
+				//setTimeout(askTocommander,1000);
+			}

@@ -1,0 +1,361 @@
+html
+	head
+		title WRSS Mentor
+		script(src='/socket.io/socket.io.js')
+		script(type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML")
+		style.
+			#userscreens {
+				width:100%;
+				height:100%;
+			}	
+			#user1 {
+				margin:0 auto;
+				width:80%;
+				height:50%;
+			}
+			#wrssuser1mypics {
+				border: 1px solid black;
+				position:absolute;
+				z-index:10;
+			}
+			#wrssuser1backdiv {
+				position:absolute;
+				z-index:9;
+			}
+			#verticalbox {
+				width:40%;
+				float:left;
+			}
+			#userscreens {
+				width:60%;
+				float:left;
+			}
+			.selectuserbox {
+				background-color:black;
+				color:white;	
+				width:100%;
+				padding:10%;
+			}
+	body
+
+		div(id='userscreens')
+			div(id='user1')
+				canvas(id='wrssuser1mypics')
+				div(id='wrssuser1backdiv')
+			div(id='user2')
+				canvas(id='wrssuser2mypics')
+				div(id='wrssuser2backdiv')
+			div(id='user3')
+				canvas(id='wrssuser3mypics')
+				div(id='wrssuser3backdiv')
+		div(id='verticalbox')
+			div
+				div(id='userlistdiv')
+
+
+		script.
+			var socket = io('/vdrg');
+			socket.on('connect',()=>{
+				socket.emit('vdrgsocketidregister',{socketid:socket.id,username:'mentor(optional)',position:3});
+
+			});
+
+
+			var gratio=.61804;
+
+
+
+			var wrssuser1canvasbox = document.getElementById('user1');
+			var wrssuser1tmpwidth=wrssuser1canvasbox.clientWidth;
+			var wrssuser1tmpheight=wrssuser1tmpwidth*gratio;
+
+			if(wrssuser1tmpheight>wrssuser1canvasbox.clientHeight){
+				var wrssuser1canvaswidth=wrssuser1canvasbox.clientHeight/gratio;
+			}else{
+				var wrssuser1canvaswidth=wrssuser1canvasbox.clientWidth;
+			}
+
+			var wrssuser1mypics=document.getElementById('wrssuser1mypics');
+			wrssuser1mypics.width=wrssuser1canvaswidth;
+			wrssuser1mypics.height=gratio*wrssuser1canvaswidth;
+			wrssuser1mypics.style.width=wrssuser1canvaswidth+'px';
+			wrssuser1mypics.style.height=gratio*wrssuser1canvaswidth+'px';
+				
+			const wrssuser1context = wrssuser1mypics.getContext('2d');
+
+
+			var wrssuser1apppensize=3;
+			var wrssuser1environdefine={background:['#336633',wrssuser1apppensize*16,'background'],firstpen:['white',wrssuser1apppensize,'firstpen'],secondpen:['#B43104',wrssuser1apppensize,'secondpen'],eraser:{size:wrssuser1apppensize*16,code:'eraser'},layer:{color:'blue',size:wrssuser1apppensize,code:'layer'},layereraser:{size:wrssuser1apppensize*16,code:'layereraser'}, picbackcolor:'#bbbbbb' };
+			var wrssuser1stat={color:wrssuser1environdefine.firstpen[0], size:wrssuser1environdefine.firstpen[1],code:wrssuser1environdefine.firstpen[2]};
+
+
+			//The x and y offset of the canvas from the edge of the page
+			var wrssuser1rect = wrssuser1mypics.getBoundingClientRect();
+
+			//self
+			let wrssuser1isDrawing = false;
+			let wuser1x = 0;
+			let wuser1y = 0;
+
+			//Add the event listeners for mousedown, mousemove, and mouseup
+			wrssuser1mypics.addEventListener('mousedown',e=>{	
+				wuser1x = e.clientX-wrssuser1rect.left;
+				wuser1y = e.clientY-wrssuser1rect.top;
+				wrssuser1isDrawing = true;
+				//socket.emit('menteetomentordraw',{pos:convertToratio(x,y),mousestat:'down'})
+			});
+
+			wrssuser1mypics.addEventListener('mousemove',e=>{
+				if(wrssuser1isDrawing===true){
+					WRSSuser1drawLine(wrssuser1context,wuser1x,wuser1y,e.clientX-wrssuser1rect.left, e.clientY-wrssuser1rect.top,wrssuser1stat,0);
+					wuser1x = e.clientX - wrssuser1rect.left;
+					wuser1y = e.clientY - wrssuser1rect.top;
+					//socket.emit('menteetomentordraw',{pos:convertToratio(x,y),mousestat:'move',statoption:stat})
+				}
+			});
+
+			window.addEventListener('mouseup',e => {
+				if(wrssuser1isDrawing === true){
+					WRSSuser1drawLine(wrssuser1context, wuser1x, wuser1y, e.clientX - wrssuser1rect.left, e.clientY - wrssuser1rect.top,wrssuser1stat,0);
+					wuser1x = 0;
+					wuser1y = 0;
+					wrssuser1isDrawing = false;
+				}
+			});
+
+
+
+
+			//shsaredinputdiv
+			var wrssuser1backdiv=document.getElementById('wrssuser1backdiv');
+			wrssuser1backdiv.style.width=wrssuser1canvaswidth+'px';
+			wrssuser1backdiv.style.height=gratio*wrssuser1canvaswidth+'px';
+			wrssuser1backdiv.style.backgroundColor=wrssuser1environdefine.background[0];
+
+
+			var puser1x=0, puser1y=0;
+			var puser2x=0, puser2y=0;
+			var puser3x=0, puser3y=0;
+
+
+			socket.on('wrsscopypicsofmentee',function(ma){
+
+				var chk=0;
+				for(var ia=0; ia<usermodereg.length; ia++){
+					if(usermodereg[ia].username==ma.username){
+						chk=1;
+						break;
+					}
+				}
+
+
+				if(chk==1){
+					if(usermodereg[ia].usermode=='user1'){
+						console.log(ma.pos);
+						var cuser1x=ma.pos[0]*(wrssuser1rect.right-wrssuser1rect.left);
+						var cuser1y=ma.pos[1]*(wrssuser1rect.bottom-wrssuser1rect.top);
+
+
+						if(ma.mousestat==='move'){
+							WRSSuser1drawLine(wrssuser1context,puser1x,puser1y, cuser1x, cuser1y,wrssuser1stat);
+							puser1x = cuser1x;
+							puser1y = cuser1y;
+						}else if(ma.mousestat==='up'){
+							WRSSuser1drawLine(wrssuser1context,puser1x,puser1y, cuser1x, cuser1y,wrssuser1stat);
+							puser1x = 0;
+							puser1y = 0;
+
+						}else if(ma.mousestat==='down'){
+							puser1x = cuser1x;
+							puser1y = cuser1y;
+						}
+
+
+
+
+					}
+				}
+
+			});
+
+
+			function displayElename(b,username){
+				//return function(){
+					var el = document.createElement('div');
+					var rect=b.getBoundingClientRect();
+			
+					el.setAttribute('style','position:fixed;z-index:20; top:'+rect.top+'px; left:'+rect.left+'px');
+					//el.setAttribute('style','position:fixed;z-index:20; top:'+rect.top+'px; left:'+rect.left+'px; background-color:black; padding:1% 2%;color:white;');
+					//var str='<span class="r2title">'+c.r2listinfo+':</span> <br>';
+					/*for(var ia=0; ia<c.r1list.length; ia++){
+						if(a==ia){
+							str=str+'<span class="r2info"><u>'+(ia+1)+'. '+c.r1list[ia][1]+'</u></span><br>';
+						}else{
+							str=str+'<span class="r2info">'+(ia+1)+'. '+c.r1list[ia][1]+'</span><br>';
+						}
+					}*/
+
+
+					var user1box=document.createElement('div');
+					user1box.innerHTML='USER1';
+					user1box.className='selectuserbox';
+					user1box.onclick=function(i){
+						return function(){
+							wrssuser1context.clearRect(0,0,wrssuser1canvaswidth, wrssuser1canvaswidth*gratio);
+							usermodereg[0].username=i;
+							usermodereg[0].ini=1;
+							socket.emit('wrssaskscreeninfo',{username:i});
+		
+							socket.emit('wrsstestsinglecpt',{username:i});
+						}
+					}(username);
+					el.appendChild(user1box);
+
+					var user2box=document.createElement('div');
+					user2box.innerHTML='USER2';
+					user2box.className='selectuserbox';
+					el.appendChild(user2box);
+
+					var user3box=document.createElement('div');
+					user3box.innerHTML='USER3';
+					user3box.className='selectuserbox';
+					el.appendChild(user3box);
+
+
+					
+
+					setTimeout(function(){
+						el.parentNode.removeChild(el);
+					},5000);
+					MathJax.Hub.Queue(["Typeset",MathJax.Hub,el])	
+					document.body.appendChild(el);
+
+				//}
+			}
+
+			function colorErase(cname){
+				var cdiv=document.getElementsByClassName(cname);
+				for(var ia=0; ia<cdiv.length; ia++){
+					cdiv[ia].style.backgroundColor='';
+				}
+			}
+
+
+			var usermodereg=[{usermode:'user1',ini:0}, {usermode:'user2',ini:0}, {usermode:'user3',ini:0}];
+			socket.on('vdrgsocketidregisterafter',function(a){
+				var userlist=a.userlist;
+				fillUsers(userlist);
+				
+			});
+
+			function popupUsermode(username){
+				var usermodebox= document.createElement('div');
+				
+			}
+
+			function removeallele(parentid){
+				var parent=document.getElementById(parentid);
+				while(parent.firstChild){
+					parent.firstChild.remove();
+				}
+			}
+
+
+			var chosenuser;
+			function fillUsers(userlist){
+				removeallele('userlistdiv')
+				var userlistdiv=document.getElementById('userlistdiv');
+				for(var ia=0; ia<userlist.length; ia++){
+					var udiv=document.createElement('div');
+					udiv.className='userlist'
+					var udiva=document.createElement('A');
+					udiv.onclick=function(i,j){ return function(){
+						chosenuser=i;
+						colorErase('userlist');
+						j.style.backgroundColor='red';
+						displayElename(j,i);
+						//function displayElename(b){
+						
+						
+					}}(userlist[ia].username,udiv);
+					udiva.innerHTML=userlist[ia].username;
+					udiv.appendChild(udiva);
+					userlistdiv.appendChild(udiv);
+				}
+			};
+
+			function WRSSuser1drawLine(ctext,x1, y1, x2, y2,vstat,mode){
+				if(wrssuser1stat.code=='eraser'){	
+					ctext.beginPath();
+					ctext.globalCompositeOperation='destination-out';
+					ctext.lineWidth = wrssuser1stat.size;
+					ctext.lineCap='round';
+					ctext.moveTo(x1, y1);
+					ctext.lineTo(x2, y2);
+					ctext.stroke();
+					ctext.closePath();
+
+				}else{
+					ctext.beginPath();
+					ctext.globalCompositeOperation='source-over';
+					ctext.strokeStyle = wrssuser1stat.color;	
+					ctext.lineWidth = wrssuser1stat.size;
+					ctext.lineCap='round';
+					ctext.moveTo(x1, y1);
+					ctext.lineTo(x2, y2);
+					ctext.stroke();
+					ctext.closePath();
+
+				}
+			}
+
+
+
+			socket.on('wrsssendscreeninfoafter',function(a){
+				var chk=0;
+				for(var ia=0; ia<usermodereg.length; ia++){
+					if(usermodereg[ia].username==a.username){
+						chk=1;
+						break;
+					}
+				}
+
+
+				if(chk==1){
+					if(usermodereg[ia].usermode=='user1'){		
+						/*
+						const canvas = document.getElementById('canvas');
+						const ctx = canvas.getContext('2d');
+
+						canvas.width=canvaswidth
+						canvas.height=gratio*canvaswidth
+						canvas.style.width=canvaswidth+'px';
+						canvas.style.height=gratio*canvaswidth+'px';*/
+
+						const r=wrssuser1canvaswidth/a.imgobj.width;
+						console.log(r, 'r');
+
+						var width=a.imgobj.width;
+						var height=a.imgobj.height;
+						var buffer = new Uint8ClampedArray(Math.floor(wrssuser1canvaswidth)*Math.floor(wrssuser1canvaswidth*gratio)*4);
+					
+						for(var ia=0; ia<a.imgobj.imgsupp.length; ia++){
+							var qpos=a.imgobj.imgsupp[ia][0]/4;
+							//extract x,y
+							var tx=qpos%a.imgobj.width;
+							var ty= (qpos-tx)/a.imgobj.width;
+							var nx=tx*r;
+							var ny=ty*r;
+							WRSSuser1drawLine(wrssuser1context,nx,ny,nx,ny,wrssuser1stat);
+						}
+					}
+				}
+
+
+
+			});
+
+
+
+
+

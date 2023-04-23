@@ -1,0 +1,587 @@
+html
+	head 
+		title processing list
+		script(src='/socket.io/socket.io.js')
+		link(rel="stylesheet",href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css")
+		script(src="https://code.jquery.com/jquery-1.12.4.js")
+		script(src="https://code.jquery.com/ui/1.12.1/jquery-ui.js")
+
+		style.
+			#uploadbackdiv {
+				width:100%;
+				height:100%;
+				z-index:2;
+				position:absolute;
+				top:0;
+				left:0;
+				background-color:rgba(100,100,100,.5);
+			}
+
+			#uploadpanel {
+				width:60%;
+				height:80%;
+				margin:5% 20%;
+				background-color:yellow;
+				
+				
+			}
+
+			#container1 {
+				width:50%;	
+				height:100%;
+				float:left;
+				background-color:#cccccc;
+			}
+			#container2 {
+				width:50%;
+				height:100%;
+				float:left;
+				background-color:#cccccc;
+			}
+			#drawer1 {
+				width:50%;
+				float:left;
+			}
+			#drawer2 {
+				width:50%;
+				float:left;
+			}
+
+			#parcelcontent {
+				width:100%;
+				overflow:auto;
+			}
+			.parcelset {
+				width:24%;
+				display:inline-block;
+				overflow:auto;
+				margin:1% 0;
+				border: 1px solid black;
+			}
+	body
+		div(id='invoicenumdiv')
+			div(id='filediv')
+				div
+					button(onclick='parclecodeUpload()') uploal_Parcel_code
+				//form(action='/whalse_uploadinvoice' enctype='multipart/form-data' method='post' target='hidden-iframe')
+					//input(type='file' name='whalse_data' id='invoicefile')
+
+				iframe(name='hidden-iframe' style='display:none')
+				//div(id='filecontent')
+			div(id='parcelcontent')
+		script.
+			var socket = io('/whalse',{
+				transports:['websocket'],
+				upgrade:false
+			});
+
+			function findCurrentScode(cname){
+				var fdiv=document.getElementsByClassName(cname);
+				var chk=0;
+				for(var ia=0; ia<fdiv.length; ia++){
+					if(fdiv[ia].firstChild.checked==true){
+						chk=1;
+						break;
+					}
+				}
+				if(chk==1){
+					return fdiv[ia].firstChild.value;
+				}else{
+					return -1;
+				}
+			}
+
+
+			function exitParcelcodeUpload(){
+				document.getElementById('uploadbackdiv').remove();				
+			}
+
+			function parclecodeUpload(){
+				var fdiv=document.createElement('div');
+				fdiv.id='uploadbackdiv';
+				fdiv.onclick=function(){
+					fdiv.remove();
+				}
+
+				document.getElementsByTagName('body')[0].appendChild(fdiv);
+
+				var sdiv=document.createElement('div');
+				sdiv.id='uploadpanel';
+				fdiv.appendChild(sdiv);
+
+				sdiv.addEventListener('click',(e)=>{
+					e.stopPropagation();
+				});
+
+
+				var container1=document.createElement('div');
+				container1.id='container1';
+				var container2=document.createElement('div');
+				container2.id='container2';
+
+
+				sdiv.appendChild(container1);
+				sdiv.appendChild(container2);
+			
+
+				var formdiv=document.createElement('form');
+				formdiv.setAttribute('action','/whalse_uploadinvoice');
+				formdiv.setAttribute('enctype','multipart/form-data');
+				formdiv.setAttribute('method','post');
+				formdiv.setAttribute('target','hidden-iframe');
+
+				var inputel=document.createElement('input');
+				inputel.setAttribute('type','file');
+				inputel.setAttribute('name','whalse_data');
+				inputel.id='invoicefile';
+				formdiv.appendChild(inputel);
+
+				container1.appendChild(formdiv);
+				
+
+				
+				var filecontent=document.createElement('div');
+				filecontent.id='filecontent';
+				container1.appendChild(filecontent);
+
+				var pc=document.getElementById('parcelcontent');
+				var stoday=pc.getAttribute('data-date');
+				var sroundnum=pc.getAttribute('data-roundnum');
+
+				var todaydiv=document.createElement('div');
+				todaydiv.innerHTML=stoday;
+	
+				var roundnumdiv=document.createElement('div');
+				roundnumdiv.innerHTML=sroundnum;
+
+				container2.appendChild(todaydiv);
+				container2.appendChild(roundnumdiv);
+
+				var branchdiv=document.createElement('div');
+				var officebranchlist=['seoul','tokyo','london','newyork']
+				for(var ik=0; ik < officebranchlist.length; ik++){
+					var officestatusdiv=document.createElement('div');
+					officestatusdiv.className='officestatussubdiv';
+					var officestatusa=document.createElement('a');
+					officestatusa.innerHTML=officebranchlist[ik];
+					var officestatus=document.createElement('input');
+					officestatus.value=officebranchlist[ik];
+					officestatusdiv.appendChild(officestatus);
+					officestatusdiv.appendChild(officestatusa);
+
+
+					officestatus.className='officestatus'+'input';
+					officestatus.type='radio';
+					officestatus.name='officestatusc'
+
+					branchdiv.appendChild(officestatusdiv);
+				}
+
+				container2.appendChild(branchdiv);
+
+
+				var madediv=document.createElement('div');
+				var maxmadenum=5;
+				for(var id=1; id <= maxmadenum; id++){
+					var madestatusdiv=document.createElement('div');
+					madestatusdiv.className='madestatussubdiv';
+					var madestatusa=document.createElement('a');
+					madestatusa.innerHTML=id;
+					var madestatus=document.createElement('input');
+					madestatus.value=id;
+					madestatusdiv.appendChild(madestatus);
+					madestatusdiv.appendChild(madestatusa);
+
+
+					madestatus.className='madestatus'+'input';
+					madestatus.type='radio';
+					madestatus.name='madestatusc'
+
+					madediv.appendChild(madestatusdiv);
+				}
+				container2.appendChild(madediv);
+
+
+
+				inputel.addEventListener('input',(e)=>{
+				//invoicefile.addEventListener('input',(e)=>{  why it works?
+				var f=e.target.files[0];
+				console.log(e.target.files[0]);
+				var reader = new FileReader();
+				reader.onload=function(k){
+					removeallele('filecontent')
+
+					var idatael=document.getElementById('parcelcontent').getAttribute('data-idata');
+					var idata = JSON.parse(idatael);
+
+					
+					var fdata={pcdata:k.target.result, officebranch:findCurrentScode('officestatussubdiv'), madenum:findCurrentScode('madestatussubdiv'),arrivaldate:stoday, roundnum:sroundnum};
+
+
+					var vdata=k.target.result.split(',');
+					var contentdiv=document.getElementById('filecontent');
+					for(var ia=0; ia<vdata.length; ia++){
+						var fdiv=document.createElement('div');
+						fdiv.innerHTML=vdata[ia];
+
+						var chk=0;
+						for(var ib=0; ib<idata.length; ib++){
+							if(idata[ib].parcel_code==vdata[ia]){
+								chk=1;
+								break;
+							}
+						}
+						if(chk==0){
+							fdiv.style.color='red';
+						}else{
+							fdiv.style.color='green';
+						}
+
+						contentdiv.appendChild(fdiv);
+					}
+					var sendbutton=document.createElement('button');
+					sendbutton.innerHTML='send';
+					sendbutton.onclick=function(i){		
+						return function(){
+							sendDatatoserver(i)
+						}
+					}(fdata);
+					contentdiv.appendChild(sendbutton);
+					invoicefile.value='';
+				};
+				reader.readAsText(f,'euc-kr');
+				});
+
+
+
+
+			}
+
+
+
+			//var invoicefile=document.getElementById('invoicefile');
+			/*
+			invoicefile.addEventListener('input',(e)=>{
+				var f=e.target.files[0];
+				console.log(e.target.files[0]);
+				var reader = new FileReader();
+				reader.onload=function(k){
+					fdata=k.target.result;
+					vdata=fdata.split(',');
+					var contentdiv=document.getElementById('filecontent');
+					for(var ia=0; ia<vdata.length; ia++){
+						var fdiv=document.createElement('div');
+						fdiv.innerHTML=vdata[ia];
+						contentdiv.appendChild(fdiv);
+					}
+					var sendbutton=document.createElement('button');
+					sendbutton.innerHTML='send';
+					sendbutton.onclick=function(i){		
+						return function(){
+							sendDatatoserver(i)
+						}
+					}(fdata);
+					contentdiv.appendChild(sendbutton);
+					invoicefile.value='';
+				};
+				reader.readAsText(f,'euc-kr');
+			});*/
+
+
+			function sendDatatoserver(data){
+				console.log(data);
+
+				//check process
+				var fdiv=document.getElementsByClassName('officestatussubdiv');
+				var chk=0;
+				for(var ia=0; ia<fdiv.length; ia++){
+					if(fdiv[ia].firstChild.checked==true){
+						chk=1;
+						break;
+					}
+				}
+				if(chk==1){
+					var officebranchnum=fdiv[ia].firstChild.value;
+				}else{
+					var officebranchnum=-1
+				}
+
+
+
+				var fdiv=document.getElementsByClassName('madestatussubdiv');
+				var chk=0;
+				for(var ia=0; ia<fdiv.length; ia++){
+					if(fdiv[ia].firstChild.checked==true){
+						chk=1;
+						break;
+					}
+				}
+				if(chk==1){
+					var madenum=fdiv[ia].firstChild.value;
+				}else{
+					var madenum=-1
+				}
+
+
+
+
+				if(madenum==-1 || officebranchnum == -1){
+					alert('check officebranch or madenum');
+				}else{
+					socket.emit('outgoingdata',{pcdata:data.pcdata,officebranch:officebranchnum,madenum:madenum,roundnum:data.roundnum,arrivaldate:data.arrivaldate,option:'insert'});
+					exitParcelcodeUpload()
+				}
+				
+			}
+
+			socket.on('outgoingdataafter',function(a){
+
+				var parcelcontent=document.getElementById('parcelcontent');
+
+				console.log(a);
+				if(a.option=='call'){
+					removeallele('parcelcontent')
+					for(var ia=0; ia<a.a.length; ia++){
+
+
+						
+						
+						
+						var fdiv=document.createElement('div');
+						fdiv.className='parcelset';
+
+
+
+
+						var fdivadiv=document.createElement('div');
+						fdivadiv.id='drawer1'
+						var pclist=a.a[ia].parcelcodelist.split(',');
+
+						var unifitest=[];
+						for(var ic=0; ic<pclist.length; ic++){
+							var cdiv=document.createElement('div');
+							cdiv.className='pclistdiv';
+							var fdiva=document.createElement('a');
+							fdiva.innerHTML='('+(ic+1)+') '+pclist[ic];
+
+
+
+							//parcel_code exist check
+							for(var id=0; id<a.e.length; id++){
+								var chk=0;
+								if(a.e[id].parcel_code==pclist[ic]){
+									chk=1;
+									break;
+								}
+							}
+							if(chk==1){
+								fdiva.style.color='green';
+							}else{
+								fdiva.style.color='red';
+							}
+
+							cdiv.appendChild(fdiva);
+
+							//branch office unification test
+							var count=0;
+							for(var ie=0; ie<a.e.length; ie++){
+								if(a.e[ie].parcel_code==pclist[ic]){
+									var wo=a.e[ie].w_orderday.split('_')[0];
+									if(count==0){
+										var unichk=wo;
+									}
+									if(unichk!=wo){
+										unichk=0;
+										break;
+									}
+									count++;
+								}
+								
+							}
+							console.log(unichk);
+							var unifia=document.createElement('a');
+							cdiv.appendChild(unifia);
+
+							var bmatchinga=document.createElement('a');
+							if(unichk!=0 && chk==1){
+								unifia.innerHTML='u';
+								unifia.style.color='green';
+								
+								if(a.a[ia].branchoffice=='online'){
+									if(Number.isInteger(unichk)){
+										bmatchinga.innerHTML='oo';
+									}else{
+										bmatchinga.innerHTML='xx';
+									}
+
+								}else{
+									if(a.a[ia].branchoffice==unichk){
+									
+										bmatchinga.innerHTML='oo';
+										//bmatchinga.innerHTML=unichk[0]+unichk[1]
+									}else{
+										bmatchinga.innerHTML='xx';
+									}
+								}
+							
+							}else{
+								unifia.innerHTML='x';
+								unifia.style.color='red';
+								bmatchinga.innerHTML='xx';
+							}
+							
+							cdiv.appendChild(bmatchinga);
+		
+
+							fdivadiv.appendChild(cdiv);
+
+						}
+						fdiv.appendChild(fdivadiv);
+
+
+						var container2=document.createElement('div');
+						container2.id='drawer2';
+
+						var farrivaladiv=document.createElement('div');
+						var farrivala=document.createElement('a');
+						if(a.a[ia].arrivaldate==null){
+							farrivala.innerHTML='arrivaldate empty';
+						}else{
+							farrivala.innerHTML=a.a[ia].arrivaldate;
+						}
+						farrivaladiv.appendChild(farrivala);
+						container2.appendChild(farrivaladiv);
+
+
+						var froundnumdiv=document.createElement('div');
+						var froundnum=document.createElement('a');
+						if(a.a[ia].roundnum==null){
+							froundnum.innerHTML='roundnum empty';
+						}else{
+							froundnum.innerHTML=a.a[ia].roundnum;
+						}
+						froundnumdiv.appendChild(froundnum);
+						container2.appendChild(froundnumdiv);
+					
+
+						var fbranchofficediv=document.createElement('div');
+						var fbranchoffice=document.createElement('a');
+						if(a.a[ia].branchoffice==null){
+							fbranchoffice.innerHTML='branchoffice empty';
+						}else{
+							fbranchoffice.innerHTML=a.a[ia].branchoffice;
+						}
+						fbranchofficediv.appendChild(fbranchoffice);
+						container2.appendChild(fbranchofficediv);
+
+
+						var fmadenumdiv=document.createElement('div');
+						var fmadenum=document.createElement('a');
+						if(a.a[ia].madenum==null){
+							fmadenum.innerHTML='madenum empty';
+						}else{
+							fmadenum.innerHTML=a.a[ia].madenum;
+						}
+						fmadenumdiv.appendChild(fmadenum);
+						container2.appendChild(fmadenumdiv);
+
+						var outgoingdatediv=document.createElement('div');
+						var outgoingdate=document.createElement('input');
+						outgoingdate.id='datecon'+a.a[ia].numid;
+						outgoingdate.className='datecon';
+						//outgoingdate.className='datecon hasDatepicker';
+						outgoingdate.setAttribute('data-numid',a.a[ia].numid);
+
+						if(a.a[ia].outgoingdate==null){
+							outgoingdate.value='Insert Date';	
+						}else{
+							outgoingdate.value=a.a[ia].outgoingdate;	
+						}
+						outgoingdate.setAttribute('data-numid',a.a[ia].numid);
+
+						outgoingdatediv.appendChild(outgoingdate);
+						container2.appendChild(outgoingdatediv);
+			
+
+
+
+						var gobuttondiv=document.createElement('div');	
+						var gobutton=document.createElement('button');
+						gobuttondiv.appendChild(gobutton);
+						gobutton.innerHTML='Output';
+						gobutton.onclick=function(s){
+							return function(){
+								window.location='./selectoutput?selectpclist='+s+'&fieldstring='+a.orderlist[0].orderset;
+							}
+						}(a.a[ia].parcelcodelist);
+						container2.appendChild(gobuttondiv);
+			
+
+						fdiv.appendChild(container2);
+						parcelcontent.appendChild(fdiv);
+
+
+						$(function (){
+							$(".datecon").datepicker({
+								//format:"yymmdd",
+								//autoclose:true,
+								//immediateUpdates:true,
+								onSelect:function(datetext,inst){
+									var inp=document.getElementById(inst.id);
+									var nid=inp.getAttribute('data-numid');
+						
+									console.log(datetext, inst,nid);
+									socket.emit('outgoingdata',{option:'update',outgoingdate:datetext,numid:nid});
+								}
+							});
+						});
+						$.datepicker.setDefaults({
+							dateFormat:'yy-mm-dd'
+						});
+
+					}
+				}else if(a.option=='update'){
+				}
+
+				
+				//data check
+				var today= new Date();
+				if(today.getMonth() < 9 ){
+					var gmonth='0'+(today.getMonth()+1)
+				}else{
+					var gmonth=today.getMonth()+1;
+				}
+
+				if(today.getDate() < 10){
+					var gday='0'+today.getDate()
+				}else{
+					var gday=today.getDate()
+				}
+				
+				var date=today.getFullYear()+'-'+gmonth+'-'+gday;
+				console.log(date);	
+
+
+				var roundnum=1;
+				for(var ia=0; ia<a.a.length; ia++){
+					//console.log(a.a[ia].createdate.split(' ')[0]);
+					if(a.a[ia].createdate.split(' ')[0]==date){
+						roundnum++;
+					}
+				}
+
+				parcelcontent.setAttribute('data-date',date);
+				parcelcontent.setAttribute('data-roundnum',roundnum);
+				parcelcontent.setAttribute('data-idata',JSON.stringify(a.e));
+
+			});
+
+			socket.emit('outgoingdata',{option:'call'})
+			function removeallele(parentid){
+				var parent=document.getElementById(parentid);
+				while(parent.firstChild){
+					parent.firstChild.remove();
+				}
+			}
+
+

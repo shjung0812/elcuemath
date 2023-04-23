@@ -1,0 +1,146 @@
+html
+	head
+		script(src='/socket.io/socket.io.js')
+		title Respond
+		style.
+			#videobox {
+				width:100%;
+				height:100%;
+			}
+			#vidbox2 {
+				width:100%;
+				//float:left;
+			}
+			video {
+				height:100%;
+			}
+	body
+		div(id='videobox')
+			//div(id='vidbox1')
+				//video(id='localVideo' autoplay playsinline controls='false')
+			div(id='vidbox2')
+				video(id='remoteVideo' autoplay  playsinline controls='false' muted)
+		script.
+			var socket = io('/mucm');
+			socket.on('connect',()=>{
+				console.log('mucm connected');
+				socket.emit('mucmsocketidregister',{user:'responder',socketid:socket.id,username:'mentor(optional)',position:2});
+
+			});
+
+
+			const constraints = {
+				'video':true,
+				'audio':true
+			}
+			console.log('hi');
+			//if(navigator.mediaDevices){
+				//navigator.mediaDevices.getUserMedia(constraints).then(async stream => {
+			console.log('hi');
+
+
+					const videoElement = document.querySelector('video#localVideo');
+					//videoElement.srcObject = stream;	
+
+
+
+				//const configuration = {iceServers:[{urls:'stun:stun.l.google.com:19302'}]};
+				//const configuration = {iceServers:[{"urls":'turn:13.250.13.83:3478?transport=udp',username:'YzYNCouZM1mhqhmseWk6',credential:'YzYNCouZM1mhqhmseWk6'}]};
+				const configuration = {iceServers:[{urls:'turn:numb.viagenie.ca:3478',username:'eccentric1984@gmail.com',credential:'aa2792'}]};
+				const peerConnection = new RTCPeerConnection(configuration);
+
+				//	stream.getTracks().forEach((track)=>{
+					//	peerConnection.addTrack(track, stream);
+
+					//});
+
+
+					function sdpreplace(sdp, mLineReg,preferCodec){
+						var mLine,
+						newMLine=[],
+						sdpCodec,
+						mLineSplit,
+						reg = new RegExp("a=rtpmap:(\\d+) "+preferCodec+"/\\d+");
+					
+						mLine = sdp.match(mLineReg);
+						if(!mLine){
+							return sdp;
+						}
+
+						sdpCodec = sdp.match(reg);
+						if(!sdpCodec){
+							return sdp;
+						}
+
+						mLine = mLine[0];
+						sdpCodec = sdpCodec[1];
+						
+						mLineSplit = mLine.split(" ");
+						newMLine.push(mLineSplit[0]);
+						newMLine.push(mLineSplit[1]);
+						newMLine.push(mLineSplit[2]);
+						newMLine.push(sdpCodec);
+
+						for(var i=3; i<mLineSplit.length; i++){
+							if(mLineSplit[i] !== sdpCodec){
+								newMLine.push(mLineSplit[i]);
+							}
+						}
+
+						return sdp.replace(mLine, newMLine.join(" "));
+					}
+
+
+				socket.on('webrtcservertoresponder', async (message) =>{
+					if(message.offer){
+						peerConnection.setRemoteDescription(new RTCSessionDescription(message.offer));
+						const answer = await peerConnection.createAnswer();
+						var newsdp = sdpreplace(answer.sdp,/m=video(:?.*)?/,"H264");
+						answer.sdp=newsdp;
+						await peerConnection.setLocalDescription(answer);
+			
+						socket.emit('webrtcrespondertoserver',{answer:answer});
+
+					}
+				});
+
+
+				/*
+				peerConnection.addEventListener('icecandidate', e => {
+					socket.emit('webrtctoservernewicecandidate',{destination:'tocaller',newicecandidate:e.candidate});
+				
+					console.log('e.icecandidate');
+				});*/
+
+				peerConnection.onicecandidate=(e) => {
+					socket.emit('webrtctoservernewicecandidate',{destination:'tocaller',newicecandidate:e.candidate});
+				};
+	
+
+
+				socket.on('webrtctorespondernewicecandidate',async function(a){
+					if(a.newicecandidate){
+						console.log(a.newicecandidate,'responder');
+						await peerConnection.addIceCandidate(a.newicecandidate);
+					}
+				});
+
+
+				const remoteStream = new MediaStream();
+				const remoteVideo = document.querySelector('video#remoteVideo');
+
+				var msgel=document.getElementById('msghere');
+				peerConnection.addEventListener('track', async (event) => {
+	
+					remoteStream.addTrack(event.track);
+					remoteVideo.srcObject = remoteStream;
+	
+
+				});
+	
+			//	});
+//			}
+
+
+
+

@@ -1,0 +1,1356 @@
+html
+	head
+		style.
+			#displayelement {
+				width:100%;
+				overflow:auto;
+			}
+			.selboard {
+				width:10%;
+				float:left;
+			}
+			#optiondisplaydiv {
+				position:fixed;
+				top:0;
+				left:60%;
+				width:100%;
+				height:100%;
+				background-color:#ff0000;
+			}
+			.optiondiv, .insertdiv {
+				width:100%;
+				height:10%;
+				background-color:#ee0000;
+				margin:2% 0;
+			}
+			#problemdisplayboard {
+				width:100%;
+				height:100%;
+				background-color:#ffffff;
+				z-index:2;
+			}
+			#displaycaseboard div {
+				width:100%;
+				background-color:#ffff00;
+			}	
+			#displaycaseboard, #displaycrpcpboard, #displayproblemboard, #displaychosenboard {
+				width:25%;
+				float:left;
+			}
+			.combcrpcpdiv {
+				background-color:#ffcc99;
+				margin:1% 0;
+			}
+			.contprbbox {
+				background-color:#ffaabb;
+				margin:1% 0;
+			}
+			#displayvideoboard {
+				display:none;
+				width:100%;
+				height:100%;
+			}
+			#displayvideodiv {
+				width:70%;
+				height:100%;
+				float:left;
+				background-color:#ffbb88;
+				overflow:auto;
+			}
+			#displaycriteriacrsinfodiv {
+				width:30%;
+				float:left;
+				height:100%;
+			}
+			#displaycriteriadiv {
+				width:100%;
+				height:70%;
+				background-color:#bb9988;
+				overflow:auto;
+			}
+			#displaycrsinfoboard {
+				width:100%;
+				height:30%;
+				background-color:#996622;
+			}
+			.contvideodiv {
+				width:100%;
+				height:20%;
+				background-color:#dd0000;
+			}
+			.videocontentdiv {
+				width:60%;
+				height:100%;
+				float:left;
+			}
+			.videocontentdiv:hover {
+				background-color:#dd5500;
+			}
+			.msgcontentdiv {
+				width:40%;
+				height:100%;
+				float:left;
+				background-color:#dddddd;
+			}
+			.contnumberdiv {
+				width:100%;
+				height:10%;
+				margin:1% 0;
+				background-color:#dddd22;
+				text-align:center;
+			}
+			.contnumberdiv:hover {
+				background-color:#dddd99;
+			}
+			#displaycrsinfoboard {
+				overflow:hidden;
+			}
+			#displaycrsinfodiv {
+				width:100%;
+				height:40%;
+			}
+			
+			#sendboxdiv {
+				width:100%;
+				height:60%;
+				text-align:center;
+				font-size:2em;
+				margin:2% 0;
+				background-color:#ffbbaa;
+			}
+			#sendboxdiv a {
+				display:inline-block;
+				position:relative;
+				top:30%;
+			}
+			#sendboxdiv:hover {
+				background-color:#ff9977;
+			}
+			#crsinfocontent {
+				display:block;
+				width:94%;
+				margin:0 3%;
+				height:100%;
+				font-size:2em;
+				text-align:center;
+			
+			}
+		script(type='text/javascript' async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML")
+		script(src='/socket.io/socket.io.js')
+		script.
+			window.onload=function(){
+				iniview();	
+			}
+			function removeElementOfDiv(regbdivid){
+				var fdiv=document.getElementById(regbdivid);
+					if(fdiv){
+					while(fdiv.firstChild){
+						fdiv.removeChild(fdiv.firstChild);
+					}
+				}
+			}
+
+			function createnamelist(eleset){
+				var namelist=[];
+				var achk;
+				for(var ia=0; ia<eleset.length; ia++){
+					for(var ib=3; ib<6; ib++){
+						achk=0;
+						for(var ic=0; ic<namelist.length; ic++){
+							if(namelist[ic]==eleset[ia][ib]){
+								achk=1;
+								break;
+							}
+						}
+						if(achk==0){
+							namelist.push(eleset[ia][ib]);
+						}
+					}	
+				}
+				return namelist;
+			}
+			function GetIndependentElement([A,a,b],opt){ //Array for being tested
+				if(opt==0){
+					var B=[]; //Container of independent
+					var achk;
+					for(var ia=0; ia<A.length; ia++){
+						achk=0;
+						for(var ib=0; ib<B.length; ib++){
+							if(A[ia][a]==B[ib]){
+								achk=1;
+								break;
+							}
+						}
+						if(achk==0){
+							B.push(A[ia][a]);
+						}
+					}
+					return B;
+				}else if(opt==1){
+				}
+			}
+			function createmainpathboard(eleset){
+				CreateMainPathBoard(eleset);
+				var nonepasslist=[];
+				var achk;
+				for(var ia=0; ia<eleset.length; ia++){
+					achk=0;
+					for(var ib=0; ib<nonepasslist.length; ib++){
+						if(nonepasslist[ib]==eleset[ia][5]){
+							achk=1;
+							break;
+						}
+					}
+					if(achk==0 && eleset[ia][5]!='dump'){
+						nonepasslist.push(eleset[ia][5]);
+					}
+				}
+
+				var namelist=createnamelist(eleset);
+				var tcount;
+				var finalist=[];
+				for(var ia=0; ia<namelist.length; ia++){
+					tcount=0;
+					for(var ib=0; ib<eleset.length; ib++){
+						if(eleset[ib][4]==namelist[ia]){
+							tcount+=1;
+						}
+					}
+					if(tcount>1){
+						finalist.push(namelist[ia])
+					}
+				}
+
+
+
+
+				var firstrow=MainPathList(eleset,'PRES');
+				if(firstrow[1][0]==0){
+					var mainpathboard=[firstrow[0]];
+
+					var templist;
+					var dchk;
+					for(var ia=0; ia<nonepasslist.length; ia++){
+						templist=MainPathList(eleset,nonepasslist[ia]);
+						if(templist[1][0]==0){
+							for(var ib=0; ib<templist[0].length; ib++){
+								dchk=0;
+								for(var ic=0; ic<finalist.length; ic++){
+									if(finalist[ic]==templist[0][ib]){
+										dchk=1;
+										break;
+									}
+								}
+								if(dchk==1){
+									break;
+								}
+								
+							}
+							var va=0;
+							while(typeof templist[0][ib+1]!=='undefined'){
+								templist[0].splice(ib+1,1);
+								va+=1;
+								if(va>100) break;
+							}
+
+							mainpathboard.push(templist[0]);
+						}else{
+							console.log('error occurred');
+						}
+					}
+					return mainpathboard;
+				}else{
+					alert('error from createmainpathboard');
+					return ['error from AbsMPL'];
+				}
+
+				
+			}
+			function iniview(){
+				var eleset=!{JSON.stringify(eleset)};
+				var namelist=createnamelist(eleset);
+				var mainpathboard=CreateMainPathBoard(eleset);
+				var SEL=[['ini','PRES']];
+				createdisplayelement(eleset,mainpathboard,SEL,namelist);	
+
+				return [eleset,mainpathboard,SEL,namelist];
+			}
+
+			function optiondisplayboard(stv,e,opt){
+				
+				var optiondisplayboard=document.getElementById('optiondisplayboard');
+
+
+				var eleset=stv[0];
+				var mainpathboard=stv[1];
+				var SEL=stv[2];
+				var namelist=stv[3];
+				var ele=stv[4];
+				var optiondisplaydiv=document.createElement('DIV');
+				optiondisplaydiv.setAttribute('id','optiondisplaydiv');
+
+				if(opt==0){
+
+
+
+					//display function
+					if(CheckNonepasselementForElementDisplay(eleset,mainpathboard,ele)==1){
+						var displaydiv=document.createElement('DIV');
+						displaydiv.setAttribute('class','optiondiv');
+
+						var va=document.createElement('A');
+						va.innerHTML='display';
+						displaydiv.appendChild(va);
+						displaydiv.onclick=function(i){return function(){AddDisplayElement(i)}}(stv);
+						optiondisplaydiv.appendChild(displaydiv);
+					}
+	
+					//insert function
+					achk=0;
+					for(var ia=0; ia<eleset.length; ia++){  // 특수코드가 아니면 모두 가능
+						if(eleset[ia][3]==ele){
+							achk=1;	
+							break;
+						}	
+					}
+					//special code
+					if(achk==0){
+						var specialcodediv=document.createElement('DIV');	
+						specialcodediv.setAttribute('class','optiondiv');
+						var specialcodea=document.createElement('A');
+						specialcodea.innerHTML='switch to';
+						specialcodediv.onclick=function(i){return function(){SwitchToCode(i)}}(stv);
+						specialcodediv.appendChild(specialcodea);
+						optiondisplaydiv.appendChild(specialcodediv);
+					}
+					if(achk==1){
+						csv=['','','',''];
+						var insertdiv=document.createElement('DIV');	
+						insertdiv.setAttribute('class','optiondiv');
+						var inserta=document.createElement('A');
+						inserta.innerHTML='insert';
+						insertdiv.onclick=function(i){return function(){i.push(0);displaycaselist(i)}}(stv);
+						insertdiv.appendChild(inserta);
+						optiondisplaydiv.appendChild(insertdiv);
+					}
+
+	
+					//open function
+					if(achk==1){
+						if(CheckNonepasselementForElementDisplay(eleset,mainpathboard,ele)==0){
+							//csv=['','','',''];
+							var opendiv=document.createElement('DIV');	
+							opendiv.setAttribute('class','optiondiv');
+							var opena=document.createElement('A');
+							opena.innerHTML='open';
+
+
+							opendiv.onclick=function(i){return function(){
+								for(var ia=0; ia<eleset.length; ia++){
+									if(eleset[ia][3]==ele){
+										csv[0]=eleset[ia][7];
+										csv[1]=eleset[ia][6];
+										csv[2]='';
+										csv[3]=eleset[ia][9];
+									}
+								}
+								var socket=io('/coz');
+								socket.emit('cozvideoeach',{vidaddr:csv[1]});
+								socket.on('rstcozvideoeach',function(vid){
+									csv[1]=vid.vid;
+								});
+								i.push(1);displaycaselist(i)
+							}
+							}(stv);
+
+
+						console.log(csv);
+
+							//opendiv.onclick=function(i){return function(){i.push(1);displaycaselist(i)}}(stv);
+							opendiv.appendChild(opena);
+							optiondisplaydiv.appendChild(opendiv);
+						}
+					}
+
+
+
+					//editting function
+					if(achk==1){
+
+						var editdiv=document.createElement('DIV');	
+						editdiv.setAttribute('class','optiondiv');
+						var edita=document.createElement('A');
+						edita.innerHTML='edit';
+						editdiv.onclick=function(i){return function(){
+							for(var ia=0; ia<eleset.length; ia++){
+								if(eleset[ia][3]==ele){
+									csv[0]=eleset[ia][7];
+									csv[1]=eleset[ia][6];
+									csv[2]=eleset[ia][8];
+									csv[3]=eleset[ia][9];
+								}
+							}
+							var socket=io('/coz');
+							socket.emit('cozvideoeach',{vidaddr:csv[1]});
+							socket.on('rstcozvideoeach',function(vid){
+								csv[1]=vid.vid;
+							});
+							i.push(2);displaycaselist(i)
+						}
+						}(stv);
+
+						editdiv.appendChild(edita);
+						optiondisplaydiv.appendChild(editdiv);
+					}	
+	
+
+					//remove function
+					if(achk==1){
+						if(CheckNonepasselementForElementDisplay(eleset,mainpathboard,ele)==0){
+
+							//relative main path element 구분.	
+							var iniel=e.className;  //inielement
+							var finalel; //final element
+							for(var ia=0; ia<mainpathboard.length; ia++){
+								if(mainpathboard[ia][0]==iniel){
+									finalel=mainpathboard[ia][mainpathboard[ia].length-1];
+									break;
+								}
+							}
+	
+							if(finalel==ele){
+								var uchk=1;
+							}else{
+								var uchk=0;
+							}
+
+
+							if(uchk==0){							
+								var bchk=0;
+								for(var ia=0; ia<mainpathboard.length; ia++){
+									if(mainpathboard[ia][0]==ele){	
+										if(mainpathboard[ia].length>2){
+											bchk=1;
+										}
+										break;
+									}
+								};
+
+								if(bchk==0){
+									if(ele!='PRES'){
+										var rmdiv=document.createElement('DIV');	
+										rmdiv.setAttribute('class','optiondiv');
+										var rma=document.createElement('A');
+										rma.innerHTML='remove';
+										rmdiv.onclick=function(i){return function(){RemoveEleSlot(i)}}(stv);
+										rmdiv.appendChild(rma);
+										optiondisplaydiv.appendChild(rmdiv);
+									}
+								}
+							}
+
+
+							
+								
+							
+						};
+					}
+
+
+
+					optiondisplayboard.appendChild(optiondisplaydiv);
+				}
+				
+					
+			}
+
+			function SwitchToCode(stv){
+				var ele=stv[4];
+				var eleset=stv[0];
+				var ncode;
+				if(ele=='elefvic'){
+					ncode='elefvwt';
+				}else if(ele=='elefvwt'){
+					ncode='elefvic';
+				}else{
+					ncode=ele;
+					alert('it is not ordinary code check for error;; from SwitchToCode');
+				}
+				var socket=io('/coz');
+				socket.emit('cozswitch',{crs:eleset[0][2],ele:ele,ncode:ncode});
+				socket.on('rstcozswitch',function(){
+					window.location.reload(true);
+				});
+				
+			}
+			function RemoveEleSlot(stv){
+				var eleset=stv[0];
+				var ele=stv[4];
+
+				var passelement;
+				for(var ia=0; ia<eleset.length; ia++){
+					if(eleset[ia][3]==ele){
+						passelement=eleset[ia][4];
+					}
+				}
+
+
+				var socket=io('/coz');
+				socket.emit('cozrm',{crs:eleset[0][2],ele:ele,saved:passelement});
+				socket.on('rstcozrm',function(){
+					window.location.reload(true);
+				});
+				
+			}
+			function AddDisplayElement(stv){
+				var eleset=stv[0];
+				var mainpathboard=stv[1];
+				var SEL=stv[2];
+				var namelist=stv[3];
+				var ele=stv[4];
+				removeElementOfDiv('optiondisplayboard');
+				for(var ia=0; ia<eleset.length; ia++){
+					if(eleset[ia][3]==ele){
+						SEL.push([eleset[ia][3],eleset[ia][5]]);
+						break;
+					}
+				}
+				createdisplayelement(eleset,mainpathboard,SEL,namelist);
+			}
+			function CheckNonepasselementForElementDisplay(eleset,mainpathboard,ele){
+				var nonepasselement;
+				for(var ia=0; ia<eleset.length; ia++){
+					if(eleset[ia][3]==ele){
+						nonepasselement=eleset[ia][5];
+						break;
+					}
+				}
+
+				if(CheckElementDuplication([mainpathboard,0,nonepasselement],1)==1){	
+					return 1;
+				}else{
+					return 0;
+				}
+			}
+			function createdisplayelement(eleset,mainpathboard,SEL,namelist){
+
+				removeElementOfDiv('displayelement');
+				var displayelement=document.getElementById('displayelement');
+		
+				var listelement;
+				for(var ia=0; ia<SEL.length; ia++){
+					for(var ib=0; ib<mainpathboard.length; ib++){
+						if(mainpathboard[ib][0]==SEL[ia][1]){
+							break;
+						}
+					}
+
+					listelement=mainpathboard[ib];
+
+					var adiv=document.createElement('DIV');
+					adiv.setAttribute('id','div'+SEL[ia][0]);
+					adiv.setAttribute('class','selboard');
+
+					for(var ib=0; ib<listelement.length; ib++){
+						var bdiv=document.createElement('DIV');
+
+						//relative main path element 구분.	
+						var iniel=SEL[ia][1];  //inielement
+						var finalel; //final element
+						for(var ic=0; ic<mainpathboard.length; ic++){
+							if(mainpathboard[ic][0]==iniel){
+								finalel=mainpathboard[ic][mainpathboard[ic].length-1];
+								break;
+							}
+						}
+
+						if(finalel==listelement[ib]){
+							if(ia!==0){ // Absolute Main Path List에서는 제외; 예외처리
+								var achk=1;
+							}else{
+								var achk=0;
+							}
+						}else{
+							var achk=0;
+						}
+				
+						if(achk==0){
+						
+							if(CheckNonepasselementForElementDisplay(eleset,mainpathboard,listelement[ib])==1){
+								bdiv.style.textDecoration="underline";
+								bdiv.onclick=function(i,j){return function(){optiondisplayboard(i,this,j)}}([eleset,mainpathboard,SEL,namelist,listelement[ib]],0);
+							}else{
+								bdiv.onclick=function(i,j){return function(){optiondisplayboard(i,this,j)}}([eleset,mainpathboard,SEL,namelist,listelement[ib]],0);
+							}
+						}else{
+							bdiv.onclick=function(){return function(){removeElementOfDiv('optiondisplayboard')}}();
+						}
+	
+						var va=document.createElement('A');
+						va.innerHTML=listelement[ib];
+						bdiv.appendChild(va);
+						bdiv.setAttribute('class',SEL[ia][1]);
+						adiv.appendChild(bdiv);
+					}
+		
+					displayelement.appendChild(adiv);
+					
+					
+				}
+			}
+			function displaycaselist(stv){
+				console.log(stv[1]);
+				var socket=io('/coz');
+				removeElementOfDiv('optiondisplayboard');
+				removeElementOfDiv('displaycrpcpboard');
+				removeElementOfDiv('displayproblemboard');
+
+				document.getElementById('problemdisplayboard').style.display='block';
+
+
+				//기능에따르는 함수의 option
+				if(stv[5]==2 || stv[5]==1){
+					DisplayChosenPrb('',stv,1);
+				}
+
+				socket.emit('cozcaselist');
+				socket.on('rstcozcaselist',function(caselist){
+					var displaycaseboard=document.getElementById('displaycaseboard');
+					for(var ia=0; ia<caselist.caselist.length; ia++){
+						var displaycasediv=document.createElement('DIV');
+						displaycasediv.setAttribute('class','displaycasediv');
+						displaycasediv.onclick=function(i,j){return function(){Displaycrpcp(i,j)}}([caselist.caselist[ia][0],caselist.caselist[ia][2]],stv);
+
+						var va=document.createElement('A');
+						va.innerHTML=caselist.caselist[ia][1];
+						displaycasediv.appendChild(va);
+						displaycaseboard.appendChild(displaycasediv);
+					}
+					var displaycasediv=document.createElement('DIV');
+					displaycasediv.setAttribute('class','displaycasediv');
+					var va=document.createElement('A');
+					va.innerHTML='CallingVideo';
+					displaycasediv.appendChild(va);
+					displaycasediv.onclick=function(i){return function(){CallingVideoList(i)}}(stv);
+					displaycaseboard.appendChild(displaycasediv);
+				});
+		
+				
+			}
+			function FocusElement(opt){
+				if(opt==0){//prblist
+					var contprbbox=document.getElementsByClassName('contprbbox');
+					for(var ia=0; ia<contprbbox.length; ia++){
+						contprbbox[ia].style.backgroundColor='';
+					}
+					if(csv[0]!=''){
+						var o1prblist=csv[0].split(',');
+					
+						for(var ia=0; ia<o1prblist.length; ia++){
+							var fdiv=document.getElementById('f'+o1prblist[ia]);
+							if(fdiv){
+								fdiv.style.backgroundColor='#f00000';
+							}
+						}
+					}
+				}else if(opt==1){
+					var contvideodiv=document.getElementsByClassName('contvideodiv');
+					for(var ia=0; ia<contvideodiv.length; ia++){
+						contvideodiv[ia].style.backgroundColor='';
+					}
+					var fdiv=document.getElementById('f'+csv[1]);
+					fdiv.style.backgroundColor='#dd5500';
+				}else if(opt==2){//criteria
+					var contnumberdiv=document.getElementsByClassName('contnumberdiv');
+					for(var ia=0; ia<contnumberdiv.length; ia++){
+						contnumberdiv[ia].style.backgroundColor='';
+					}
+					var fdiv=document.getElementById('f'+parseFloat(csv[2]).toFixed(2));
+					fdiv.style.backgroundColor='#dddd99';
+				}
+			}
+			function Displayproblem(imv,stv){
+
+				var prbidlist=imv[0];
+				removeElementOfDiv('displayproblemboard');
+				var socket=io('/coz');
+				var displayproblemdiv=document.createElement('DIV');
+				displayproblemdiv.setAttribute('id','displayproblemdiv');
+
+				socket.emit('cozprb',{prbidlist:prbidlist});
+				socket.on('rstcozprb',function(prbcon){
+					for(var ia=0; ia<prbcon.prbcon.length; ia++){
+						var contprbbox=document.createElement('DIV');
+						contprbbox.setAttribute('class','contprbbox');
+						contprbbox.setAttribute('id','f'+prbcon.prbcon[ia][0]);
+				
+
+						var prbnumdiv=document.createElement('DIV');
+						prbnumdiv.setAttribute('class','prbnumdiv');
+
+						var prbcontentdiv=document.createElement('DIV');
+						prbcontentdiv.setAttribute('class','prbcontentdiv');
+	
+						var prbansdiv=document.createElement('DIV');
+						prbansdiv.setAttribute('class','prbansdiv');
+
+						var va0=document.createElement('A');
+						va0.innerHTML=prbcon.prbcon[ia][0];
+
+						var va1=document.createElement('A');
+						va1.innerHTML=prbcon.prbcon[ia][1];
+		
+						var va2=document.createElement('A');
+						va2.innerHTML=prbcon.prbcon[ia][2];
+
+						prbnumdiv.appendChild(va0);
+						prbcontentdiv.appendChild(va1);
+						prbansdiv.appendChild(va2);
+			
+						contprbbox.appendChild(prbnumdiv);
+						contprbbox.appendChild(prbcontentdiv);
+						contprbbox.appendChild(prbansdiv);
+						contprbbox.onclick=function(i,j){return function(){DisplayChosenPrb(i,j,0)}}([prbcon.prbcon[ia][0]],stv)
+	
+						displayproblemdiv.appendChild(contprbbox);
+					}
+					MathJax.Hub.Queue(["Typeset",MathJax.Hub,displayproblemdiv]);
+					document.getElementById('displayproblemboard').appendChild(displayproblemdiv);
+					FocusElement(0);	
+	
+				});
+
+			}
+			function DisplayChosenPrb(imv,stv,opt){
+				removeElementOfDiv('displaychosenboard');
+
+
+				if(opt==0){
+					var prbid=imv[0];
+
+					var o1csvprbid=csv[0].split(',');
+					var achk;
+					if(o1csvprbid[0]==''){
+						csv[0]=prbid;
+					}else{
+			
+						achk=0;
+							for(var ia=0; ia<o1csvprbid.length; ia++){
+							if(o1csvprbid[ia]==prbid){
+									achk=1;
+								o1csvprbid.splice(ia,1);
+								break;
+							}
+						}
+						if(achk==0){
+							csv[0]=csv[0]+','+prbid;
+						}else{
+							csv[0]='';
+							for(var ia=0; ia<o1csvprbid.length; ia++){
+								if(o1csvprbid.length-1==ia){
+									csv[0]=csv[0]+o1csvprbid[ia];
+									}else{
+									csv[0]=csv[0]+o1csvprbid[ia]+',';
+								}
+							}
+						}
+					}
+					FocusElement(0);				
+				}else if(opt==1){
+					FocusElement(0);				
+				}
+	
+
+				var displaychosenboard=document.getElementById('displaychosenboard');
+				var displayprblistdiv=document.createElement('DIV');
+				displayprblistdiv.setAttribute('id','displayprblistdiv');
+
+				var socket=io('/coz');
+				var o1prbidlist=csv[0].split(',');
+
+
+				socket.emit('cozchosen',{prbidlist:o1prbidlist});
+				socket.on('rstcozchosen',function(prbcon){
+					for(var ia=0; ia<prbcon.prbcon.length; ia++){
+		
+						var choprbbox=document.createElement('DIV');
+						choprbbox.setAttribute('class','choprbbox');
+						choprbbox.onclick=function(i,k){return function(){DisplayChosenPrb(i,k,0)}}([prbcon.prbcon[ia][0]],stv);
+			
+						var choprbnumdiv=document.createElement('DIV');
+						choprbnumdiv.setAttribute('class','choprbnumdiv');
+						
+						var choprbcontentdiv=document.createElement('DIV');
+						choprbcontentdiv.setAttribute('class','choprbcontentdiv');
+		
+						var choprbansdiv=document.createElement('DIV');
+						choprbansdiv.setAttribute('class','choprbansdiv');
+
+						var va0=document.createElement('A');
+						va0.innerHTML=prbcon.prbcon[ia][0];
+
+						var va1=document.createElement('A');
+						va1.innerHTML=prbcon.prbcon[ia][1];
+			
+						var va2=document.createElement('A');
+						va2.innerHTML=prbcon.prbcon[ia][2];
+
+						choprbnumdiv.appendChild(va0);
+						choprbcontentdiv.appendChild(va1);
+						choprbansdiv.appendChild(va2);
+		
+						choprbbox.appendChild(choprbnumdiv);
+						choprbbox.appendChild(choprbcontentdiv);
+						choprbbox.appendChild(choprbansdiv);
+
+						displayprblistdiv.appendChild(choprbbox);
+					}
+					MathJax.Hub.Queue(["Typeset",MathJax.Hub,displayprblistdiv]);
+					displaychosenboard.appendChild(displayprblistdiv);
+				});
+			
+			}
+			function Displaycrpcp(imv,stv){
+				var caseid=imv[0];
+				var cslevel=imv[1];
+				var socket=io('/coz');
+
+				removeElementOfDiv('displaycrpcpboard');
+				removeElementOfDiv('displayproblemboard');
+
+				var displaycrpcpboard=document.getElementById('displaycrpcpboard');
+
+				socket.emit('cozcrpcp',{caseid:caseid,cslevel:cslevel});
+				socket.on('rstcozcrpcp',function(crpcpb){
+					for(var ia=0; ia<crpcpb.crpcpb.length; ia++){
+						var contcrpcpdiv=document.createElement('DIV');
+						contcrpcpdiv.setAttribute('class','contcrpcpdiv');
+
+						var crpcptitlediv=document.createElement('DIV');  //title
+						for(var ib=0; ib<crpcpb.crpcpb[ia][0].length; ib++){
+							var crpcpnamebox=document.createElement('DIV');
+							crpcpnamebox.setAttribute('class','crpcpnamebox');
+
+							var va=document.createElement('A');
+							va.innerHTML=crpcpb.crpcpb[ia][0][ib][1].replace(/\\\\/g,"\\");
+							crpcpnamebox.appendChild(va);
+
+							crpcptitlediv.appendChild(crpcpnamebox);
+	
+						}
+						contcrpcpdiv.appendChild(crpcptitlediv);
+
+						
+						var combcrpcpbox=document.createElement('DIV');
+						combcrpcpbox.setAttribute('class','combcrpcpbox');
+						for(var ic=0; ic<crpcpb.crpcpb[ia][1].length; ic++){
+							var combcrpcpdiv=document.createElement('DIV');
+							combcrpcpdiv.setAttribute('class','combcrpcpdiv');
+							for(var id=0; id<crpcpb.crpcpb[ia][1][ic][0].length; id++){
+								var combcrpcpnamebox=document.createElement('DIV');
+								combcrpcpnamebox.setAttribute('class','combcrpcpnamebox');
+								var va=document.createElement('A');
+								va.innerHTML=crpcpb.crpcpb[ia][1][ic][0][id][1].replace(/\\\\/g,"\\");
+								combcrpcpnamebox.appendChild(va);
+								combcrpcpdiv.appendChild(combcrpcpnamebox);
+							}
+							combcrpcpdiv.onclick=function(i,j){return function(){Displayproblem(i,j);}}([crpcpb.crpcpb[ia][1][ic][1]],stv);
+							combcrpcpbox.appendChild(combcrpcpdiv);
+						}
+						contcrpcpdiv.appendChild(combcrpcpbox);
+						displaycrpcpboard.appendChild(contcrpcpdiv);
+
+					}
+					MathJax.Hub.Queue(["Typeset",MathJax.Hub,displaycrpcpboard]);
+				});
+				
+			}
+			function CallingVideoList(stv){
+
+				DisplayCriteria(stv);
+				var displayvideoboard=document.getElementById('displayvideoboard');
+				var displayvideodiv=document.getElementById('displayvideodiv');
+
+
+
+				displayvideoboard.style.display='block';
+				var socket=io('/coz');
+				socket.emit('cozvideo');
+				socket.on('rstcozvideo',function(v){
+					for(var ia=0; ia<v.vidlist.length; ia++){
+		
+						var contvideodiv=document.createElement('DIV');
+						contvideodiv.setAttribute('class','contvideodiv');
+						contvideodiv.setAttribute('id','f'+v.vidlist[ia][0]);
+						contvideodiv.onclick=function(i){return function(){csv[1]=i;FocusElement(1)}}(v.vidlist[ia][0]);
+
+						var videocontentdiv=document.createElement('DIV');
+						videocontentdiv.setAttribute('class','videocontentdiv');
+
+						var msgcontentdiv=document.createElement('DIV');
+						msgcontentdiv.setAttribute('class','msgcontentdiv');
+
+						var viframe=document.createElement('iframe');
+						viframe.setAttribute('src',v.vidlist[ia][1]);
+						videocontentdiv.appendChild(viframe);
+
+						var va0=document.createElement('A');
+						va0.innerHTML=v.vidlist[ia][2];
+
+						msgcontentdiv.appendChild(va0);
+						contvideodiv.appendChild(videocontentdiv);
+						contvideodiv.appendChild(msgcontentdiv);
+						displayvideodiv.appendChild(contvideodiv);
+
+
+					}
+
+					if(stv[5]==2 || stv[5]==1){
+						FocusElement(1);
+
+
+						var eleset=stv[0];
+						var mainpathboard=stv[1];
+						var SEL=stv[2];
+						var namelist=stv[3];
+						var ele=stv[4];
+
+
+						var cchk=0;
+						for(var ib=0; ib<eleset.length; ib++){
+							if(eleset[ib][3]==ele && eleset[ib][5]=='dump'){
+								cchk=1;
+								break;
+							}
+						}
+						if(cchk==0){//open
+							FocusElement(2);
+						}
+					}
+					
+
+
+				});
+
+				var sendboxdiv=document.getElementById('sendboxdiv');
+				sendboxdiv.onclick=function(i){return function(){CourseProcessing(i)}}(stv);
+				
+			}
+			function CourseProcessing(stv){
+				var socket=io('/coz');
+
+				var eleset=stv[0];
+				var mainpathboard=stv[1];
+				var SEL=stv[2];
+				var namelist=stv[3];
+				var ele=stv[4];
+
+				
+				var crsinfocontent=document.getElementById('crsinfocontent');
+				csv[3]=parseInt(crsinfocontent.value);
+
+				if((csv[0]!=='' && csv[1]!=='') && (csv[2]!=='' && csv[3]!=='')){
+					var RandomName=function(length,opt){
+						if(!opt || opt==0){
+							var text='';
+							var possible='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+							for(var ia=0; ia<length; ia++){
+								text+=possible.charAt(Math.floor(Math.random()*possible.length));
+							}
+							return text;
+						}
+						
+					}
+
+
+					var newname=function(){
+						var rname;
+	
+						var ua=0; 
+						while(1){
+							rname=RandomName(4,0);
+	
+							var achk=0;
+							for(var ia=0; ia<namelist.length; ia++){
+								if(namelist[ia]==rname){
+									achk=1;
+									break;
+								}
+							}
+							if(achk==0){
+								break;
+							}
+	
+							ua+=1;
+							if(ua>100){
+								alert('error occurred in making new name in CourseProcessing Function');
+								break;
+							}
+						}
+	
+						return rname;
+					}
+	
+					var achk;
+					if(stv[5]==0){
+						//open element check
+						var nonepasselement;
+						var passelement;
+						for(var ia=0; ia<eleset.length; ia++){
+							if(eleset[ia][3]==ele){
+								nonepasselement=eleset[ia][5];
+								passelement=eleset[ia][4];
+								break;
+							}
+						}
+	
+						achk=0;
+						for(var ia=0; ia<eleset.length; ia++){
+							if(eleset[ia][3]==nonepasselement){
+								achk=1;
+								break;
+							}
+						}
+						
+						if(achk==0){// not open
+							var nname=newname();
+							socket.emit('cozprocessinginsert0',{ele:ele,nname:nname,savedele:passelement,crs:eleset[0][2],csv:csv});
+							socket.on('rstcozprocessinginsert0',function(){
+								window.location.reload(true);
+							});
+						}else{	//open
+							var nname=newname();
+						/*	var returningelement;
+							for(var ia=0; ia<mainpathboard.length; ia++){
+								if(mainpathboard[ia][0]==nonepasselement){
+									returningelement=mainpathboard[ia][mainpathboard[ia].length-2];
+								}
+							}*/
+						//	socket.emit('cozprocessinginsert1',{ele:ele,nname:nname,savedele:passelement,crs:eleset[0][2],csv:csv,returningelement:returningelement});
+							socket.emit('cozprocessinginsert1',{ele:ele,nname:nname,savedele:passelement,crs:eleset[0][2],csv:csv});
+							socket.on('rstcozprocessinginsert1',function(){
+								window.location.reload(true);
+							});
+						}
+					}else if(stv[5]==1){
+						var passelement;
+						for(var ia=0; ia<eleset.length; ia++){
+							if(eleset[ia][3]==ele){
+								passelement=eleset[ia][4];
+								break;
+							}
+						}
+						var nname=newname();
+						socket.emit('cozprocessingopen',{ele:ele,nname:nname,savedele:passelement,crs:eleset[0][2],csv:csv});
+						socket.on('rstcozprocessingopen',function(){
+							window.location.reload(true);
+						});
+	
+					}else if(stv[5]==2){
+						socket.emit('cozedit',{ele:ele,crs:eleset[0][2],csv:csv});
+						socket.on('rstcozedit',function(){
+							window.location.reload(true);
+						});
+					}
+				}else{
+					alert('you inserted wrong value check it');
+					alert(csv);
+				}
+			}
+			function CheckElementDuplication(V,opt){
+				if(opt==0){
+					var A=V[0];
+					var sample=V[1];
+					var achk=0;
+					for(var ia=0; ia<A.length; ia++){
+						if(A[ia]==sample){
+							achk=1;
+							break;
+						}		
+					}
+					return achk;
+				}else if(opt==1){
+					var A=V[0];
+					var a=V[1];
+					var sample=V[2];
+					var achk=0;
+					for(var ia=0; ia<A.length; ia++){
+						if(A[ia][a]==sample){
+							achk=1;
+							break;
+						}
+					}
+					return achk;
+				}
+			}
+			function CreateMainPathBoard(eleset){
+
+				var mainpathboard=[];
+
+				var iniele='PRES';
+				var currele=iniele;
+				var mainpath=[iniele];
+				var ua=0;
+				var achk;
+
+
+				var registeredlist=[];
+				var currentnonepasslist=[];
+				registeredlist.push(currele);
+				while(currele!=''){
+					achk=0;
+					for(var ia=0; ia<eleset.length; ia++){
+						if(eleset[ia][3]==currele){
+							achk=1;
+							currele=eleset[ia][4];
+							if(eleset[ia][5]!='dump' && CheckElementDuplication([eleset,3,eleset[ia][5]],1)==1){
+								currentnonepasslist.push(eleset[ia][5]);
+							}
+							break;
+						}
+					}
+					if(achk==0){
+						currele='';
+					}else{
+						registeredlist.push(currele);
+						mainpath.push(currele);
+					}
+					ua+=1;
+					if(ua>100){
+						break;
+					}
+				}
+
+				var code=[];
+				if(ua<=100){
+					code[0]=0;
+				}else{
+					code[0]=1;
+				}
+
+
+				mainpathboard=[mainpath];
+
+				var vb=0; 
+				var listelement;
+				var nextnonepasslist=[];
+				var cchk;
+				var order=1;
+				var vc=0;
+				while(order && code[0]==0){
+					if(currentnonepasslist.length==0){
+						if(nextnonepasslist.length==0){
+							order=0;							
+						}else{
+							currentnonepasslist=[];
+							for(var ia=0; ia<nextnonepasslist.length; ia++){
+								currentnonepasslist[ia]=nextnonepasslist[ia];
+							}
+							nextnonepasslist=[];
+						}
+					}else{
+						var mpae=currentnonepasslist[0];//main path adding element
+						listelement=[];
+						var tempregisteredlist=[];		
+			
+						while(!CheckElementDuplication([registeredlist,mpae],0)){
+							cchk=0;
+							tempregisteredlist.push(mpae);
+							for(var ic=0; ic<eleset.length; ic++){
+								if(eleset[ic][3]==mpae){
+									listelement.push(mpae);
+									if(eleset[ic][5]!='dump' && CheckElementDuplication([eleset,3,eleset[ic][5]],1)==1){
+										nextnonepasslist.push(eleset[ic][5]);
+										
+									}
+									mpae=eleset[ic][4];
+									cchk=1;
+									break;
+								}
+								
+							}
+							if(cchk==0){
+								break;
+							}
+
+							vc+=1;
+							if(vc>100){
+								break;
+							}
+							
+						}
+						listelement.push(mpae);
+						for(var ia=0; ia<tempregisteredlist.length; ia++){
+							if(!CheckElementDuplication([registeredlist,tempregisteredlist[ia]],0)){
+								registeredlist.push(tempregisteredlist[ia])
+							}
+						}
+
+						currentnonepasslist.splice(0,1);
+
+						mainpathboard.push(listelement);
+
+					}
+					vb+=1;
+					if(vb>100){
+						break;
+					}
+				}
+				return mainpathboard;	
+				
+			}
+			function MainPathList(neleset,begstr){
+				var iniele=begstr;
+				var currele=iniele;
+				var mainpath=[iniele];
+				var ua=0;
+				var achk;
+	
+				while(currele!=''){
+					achk=0;
+					for(var ia=0; ia<neleset.length; ia++){
+						if(neleset[ia][3]==currele){
+							achk=1;
+							currele=neleset[ia][4];
+							break;
+						}
+					}
+					if(achk==0){
+						currele='';
+					}else{
+						mainpath.push(currele);
+					}
+					ua+=1;
+					if(ua>100){
+						break;
+					}
+				}
+				var code=[];
+				if(ua<=100){
+					code[0]=0;
+				}else{
+					code[0]=1;
+				}
+				return [mainpath,code];
+			}
+			function DisplayCriteria(stv){
+				var displaycriteriadiv=document.getElementById('displaycriteriadiv');
+
+	
+
+
+				if(stv[5]==0){
+					displaycriteriadiv.style.backgroundColor='#555555';
+				
+					var va0=document.createElement('A');
+					va0.innerHTML='insert:: criteria is set';
+					va0.style.position='relative';
+					va0.style.top='30%';
+					va0.style.color='#dddddd';	
+					va0.style.fontSize='2em';	
+					va0.style.padding='0% 6%';
+			
+
+					displaycriteriadiv.appendChild(va0);
+					csv[2]=-1;
+		
+				}else if(stv[5]==2){
+					var eleset=stv[0];
+					var mainpathboard=stv[1];
+					var SEL=stv[2];
+					var namelist=stv[3];
+					var ele=stv[4];
+
+
+					var cchk=0;
+					for(var ib=0; ib<eleset.length; ib++){
+						if(eleset[ib][3]==ele && eleset[ib][5]=='dump'){
+							cchk=1;
+							break;
+						}
+					}
+					if(cchk==0){//open
+						var contnumberdiv=document.createElement('DIV');
+						contnumberdiv.setAttribute('class','contnumberdiv');
+						contnumberdiv.setAttribute('id','f'+'-1.00');
+						contnumberdiv.onclick=function(i){return function(){csv[2]=i;FocusElement(2);}}(-1);
+						var va0=document.createElement('A');
+						va0.innerHTML=-1;
+						contnumberdiv.appendChild(va0);
+						displaycriteriadiv.appendChild(contnumberdiv);
+	
+						for(var ia=0; ia<22; ia++){
+							var num=(0.05*ia).toFixed(2);
+							var contnumberdiv=document.createElement('DIV');
+							contnumberdiv.setAttribute('class','contnumberdiv');
+							contnumberdiv.setAttribute('id','f'+num);
+							contnumberdiv.onclick=function(i){return function(){csv[2]=i;FocusElement(2);}}(num);			
+		
+							var va0=document.createElement('A');
+							va0.innerHTML=num;
+							contnumberdiv.appendChild(va0);
+							displaycriteriadiv.appendChild(contnumberdiv);
+						}
+
+					}else{//closed
+						displaycriteriadiv.style.backgroundColor='#555555';
+				
+						var va0=document.createElement('A');
+						va0.innerHTML='insert:: criteria is set';
+						va0.style.position='relative';
+						va0.style.top='30%';
+						va0.style.color='#dddddd';	
+						va0.style.fontSize='2em';	
+						va0.style.padding='0% 6%';
+			
+
+						displaycriteriadiv.appendChild(va0);
+						csv[2]=-1;
+					}
+				}else{
+
+				var contnumberdiv=document.createElement('DIV');
+				contnumberdiv.setAttribute('class','contnumberdiv');
+				contnumberdiv.setAttribute('id','f'+'-1.00');
+				contnumberdiv.onclick=function(i){return function(){csv[2]=i;FocusElement(2);}}(-1);
+				var va0=document.createElement('A');
+				va0.innerHTML=-1;
+				contnumberdiv.appendChild(va0);
+				displaycriteriadiv.appendChild(contnumberdiv);
+
+				for(var ia=0; ia<22; ia++){
+					var num=(0.05*ia).toFixed(2);
+					var contnumberdiv=document.createElement('DIV');
+					contnumberdiv.setAttribute('class','contnumberdiv');
+					contnumberdiv.setAttribute('id','f'+num);
+					contnumberdiv.onclick=function(i){return function(){csv[2]=i;FocusElement(2);}}(num);			
+
+					var va0=document.createElement('A');
+					va0.innerHTML=num;
+					contnumberdiv.appendChild(va0);
+					displaycriteriadiv.appendChild(contnumberdiv);
+				}
+				}
+			}
+
+	body
+		div(id='back')
+			a=crs
+		div
+			div(id='displayelement')
+		div(id='optiondisplayboard')
+		div(id='problemdisplayboard')
+			div(id='displaycaseboard')
+			div(id='displaycrpcpboard')
+			div(id='displayproblemboard')
+			div(id='displaychosenboard')
+		div(id='displayvideoboard')
+			div(id='displayvideodiv')
+			div(id='displaycriteriacrsinfodiv')
+				div(id='displaycriteriadiv')
+				div(id='displaycrsinfoboard')
+					div(id='displaycrsinfodiv')
+						input(type='text' value=0 id='crsinfocontent')
+					div(id='sendboxdiv')
+						a send
+			

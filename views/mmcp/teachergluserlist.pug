@@ -1,0 +1,80 @@
+
+
+
+html
+	head
+		script(type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML")
+		script(src='/socket.io/socket.io.js')
+
+	body
+		div(id='stdlist')
+		script.
+			var userid=!{JSON.stringify(userid)}
+			var socket = io('/mmcp');
+			socket.on('connect',()=>{
+				console.log('mmcp connection ready');
+			});
+
+			function userColorset(username){
+				var colordiv=document.getElementsByClassName('usercolorset');
+				for(var ia=0; ia<colordiv.length; ia++){
+					colordiv[ia].style.backgroundColor='';
+					colordiv[ia].style.color='black';
+				}
+				document.getElementById('chosen'+username).style.backgroundColor='blue';
+				document.getElementById('chosen'+username).childNodes[0].style.color='white';
+				
+			}
+
+			socket.on('callstdlistafter',function(a){
+				var indstd=[];
+				for(var ia=0; ia<a.a.length; ia++){
+					var chk=0;
+					for(var ib=0; ib<indstd.length; ib++){
+						if(indstd[ib][0]==a.a[ia].username){
+							chk=1;
+							break;
+						}
+					}
+					if(chk==0){
+						indstd.push([a.a[ia].username,a.a[ia].DisplayName]);
+					}
+				}	
+
+				var mmcpsetobj=[];
+				for(var ia=0; ia<indstd.length; ia++){
+					mmcpsetobj[ia]={username:indstd[ia][0],mmcpcon:[],Displayname:indstd[ia][1]}
+					for(var ib=0; ib<a.a.length; ib++){
+						if(indstd[ia][0]==a.a[ib].username){
+							mmcpsetobj[ia].mmcpcon.push([a.a[ib].mmcpconid,a.a[ib].listinfo,a.a[ib].prblist])
+						}
+					}
+				}
+
+
+				var userlist=document.getElementById('stdlist');
+				for(var ia=0; ia<mmcpsetobj.length; ia++){
+					var fa=document.createElement('div');			
+					fa.id='chosen'+mmcpsetobj[ia].username;
+					fa.className='usercolorset';
+					fa.onclick=function(i){
+						return function(){
+							userColorset(i);
+								}
+					}(mmcpsetobj[ia].username);
+					var faa=document.createElement('a');
+					faa.href='/mmcp/teacherglcheck?username='+mmcpsetobj[ia].username
+					faa.className='usercolorset';
+					faa.style.color='black';
+					faa.style.textDecoration='none';
+					faa.setAttribute('target', '_blank');
+
+					faa.innerHTML=mmcpsetobj[ia].Displayname;
+					fa.appendChild(faa);
+					userlist.appendChild(fa);
+				}
+			});
+			function callStdlist(){
+				socket.emit('callstdlist',{username:userid});
+			}
+			callStdlist();

@@ -1,0 +1,15 @@
+html
+	head
+		script.
+
+	body
+		div
+		div(id='back')
+			a(href='./eer?stchk=0') Connect SLab to Block
+		div
+		div(id='blockboard')
+			-for(var ia=0; ia<blocklist.length; ia++){
+				div
+					a(href='./eer?stchk=5&slkid='+blocklist[ia][0])=blocklist[ia][1]
+			-}
+		

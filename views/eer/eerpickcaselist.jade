@@ -1,0 +1,76 @@
+html
+	
+	head
+		style.
+			#title a {
+				text-decoration:none;
+				color:black;
+				font-size:1.5em;
+			}
+		script.
+			var caselist=!{JSON.stringify(caselist)};
+			function putprbid(prbid){
+				var achk;
+				for(var ia=0; ia<caselist.length; ia++){
+					if(caselist[ia][0]==prbid){
+						achk=caselist[ia][2];
+						break;
+					}
+				}
+				if(achk==0){
+					removeallcolor('caselist');
+					var chprbid=document.getElementById(prbid);
+					chprbid.style.backgroundColor='#339933';
+					document.getElementById('caseid').value=prbid;
+				}
+			}
+			function removeallcolor(classname){
+				var allpcp=document.getElementsByClassName(classname)
+				for(var ia=0; ia<allpcp.length; ia++){
+					allpcp[ia].style.backgroundColor='';
+				}
+			}
+			function AssignLinkTo(){
+				for(var ia=0; ia<caselist.length; ia++){
+					if(caselist[ia][2]==1){
+						var pg=document.getElementById(caselist[ia][0]);
+						pg.childNodes[0].href='./eer?stchk=6&csbid='+caselist[ia][3];
+					}
+				}
+			}
+			function AssignNotification(){
+
+				for(var ia=0; ia<caselist.length; ia++){
+					if(caselist[ia][2]==1){
+						var pg=document.getElementById(caselist[ia][0]);
+						pg.style.borderStyle='solid';
+					}
+				}
+
+
+			}
+			window.onload=function(){
+				//AssignLinkTo();
+				AssignNotification();
+			}
+
+
+
+	body
+		div(id='title')
+			a(href='./eer?stchk=3') pick caselist
+		div
+			div(id='forming')
+				form(action='/admin/eerget',method='get')
+					a Choose case
+					input(type='text',name='caseid' id='caseid')
+					input(type='hidden',name='eermode', value=2)
+					input(type='hidden',name='slkid', value=slkid)
+					input(type='submit', value='submit')
+
+		div
+			-for(var ia=0; ia<caselist.length; ia++){
+				div(class='caselist', id=caselist[ia][0])
+					a(onclick='putprbid("'+caselist[ia][0]+'")')=caselist[ia][1]
+			-}
+			

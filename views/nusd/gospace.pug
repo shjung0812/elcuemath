@@ -1,0 +1,1245 @@
+html
+	head
+		script(src='/js/load-image.all.min.js')
+		script(src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.5.0-beta4/html2canvas.js" type="text/javascript" xml="space")
+		title GoSpace
+		style.
+			canvas {
+			}
+
+			body {
+				padding:0;
+				margin:0;
+			}
+
+			#panel {
+				width:100%;
+				height:100%;
+				background-color:#dddddd;
+				overflow:hidden;
+			}
+			#numberdisplaydiv {
+				width:80%;	
+				height:100%;
+				float:left;
+				//background-color:#dddddd;
+			}
+			#optionpanel {
+				width:20%;
+				height:100%;
+				float:left;
+				background-color:#dddddd;
+			}
+			#booktitlebox {
+				height:10%;
+				width:100%;
+			}
+			#logoutbox {
+				height:10%;
+			}
+			#sharepaperonbox {
+				width:100%;
+				background-color:#dddd22;	
+				cursor:pointer;
+				height:10%;
+			}
+			#chatbox {
+				width:100%;
+				height:70%;
+			}
+			#chathistory {
+				width:100%;
+				height:90%;
+				background-color:#8beded;
+			}
+			#chathistory div {
+				width:90%;
+				margin:0 5%;
+			}
+			#inputbox {
+				width:100%;
+				height:10%;
+			}
+			#chatmsg {
+				width:80%;
+				height:100%;
+			}
+			#sendbutton {
+				width:20%;
+				height:100%;
+			}
+			#sharepaperondiv {
+				display:none;
+				position:absolute;	
+				top:0;
+				left:0;
+				width:100%;
+				height:100%;
+				background-color:#222222;
+			}
+			#sharepaperbox {
+				width:85%;
+				height:100%;
+				float:left;
+			}
+			#sharepaperoptionbox {
+				width:15%;
+				height:100%;
+				overflow:hidden;
+				flaot:left;
+				background-color:purple;
+			}
+			
+			#sharepaperoffbox {	
+				width:100%;
+				background-color:#1677EC;
+				cursor:pointer;
+				position:relative;
+				top:80%;
+			}
+			#sharecanvasbox {
+				width:60%;
+				height:55%;
+				//margin:2% 0% 0  0%;
+			}
+			#sharecanvasoptionbox {
+				width:100%;
+				height:5%;
+			}
+			#myPics {	
+				position:absolute;
+				z-index:4;
+			}
+			#layerpic {
+
+				position:absolute;
+				z-index:3;
+			}
+			#screensave {
+				background-color:#3688a3;
+				height:5%;
+				text-align:center;
+				border: 2px solid black;
+				cursor:pointer;
+			}
+			#screensavetoserver {
+				background-color:#3688a3;
+				height:5%;
+				text-align:center;
+				border: 2px solid black;
+				cursor:pointer;
+				overflow:hidden;
+			}
+
+			#screensavetoserver a {
+				font-size:1em;
+				text-decoration:none;
+				color:black;
+				width:100%;
+				height:100%;
+			}
+			#screensave a {
+				font-size:.5em;
+				text-decoration:none;
+				color:black;
+				
+				width:100%;
+				height:100%;
+			}
+			#personaloptionbox {
+				width:100%;
+				margin:20% 0 0 0;
+			}
+			#notepic {
+
+				position:absolute;
+				left:3%;
+				z-index:15;
+			}
+	
+			#personaloptiondiv {
+				z-index:15;
+				position:fixed;
+				background-color:rgba(10,10,200,.2);
+				bottom:1%;
+				left:3%;
+				
+			}
+			#savemynotediv {
+				background-color:#2222bb;
+				font-color:white;
+				cursor:pointer;
+				margin:5% 0 25% 0;
+				height:10%;
+				text-align:center;
+			
+			}
+			#savemynotediv a {
+				display:inline-block;
+				font:2em;
+				width:100%;
+				height:100%;
+			}
+			#sharedinputdiv {
+
+				position:absolute;
+				z-index:1;
+			}
+
+			#msgdiv {
+				word-break:break-all;
+			}
+			#msgdiv a {
+			}
+
+			#picdiv img {
+				width:80%;
+				margin:10% 10% 0 10%;
+			}
+			#screensavea,#screensavetoservera {
+				display:block;
+				width:100%;
+				height:100%;
+			}
+			#savenotebox {
+				width:100%;
+				height:100%;
+				float:left;
+				background-color:#444444;
+			}
+			#savenotebox div {
+				width:10%;
+				height:10%;
+				float:left;
+				border:solid;
+			}
+			#savenotebox div img {
+				width:100%;
+				
+			}
+			#nusdlistdiv {
+				width:0%;
+				height:100%;
+				float:left;
+			}
+			#indicatePic{
+
+				position:absolute;
+				z-index:2;
+			}
+			#fileinput {
+				width:100%;
+				height:100%;
+			}
+		script(src='/socket.io/socket.io.js')
+		script(type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML")
+		style(rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css")
+
+	body
+		div(id='panel')
+			div(id='numberdisplaydiv')
+				div(id='savenotebox')
+					h2 savednotebox
+				div(id='nusdlist')
+					
+			div(id='optionpanel')
+				div(id='logoutbox')
+					a(href='./') Back
+				//div(id='booktitlebox')
+					//a #
+				div(id='sharepaperonbox' onclick='onSharepaper(1);')
+					a 공유화면 돌아가기
+				div(id='imgpanel')
+				//div(id='chatbox')
+					//div(id='chathistory')
+					//div(id='inputbox')
+						//input(type='text' id='chatmsg')
+						//button(onclick='sendMenteemsg()' id='sendbutton') send
+		div(id='sharepaperondiv')
+
+			div(id='sharepaperbox')
+				div(id='sharecanvasbox')
+					canvas(id='myPics')
+					canvas(id='layerpic')
+					canvas(id='indicatePic')
+					div(id='sharedinputdiv')
+				div(id='sharecanvasoptionbox')
+			
+			div(id='sharepaperoptionbox')
+				form(enctype='multipart/form-data' method='post' id='questionform')
+					input(type='file' name='questionfile' id='fileinput' onchange='checkFile();')
+				//div(id='screensavetoserver')
+					//a(id='screensavetoservera' onclick='screenSaveToServer()')화면저장
+				//div(id='personaloptionbox')
+					//div(id='personaloptionlist')
+						//div(id='savemynotediv')
+							//a(id='notea' onclick='mynoteSave(this.id,"notepic")') Save Note
+						//div(id='clearcanvas')
+							//button(onclick='clearNote()') Clear Note
+
+					//div(id='personaloptiondiv')
+
+
+
+				//div(id='sharepaperoffbox' onclick='onSharepaper(0)')
+					//p 노트보기
+				//div(id='optionbutton')
+					//div(id='screensave')
+						//a(id='screensavea' onclick='screenSave("screensavea","myPics")' )화면 내컴퓨터에 저장하기
+						
+		script.
+			var socket=io('/nusd');
+			var userinfo=!{JSON.stringify(userinfo)};
+
+		
+			var stdwidth=1440;
+			var stdfont=14;
+			var stdpensize=2;
+
+			socket.on('connect',()=>{
+				console.log('connection ready');
+				socket.emit('nusdsocketidregister',{socketid:socket.id,username:userinfo.username,position:0});
+
+			});
+
+
+			function checkFile(){
+				var file=document.getElementById('fileinput');
+				if(file.files.length==0){
+					alert('nofile');
+
+				}else{
+
+					/*
+					var msg='clickToSavePhoto'
+
+					var el = document.createElement("div");
+					el.setAttribute("style","position:absolute;top:10%;left:35%;background-color:white;padding:5% 10%;z-index:6;");
+					el.innerHTML = msg;
+					document.body.appendChild(el);
+
+	
+					
+					formData.append('file',blob,'screen_'+userinfo.username+'_'+Date.now()+'.png');
+
+					
+					function sendFinish(){
+						socket.emit('reloadusernote',{username:userinfo.username});
+						tempAlert('화면이 저장되었습니다.',1000);
+					}
+				
+					xhr.addEventListener('load',sendFinish);
+					
+
+
+
+
+
+					var inputel=document.createElement('input');
+					inputel.type='submit';
+					var formel=document.getElementById('questionform');
+					formel.appendChild(inputel);
+					inputel.click();
+
+					*/
+
+
+					var formData = new FormData();
+					var ext=file.files[0].name.split('.')[file.files[0].name.split('.').length-1];
+					//var fname=userinfo.username+Date.now()+'.'+'png';
+					var fname=userinfo.username+Date.now()+'.'+ext;
+
+
+					var xhr = new XMLHttpRequest();
+					xhr.open('post','/questionxhr',true);
+					//formData.append(fname,file.files[0]);
+
+					const image=file.files[0];
+					const fileType=image.type;
+					loadImage(
+						image,
+						img => {
+
+
+							img.toBlob(blob => {
+								const createdFile = new File([blob],image.name)
+								formData.append(fname,createdFile);
+								xhr.send(formData);
+
+							},fileType);
+							
+						},
+						{orientation:true}
+					);
+					xhr.addEventListener('load',function(){displayPhoto()});
+					
+					function displayPhoto(){
+
+						removeall('sharedinputdiv');
+
+						var picdiv=document.createElement('div');
+						picdiv.id='picdiv';
+						var picdivimg=document.createElement('img');
+						picdivimg.src='/uploadquestion/'+fname;
+						picdiv.appendChild(picdivimg);
+						picdiv.style.padding='0 0 5% 0';
+						sharedinputdiv.appendChild(picdiv);
+
+						//msgdiv.style.cssFloat='left';
+						picdiv.style.cssFloat='left';
+
+						//msgdiv.style.width='60%';
+						picdiv.style.width='40%';
+
+						//msga.style.display='inline-block';
+						//msga.style.padding='5% 0 0 5%';
+
+						socket.emit('sendquestionpictoserver',{picname:fname});
+
+					}
+	
+			
+				}
+			}
+
+			onSharepaper(1);
+			
+	
+			socket.on('tomenteenusd',function(a){// 문제 보낼때
+				if(a.opt==0){
+					var rnumber=a.nusdlist.split(',');
+					var nusdlist=document.getElementById('nusdlist');
+					for(var ia=0; ia<rnumber.length; ia++){
+						var numdiv=document.createElement('div');
+						numdiv.innerHTML=rnumber[ia];
+						nusdlist.appendChild(numdiv);
+					}
+				}else if(a.opt==1){
+				
+						
+					removeall('sharedinputdiv');
+					var msgdiv=document.createElement('div');
+					msgdiv.id='msgdiv';
+					var msga=document.createElement('A');
+					msga.innerHTML=a.prbobj.prb;
+					msga.style.color=environdefine.firstpen[0];
+					msgdiv.appendChild(msga);
+					sharedinputdiv.appendChild(msgdiv);
+
+					var fontfactor=2.5;
+					msga.style.fontSize=(canvaswidth*14/1440)*fontfactor+'px';
+					/*
+					if(widthoriented==0){
+						msga.style.fontSize='3vh';
+					}else{
+						msga.style.fontSize='3vw';
+					}*/
+					//msga.style.fontSize='3vh';
+
+					if(a.prbobj.sendoption==0){
+					}else if(a.prbobj.sendoption==1){
+					}
+
+
+					if(a.prbobj.pic!=null){
+						var picdiv=document.createElement('div');
+						picdiv.id='picdiv';
+						var picdivimg=document.createElement('img');
+						picdivimg.src=a.prbobj.pic;
+						picdiv.appendChild(picdivimg);
+						//picdiv.style.backgroundColor=environdefine.picbackcolor;
+						picdiv.style.padding='0 0 5% 0';
+						sharedinputdiv.appendChild(picdiv);
+
+						msgdiv.style.cssFloat='left';
+						picdiv.style.cssFloat='left';
+
+						msgdiv.style.width='60%';
+						picdiv.style.width='40%';
+
+						msga.style.display='inline-block';
+						msga.style.padding='5% 0 0 5%';
+					}else{
+						msgdiv.style.position='relative';
+						msgdiv.style.top='5%';
+						msgdiv.style.left='5%';
+						msgdiv.style.width='80%';
+					}
+
+					MathJax.Hub.Queue(["Typeset",MathJax.Hub,"sharedinputdiv"])	
+
+
+	
+				}
+					
+			});
+
+
+
+			var gratio=.61804;
+
+			var marginratio=1;
+
+			var tmpwidth=window.innerWidth*marginratio;
+			var tmpheight=tmpwidth*gratio;
+
+
+			
+			if(tmpheight>window.innerHeight){
+				var canvaswidth=window.innerHeight/gratio;
+				var widthoriented=0;
+			}else{
+				var canvaswidth=window.innerWidth*marginratio;
+				var widthoriented=1;
+			}
+			var tm=1;
+
+			var apppensize=(canvaswidth*stdpensize/stdwidth);
+
+			var environdefine={background:['#336633',apppensize*16,'background'],firstpen:['white',apppensize,'firstpen'],secondpen:['#B43104',apppensize,'secondpen'],eraser:{size:apppensize*16,code:'eraser'},layer:{color:'blue',size:apppensize,code:'layer'},layereraser:{size:apppensize*16,code:'layereraser'}, picbackcolor:'#bbbbbb' };
+
+			//indicate Picture
+			var indicatepic=document.getElementById('indicatePic');
+			indicatepic.style.width=canvaswidth+'px';
+			indicatepic.style.height=canvaswidth*gratio+'px';
+			indicatepic.width=canvaswidth*tm;
+			indicatepic.height=gratio*canvaswidth*tm;
+			const indcon=indicatepic.getContext('2d');
+			//indcon.fillRect(0,0,indicatepic.width, indicatepic.height);
+			indicatepic.style.position='absolute';
+			indicatepic.style.zIndex=1.8;
+	
+
+			var notevstat=1;
+
+			function noteVisibility(){
+				var notediv=document.getElementById('personaloptionbox')
+				if(notevstat==1){
+					notediv.style.display='none';
+					notevstat=0;
+				}else if(notevstat==0){
+					notediv.style.display='block';
+					notevstat=1;
+				}
+			}
+	
+
+			/*	
+			//notepic
+			var personaloptiondiv=document.getElementById('personaloptiondiv');
+
+			//var notepic=document.getElementById('notepic');
+			var notepic=document.createElement('canvas');
+			notepic.id='notepic';
+			personaloptiondiv.appendChild(notepic);
+			var notecon=notepic.getContext('2d');
+			var sm=0.6;
+			notepic.width=window.innerWidth*.95;
+			notepic.height=gratio*canvaswidth*sm;
+			notepic.style.width=personaloptiondiv.style.width=window.innerWidth*.95+'px';
+			notepic.style.height=personaloptiondiv.style.height=canvaswidth*gratio*sm+'px';
+
+	
+
+			function clearNote(){
+				notecon.clearRect(0,0,notepic.width, notepic.height);	
+			}
+			var notestat={size:2, color:'black'}
+
+		
+			let noteisDrawing=false;
+			let nx=0;
+			let ny=0;
+
+			//The x and y offset of the canvas from the edge of the page
+			const nrect = notepic.getBoundingClientRect();
+
+			noteVisibility();
+
+		
+			//Add the event listeners for mousedown, mousemove, and mouseup
+			notepic.addEventListener('mousedown',e=>{	
+				nx = e.clientX-nrect.left;
+				ny = e.clientY-nrect.top;
+				noteisDrawing = true;
+			});
+
+			notepic.addEventListener('mousemove',e=>{
+				if(noteisDrawing===true){
+					drawLine(notecon,nx,ny,e.clientX-nrect.left, e.clientY-nrect.top,stat,2);
+					nx = e.clientX - nrect.left;
+					ny = e.clientY - nrect.top;
+					
+				}
+			});
+
+			window.addEventListener('mouseup',e => {
+				if(noteisDrawing === true){
+					drawLine(notecon, nx, ny, e.clientX - nrect.left, e.clientY - nrect.top,stat,2);
+					nx = 0;
+					ny = 0;
+					noteisDrawing = false;
+				}
+			});
+
+
+
+			//touchCanvas
+			var ntouchX, ntouchY;
+			function ngetTouchPos(e) {
+				if (!e)var e = event;
+				if(e.touches) {
+					if (e.touches.length == 1) { // Only deal with one finger
+						var touch = e.touches[0]; // Get the information for finger #1
+						ntouchX=touch.pageX-nrect.left;
+						//ntouchX=touch.pageX-touch.target.offsetLeft;
+						ntouchY=touch.pageY-nrect.top;
+						//ntouchY=touch.pageY-touch.target.offsetTop;
+					}
+				}
+			}
+
+			function nsketchpad_touchStart(){
+				ngetTouchPos();
+				nx=ntouchX;
+				ny=ntouchY;
+				drawLine(notecon, nx, ny, ntouchX, ntouchY,stat,2);
+				event.preventDefault();	
+			}
+
+			function nsketchpad_touchMove(e){
+				ngetTouchPos(e);
+				drawLine(notecon, nx, ny, ntouchX, ntouchY,stat,2);
+				nx=ntouchX;
+				ny=ntouchY;
+				event.preventDefault();	
+			}
+
+			
+			notepic.addEventListener('touchstart',nsketchpad_touchStart, false);
+			notepic.addEventListener('touchmove',nsketchpad_touchMove,false);
+
+
+			*/
+
+
+
+			//shsaredinputdiv
+			var sharedinputdiv=document.getElementById('sharedinputdiv');
+			sharedinputdiv.style.width=canvaswidth+'px';
+			sharedinputdiv.style.height=canvaswidth*gratio+'px';
+			sharedinputdiv.style.backgroundColor=environdefine.background[0];
+
+
+
+			//layerpic
+			const layerpic=document.getElementById('layerpic');
+			layerpic.width=canvaswidth*tm;
+			layerpic.height=gratio*canvaswidth*tm;
+			layerpic.style.width=canvaswidth*tm+'px';
+			layerpic.style.height=gratio*canvaswidth*tm+'px';				
+			const lcon=layerpic.getContext('2d');
+			//lcon.fillStyle=environdefine.background[0];
+			//lcon.fillRect(0,0,layerpic.width, layerpic.height);
+
+
+			// Not style, Canvas should be changed. 	
+			const myPics = document.getElementById('myPics');
+			myPics.width=canvaswidth
+			myPics.height=gratio*canvaswidth
+			myPics.style.width=canvaswidth+'px';
+			myPics.style.height=gratio*canvaswidth+'px';
+			const context = myPics.getContext('2d');
+
+
+			//self
+			let isDrawing = false;
+			let x = 0;
+			let y = 0;
+
+			var stat={color:environdefine.firstpen[0], size:environdefine.firstpen[1],code:environdefine.firstpen[2]};
+
+
+			
+
+			var sharecanvasoptionbox = document.getElementById('sharecanvasoptionbox');
+			var colorbutton=document.createElement('button');
+			colorbutton.id='colordisplay';
+			colorbutton.innerHTML=stat.color;
+			sharecanvasoptionbox.appendChild(colorbutton);
+			
+			var sizebutton=document.createElement('button');
+			sizebutton.id='sizedisplay';
+			sharecanvasoptionbox.appendChild(sizebutton);
+			sizebutton.innerHTML=stat.size;
+
+
+
+
+			//The x and y offset of the canvas from the edge of the page
+			const rect = myPics.getBoundingClientRect();
+
+			//Add the event listeners for mousedown, mousemove, and mouseup
+			myPics.addEventListener('mousedown',e=>{	
+				x = e.clientX-rect.left;
+				y = e.clientY-rect.top;
+				isDrawing = true;
+				socket.emit('menteetomentordraw',{pos:convertToratio(x,y),mousestat:'down'})
+			});
+
+			myPics.addEventListener('mousemove',e=>{
+				if(isDrawing===true){
+					drawLine(context,x,y,e.clientX-rect.left, e.clientY-rect.top,stat,0);
+					x = e.clientX - rect.left;
+					y = e.clientY - rect.top;
+					socket.emit('menteetomentordraw',{pos:convertToratio(x,y),mousestat:'move',statoption:stat})
+				}
+			});
+
+			window.addEventListener('mouseup',e => {
+				if(isDrawing === true){
+					drawLine(context, x, y, e.clientX - rect.left, e.clientY - rect.top,stat,0);
+					x = 0;
+					y = 0;
+					isDrawing = false;
+				}
+			});
+
+
+			function clearLcon(){
+				lcon.clearRect(0,0,layerpic.width, layerpic.height);
+				//lcon.fillStyle=environdefine.background[0];
+				//lcon.fillRect(0,0,layerpic.width, layerpic.height);
+			}
+
+			function drawLine(ctext,x1, y1, x2, y2,vstat,mode){
+				if(mode==0){//user
+					if(stat.code=='eraser'){	
+						ctext.beginPath();
+						ctext.globalCompositeOperation='destination-out';
+						ctext.lineWidth = stat.size;
+						ctext.lineCap='round';
+						ctext.moveTo(x1, y1);
+						ctext.lineTo(x2, y2);
+						ctext.stroke();
+						ctext.closePath();
+
+					}else{
+						ctext.beginPath();
+						ctext.globalCompositeOperation='source-over';
+						ctext.strokeStyle = stat.color;	
+						ctext.lineWidth = stat.size;
+						ctext.lineCap='round';
+						ctext.moveTo(x1, y1);
+						ctext.lineTo(x2, y2);
+						ctext.stroke();
+						ctext.closePath();
+
+					}
+			
+				}else if(mode==1){//tuser,  have to use vstat instead stat
+					if(vstat.code=='eraser'){
+						ctext.beginPath();
+						ctext.globalCompositeOperation='destination-out';
+						ctext.lineWidth=vstat.size;
+						ctext.lineCap='round';
+						ctext.moveTo(x1, y1);
+						ctext.lineTo(x2, y2);
+						ctext.stroke();
+						ctext.closePath();
+
+	
+					}else if(vstat.code=='layer'){
+						ctext.beginPath();
+						ctext.globalCompositeOperation='source-over';
+						ctext.strokeStyle = environdefine[vstat.code].color;
+						ctext.lineWidth=vstat.size;	
+						ctext.moveTo(x1,y1);
+						ctext.lineTo(x2,y2);
+						ctext.lineJoin='round';
+						ctext.lineCap='round';
+						ctext.stroke();
+						ctext.closePath();
+					}else if(vstat.code=='layereraser'){ 
+						console.log('tuser layereraser');
+						ctext.beginPath();
+						ctext.globalCompositeOperation='destination-out';
+						ctext.strokeStyle = vstat.color;
+						ctext.lineWidth = vstat.size;
+						ctext.lineCap = 'round';
+						ctext.lineJoin='round';
+						ctext.moveTo(x1, y1);
+						ctext.lineTo(x2, y2);
+						ctext.stroke();
+						ctext.closePath();
+
+					}else {
+						ctext.beginPath();
+						ctext.globalCompositeOperation='source-over';
+						ctext.strokeStyle = environdefine[vstat.code][0];
+						ctext.lineWidth = vstat.size;
+						ctext.lineCap='round';
+						ctext.moveTo(x1, y1);
+						ctext.lineTo(x2, y2);
+						ctext.stroke();
+						ctext.closePath();
+
+
+					}
+				}else if(mode==2){
+					if(stat.code=='eraser'){	
+						ctext.beginPath();
+						ctext.globalCompositeOperation='destination-out';
+						ctext.lineWidth = 32;
+						ctext.lineWidth = stat.size;
+						ctext.lineCap='round';
+						ctext.moveTo(x1, y1);
+						ctext.lineTo(x2, y2);
+						ctext.stroke();
+						ctext.closePath();
+
+					}else{
+						ctext.beginPath();
+						ctext.globalCompositeOperation='source-over';
+						ctext.strokeStyle = notestat.color;	
+						ctext.lineWidth = notestat.size;
+						ctext.lineCap='round';
+						ctext.moveTo(x1, y1);
+						ctext.lineTo(x2, y2);
+						ctext.stroke();
+						ctext.closePath();
+
+					}
+
+
+				}
+
+			}
+
+			function getRandomInt(min, max) {
+				min = Math.ceil(min);
+				max = Math.floor(max);
+				return Math.floor(Math.random() * (max - min)) + min; //최댓값은 제외, 최솟값은 포함
+			}
+
+			let emojis = [0x1F600, 0x1F601, 0x1F603, 0x1F603, 0x1F604, 0x1F605, 0x1F606,0x1F607, 0x1F609, 0x1F60A, 0x1F642, 0x1F643, 0x1F355, 0x1F354];
+			//copycanvas
+			var prvx=0, prvy=0;
+			socket.on('copypicsofmentor',function(ma){
+				//drawDot(copycontext,ma.pos[0],ma.pos[1]);
+
+
+				var cx=ma.pos[0]*(rect.right-rect.left);
+				var cy=ma.pos[1]*(rect.bottom-rect.top);
+
+				if(ma.statoption.code=='layer' || ma.statoption.code=='layereraser'){
+					var can=lcon;
+				}else{
+					var can=context;
+				}
+				if(ma.mousestat==='move'){
+					drawLine(can,prvx,prvy,cx,cy,ma.statoption,1);
+					prvx = cx;
+					prvy = cy;
+				}else if(ma.mousestat==='up'){
+					//drawLine(can, prvx, prvy,cx,cy,ma.statoption,1);
+					//prvx = 0;
+					//prvy = 0;
+
+
+					indcon.fillStyle='#000000';
+					indcon.font='1vw Arial';
+					indcon.fillText(String.fromCodePoint(emojis[getRandomInt(0,emojis.length)]),prvx,prvy);
+
+					setTimeout(function(){
+						indcon.clearRect(0,0,indicatepic.width,indicatepic.height)
+					},300);
+
+
+				}else if(ma.mousestat==='down'){
+					prvx = cx;
+					prvy = cy;
+					indcon.fillStyle='#000000';
+					indcon.font='1vw Arial';
+					indcon.fillText(String.fromCodePoint(emojis[getRandomInt(0,emojis.length)]),cx,cy);
+					//indcon.fillText('#',cx,cy);
+
+					setTimeout(function(){
+						indcon.clearRect(0,0,indicatepic.width,indicatepic.height)
+					},300);
+
+				}
+			});
+			socket.on('eraseofmentor',function(ma){
+				if(ma.mode==0){
+					context.clearRect(0,0,myPics.width, myPics.height);	
+				}else{
+					clearLcon();
+				}
+			});
+
+			
+			function removeall(elename){
+				var ele=document.getElementById(elename)
+				while(ele.firstChild){
+					ele.removeChild(ele.firstChild);
+				}
+			}
+
+
+			socket.on('chattingtouser',function(a){
+				if(a.chatoption==0){
+					//socket.emit('chattingtoserver',{chatoption:1,chatmsg:a.chatmsg,username:userinfo.username});
+					/*
+					var chathistorydiv=document.getElementById('chathistory');
+					var msgdiv=document.createElement('div');	
+					msgdiv.style.textAlign='left';
+					var msga=document.createElement('A');
+					msga.innerHTML='From Mentor : '+a.chatmsg;
+					msgdiv.appendChild(msga);
+					chathistorydiv.appendChild(msgdiv);*/
+
+					removeall('sharedinputdiv');
+					var msgdiv=document.createElement('div');	
+					var msga=document.createElement('A');
+					msga.innerHTML=a.chatmsg;
+					msga.style.color=environdefine.firstpen[0];
+			
+					var fontfactor=3;
+					msga.style.fontSize=(canvaswidth*14/1440)*fontfactor+'px';
+					msgdiv.appendChild(msga);
+
+					msgdiv.style.padding='5% 0 0 5%';
+
+					sharedinputdiv.appendChild(msgdiv);
+					MathJax.Hub.Queue(["Typeset",MathJax.Hub,"sharedinputdiv"])	
+
+
+
+				}else if(a.chatoption==3){
+					
+					var chathistorydiv=document.getElementById('chathistory');
+					var msgdiv=document.createElement('div');	
+					msgdiv.style.textAlign='right';
+					var msga=document.createElement('A');
+					msga.innerHTML=a.chatmsg;
+					msgdiv.appendChild(msga);
+					chathistorydiv.appendChild(msgdiv);
+								}
+			});
+
+			/*document.getElementById('chatmsg').addEventListener('keydown',function(e){
+				//if(!e){var e=window.event;}
+				//e.preventDefault();
+				if(e.keyCode==13){sendMenteemsg();}
+			},false);*/
+
+			function sendMenteemsg(){
+				var mentormsg=document.getElementById('chatmsg').value;
+				socket.emit('chattingtoserver',{username:userinfo.username,chatoption:2,chatmsg:mentormsg});
+				document.getElementById('chatmsg').value='';
+			}
+
+			function onSharepaper(s) {
+				var shbox=document.getElementById('chatbox');
+				if(s==0){
+					//document.getElementById('sharepaperondiv').style.display='none';
+					document.getElementById('panel').style.zIndex=10;
+					document.getElementById('panel').style.opacity=.9;
+					document.getElementById('panel').style.position='absolute';
+
+				}else if(s==1){
+					document.getElementById('sharepaperondiv').style.display='block';
+					document.getElementById('panel').style.zIndex=1;
+					document.getElementById('panel').style.position='static';
+
+
+					//document.getElementById('').appendChild(shbox);
+				}
+			}
+
+
+
+
+
+
+			//touchCanvas
+			var touchX, touchY;
+			function getTouchPos(e) {
+				if (!e)var e = event;
+				if(e.touches) {
+					if (e.touches.length == 1) { // Only deal with one finger
+						var touch = e.touches[0]; // Get the information for finger #1
+						touchX=touch.pageX-touch.target.offsetLeft;
+						touchY=touch.pageY-touch.target.offsetTop;
+					}
+				}
+			}
+
+
+
+
+
+			function sketchpad_touchStart(){
+				getTouchPos();
+				x=touchX;
+				y=touchY;
+				drawLine(context, x, y, touchX, touchY,stat,0);
+				socket.emit('menteetomentordraw',{pos:convertToratio(x,y),mousestat:'down',statoption:stat})
+				event.preventDefault();	
+			}
+
+			function sketchpad_touchMove(e){
+				getTouchPos(e);
+				
+				drawLine(context, x, y, touchX, touchY,stat,0);
+				x=touchX;
+				y=touchY;
+				socket.emit('menteetomentordraw',{pos:convertToratio(x,y),mousestat:'move',statoption:stat})
+				event.preventDefault();	
+			}
+
+			
+			myPics.addEventListener('touchstart',sketchpad_touchStart, false);
+			myPics.addEventListener('touchmove',sketchpad_touchMove,false);
+
+
+			//convert to Ratio;
+			function convertToratio(rx, ry){
+				var canvaswt=rect.right-rect.left;
+				var canvashg=rect.bottom-rect.top;
+				var nx=rx/canvaswt;
+				var ny=ry/canvashg;
+				
+				return [nx,ny];
+			}
+				
+			//SHORT CUT KEY
+			document.onkeydown = function(e){
+				if(e.shiftKey && e.which==32){//first pen Shift+Space
+					stat.color=environdefine.firstpen[0];
+					stat.size=environdefine.firstpen[1];
+					stat.code=environdefine.firstpen[2];
+				}else if(e.shiftKey && e.which==81){//eraser; Shift + Q 
+					stat.color='';
+					stat.size=environdefine.eraser.size;
+					stat.code=environdefine.eraser.code;
+				}else if(e.shiftKey && e.which==82){ //second Key: Shift + R
+					stat.color=environdefine.secondpen[0];
+					stat.size=environdefine.secondpen[1];
+					stat.code=environdefine.secondpen[2];
+
+				}else if(e.shiftKey && e.which==69){ // 
+					//clearCanvas(); // Block in Mentee's area afraiding mistkaen erasing. 
+				}else if(e.shiftKey && e.which==187){
+					stat.size=stat.size*2;
+				}else if(e.shiftKey && e.which==189){
+					stat.size=stat.size*(.5);
+				}else if(e.shiftKey && e.which==78){
+					noteVisibility();
+				} 
+				document.getElementById('sizedisplay').innerHTML=stat.size;
+				document.getElementById('colordisplay').innerHTML=stat.color;
+			}
+
+			function b64ToUnit8Array(b64Image){
+					var img = atob(b64Image.split(',')[1]);	
+					var img_buffer=[];
+					var i=0;
+					while(i<img.length){
+						img_buffer.push(img.charCodeAt(i));
+						i++;
+					}
+					return new Uint8Array(img_buffer);
+			}
+
+			socket.on('sendusernote',function(a){
+				var savenotebox=document.getElementById('savenotebox');
+				removeall('savenotebox');
+				for(var ia=0; ia<a.a.length; ia++){
+					var sndiv=document.createElement('div');
+					sndiv.className='sndiv';
+					sndiv.onclick=function(i,j){return function(){loadImg(i,j)}}(a.a[ia].imgaddr,a.a[ia].unote);
+					var sndivimg=document.createElement('img');
+					sndivimg.src=a.a[ia].imgaddr;
+					sndiv.appendChild(sndivimg);
+					savenotebox.appendChild(sndiv);
+
+				}
+		
+			});
+			function callUsernote(){
+				socket.emit('reloadusernote',{username:userinfo.username});
+			}
+			callUsernote();
+			function loadImg(imgsrc,imgtxt){
+				var imgpanel=document.getElementById('imgpanel');
+				removeall('imgpanel');
+				var imgdiv=document.createElement('div');
+				var rimg=document.createElement('img');
+				rimg.src=imgsrc;
+				rimg.style.width='100%';
+				imgdiv.appendChild(rimg);
+				imgdiv.onclick=function(){
+					var chk=document.getElementById('optionpanel').style.width;
+					if(chk==''){
+						document.getElementById('optionpanel').style.width='60%';
+						document.getElementById('numberdisplaydiv').style.width='39%';
+					}else{
+						document.getElementById('optionpanel').style.width='';
+						document.getElementById('numberdisplaydiv').style.width='';
+					}
+				}
+
+				var imgtxtdiv=document.createElement('div');	
+				var rimgtxt=document.createElement('textarea');
+				rimgtxt.value=imgtxt;
+
+				var imgoptiondiv=document.createElement('div');
+
+				imgpanel.appendChild(imgdiv);
+				imgpanel.appendChild(imgtxtdiv);
+				imgpanel.appendChild(imgoptiondiv);
+			}
+			function screenSaveToServer(){
+				var sharediv=document.getElementById('sharedinputdiv');
+				var can3=document.createElement('canvas');
+				var ctx3=can3.getContext('2d');
+				can3.width=canvaswidth
+				can3.height=gratio*canvaswidth
+				can3.style.width=canvaswidth+'px';
+				can3.style.height=gratio*canvaswidth+'px';
+
+				html2canvas(sharediv).then(function(sharei){
+					
+					ctx3.drawImage(sharei,0,0);
+					ctx3.drawImage(layerpic,0,0);
+					ctx3.drawImage(myPics,0,0);
+
+					var b64Image=can3.toDataURL('image/png');
+					var blob = dataURItoBlob(b64Image);
+	
+					var formData = new FormData();
+					
+					formData.append('file',blob,'screen_'+userinfo.username+'_'+Date.now()+'.png');
+					formData.append('username',userinfo.username);
+
+					
+					function sendFinish(){
+						socket.emit('reloadusernote',{username:userinfo.username});
+						tempAlert('화면이 저장되었습니다.',1000);
+					}
+				
+					var xhr = new XMLHttpRequest();
+					xhr.addEventListener('load',sendFinish);
+					
+
+					xhr.open('post','/xhr',true);
+					xhr.send(formData);
+
+				});
+
+
+
+
+			
+				function dataURItoBlob(dataURI){
+					var byteString = atob(dataURI.split(',')[1]);
+					var mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0]
+
+					var ab = new ArrayBuffer(byteString.length);
+					var ia = new Uint8Array(ab);
+					for(var i=0; i<byteString.length; i++){
+						ia[i] = byteString.charCodeAt(i);
+					}
+					var bb = new Blob([ab],{'type':mimeString});
+					return bb;
+				}	
+
+
+			}
+			function screenSave(aid,canvid){
+
+				var sharediv=document.getElementById('sharedinputdiv');
+				//sharediv.style.backgroundColor=environdefine.background[0];
+				html2canvas(sharediv).then(function(sharei){
+					var screensavea=document.createElement('A');
+					var can3=document.createElement('canvas');
+					var ctx3=can3.getContext('2d');
+				
+
+					can3.width=canvaswidth
+					can3.height=gratio*canvaswidth
+					can3.style.width=canvaswidth+'px';
+					can3.style.height=gratio*canvaswidth+'px';
+
+
+					ctx3.drawImage(layerpic,0,0);
+					ctx3.drawImage(sharei,0,0);
+					ctx3.drawImage(myPics,0,0);
+
+					/*
+					screensavea.download=userinfo.username+'_'+Date.now()+'.png';
+				
+					screensavea.href=can3.toDataURL('image/png');
+					screensavea.click();*/
+					
+					
+
+				});
+			}
+			function mynoteSave(aid,canvid){
+				/*var screensavea=document.getElementById(aid);
+				screensavea.download=userinfo.username+'_'+Date.now()+'.png';
+				screensavea.href=canvasid.toDataURL();*/
+
+				var can3=document.getElementById(canvid);
+				var b64Image=can3.toDataURL('image/png');
+				var blob = dataURItoBlob(b64Image);
+
+				var formData = new FormData();
+				
+				formData.append('file',blob,'screen_'+userinfo.username+'_'+Date.now()+'.png');
+				formData.append('username',userinfo.username);
+
+				
+				function sendFinish(){
+					socket.emit('reloadusernote',{username:userinfo.username});
+					tempAlert('화면이 저장되었습니다.',1000);
+				}
+			
+				var xhr = new XMLHttpRequest();
+				xhr.addEventListener('load',sendFinish);
+				
+
+				xhr.open('post','/xhr',true);
+				xhr.send(formData);
+
+
+				function dataURItoBlob(dataURI){
+					var byteString = atob(dataURI.split(',')[1]);
+					var mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0]
+
+					var ab = new ArrayBuffer(byteString.length);
+					var ia = new Uint8Array(ab);
+					for(var i=0; i<byteString.length; i++){
+						ia[i] = byteString.charCodeAt(i);
+					}
+					var bb = new Blob([ab],{'type':mimeString});
+					return bb;
+				}	
+
+
+			}
+			function tempAlert(msg,duration){
+				var el = document.createElement("div");
+				el.setAttribute("style","position:absolute;top:10%;left:35%;background-color:white;padding:5% 10%;z-index:6;");
+				el.innerHTML = msg;
+				setTimeout(function(){
+					el.parentNode.removeChild(el);
+				},duration);
+				document.body.appendChild(el);
+			}
+
+
+

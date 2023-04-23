@@ -1,0 +1,1051 @@
+html
+	head
+		script(src='/socket.io/socket.io.js')
+		script(src='/util/psre/psreassign.js')
+		script(type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML")
+		link(rel="stylesheet",href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css")
+		script(src="https://code.jquery.com/jquery-1.12.4.js")
+		script(src="https://code.jquery.com/ui/1.12.1/jquery-ui.js")
+		style.
+			#stdlist {
+				width:5%;
+				float:left;
+				height:100%;
+				overflow:auto;
+			}
+			#classperiod {
+				width:20%;
+				float:left;
+				height:100%;
+				overflow:auto;
+			}
+			#prbdisplay {
+				width:25%;
+				float:left;
+				height:100%;
+				overflow:auto;
+			}
+			.classweek {
+				width:100%;
+				height:20%;
+			}
+			.days {
+				width:12%;
+				height:98%;
+				float:left;
+				text-align:center;
+			}
+			.weekdate {
+				border:1px dotted black;
+			}
+			.prbdetail {			
+				width:100%;
+				height:70%;
+				overflow:auto;
+				font-size:.3em;
+			}
+
+			#prbdrawer {
+				width:100%;
+				height:100%;
+			}
+			.prbbox {
+				width:80%;
+				padding:5% 8%;
+				border: 1px solid black;
+				margin:2% 0;
+				
+			}
+			.prbpicdiv {
+				width:80%;
+			}	
+			.prbpicdiv img {
+				width:100%;
+			}
+
+
+			#writinglist {	
+				width:50%;
+				float:left;
+				height:100%;
+				overflow:auto;
+
+			}
+			#headlist{
+				width:100%;
+				
+			}
+			#writingdetail {
+				width:100%;
+			}
+			#headlist div, .slot div, #timepickup div{
+				display:inline-block;
+				width:19%;
+				border:black solid 1px;
+			}
+			#timepickup div input, .slot div input{
+				width:100%;
+			}
+			#timepickup {
+				margin:3% 0 2% 0;
+			}
+			.slot {
+				margin:1% 0;
+			}
+
+
+	body
+		div(id='writinglist')
+			div(id='headlist')
+			div(id='timepickup')
+				div
+					input(type='text', id='applieddate', placeholder='insert date')
+				div
+					input(type='text', id='teachingplan')
+				div
+					input(type='text', id='teachingresult')
+				div
+					input(type='text', id='note')
+				div
+					button(onclick='manageData("insert")') click
+
+			div(id='writingdetail')
+
+		div(id='prbdisplay')
+		div(id='classperiod')
+		div(id='stdlist')
+		
+		script.
+			var userinfo=!{JSON.stringify(userinfo)}
+			var socket = io('/vdrg');
+			socket.on('connect',()=>{
+				console.log('mmcp connection ready');
+			});
+
+
+
+			$(function (){
+				$("#applieddate").datepicker();
+			});
+			$.datepicker.setDefaults({
+				dateFormat:'yy-mm-dd'
+			});
+
+			var headlist=['applieddate','teachingplan','teachingresult','note']
+			var cps=!{JSON.stringify(cps)}
+
+
+			function checkR1IncludeList(prbid,cptset){
+				var includeList=[];
+				for(var ia=0; ia<cptset.length; ia++){
+					var plist=cptset[ia].prblist.split(',');
+					var chk=0; 
+					for(var ib=0; ib<plist.length; ib++){
+						if(plist[ib]==prbid){
+							chk=1;
+							break;
+						}
+					}
+					if(chk==1){
+						includeList.push((cptset[ia].r2order+1)+'# '+cptset[ia].r2listinfo+' #'+(cptset[ia].r1order+1)+'# '+cptset[ia].listinfo)
+					}
+				}
+
+				var msg=''
+				for(var ic=0; ic<includeList.length; ic++){
+					msg=msg+includeList[ic]+'<br>';
+				}
+				tempAlert(msg,3000,['purple','white']);				
+				
+			}
+
+
+
+			function manageData(mode,numid){
+			
+				if(mode=='insert'){
+					var textlist=[];
+					for(let v of headlist){
+						textlist.push(document.getElementById(v).value);
+					
+					}
+					var count=0;
+					for(var ia=0; ia<textlist.length; ia++){
+					
+						if(textlist[ia]!=""){
+							count++;
+						}
+					}
+					if(count >= 2 && chosenusername!=''){
+						for(let v of headlist){
+						
+							document.getElementById(v).value='';
+						
+						}
+
+						socket.emit('managedata',{applieddate:textlist[0],teachingplan:textlist[1], teachingresult:textlist[2],note:textlist[3], studentid:chosenusername,teacherid:userinfo.username,mode:mode});
+					}else{
+						alert('insert something or choose username');
+					}
+				}else if(mode=='update'){
+					var textlist=[];
+					for(let v of headlist){
+						textlist.push(document.getElementById('update'+v+numid).value);
+					
+					}
+					console.log(textlist);	
+					var count=0;
+					for(var ia=0; ia<textlist.length; ia++){
+					
+						if(textlist[ia]!=""){
+							count++;
+						}
+					}
+					if(count >= 2 && chosenusername!=''){
+						for(let v of headlist){
+						
+							document.getElementById(v).value='';
+						
+						}
+
+						socket.emit('managedata',{applieddate:textlist[0],teachingplan:textlist[1], teachingresult:textlist[2],note:textlist[3], studentid:chosenusername,teacherid:userinfo.username,mode:mode,numid:numid});
+					}else{
+						alert('insert something or choose username');
+					}
+
+				}
+			}
+
+			socket.on('managedataafter',function(a){
+				callGetdata(chosenusername)
+			});
+
+			function callGetdata(studentid){
+				socket.emit('studentinfogetdata',{teacherid:userinfo.username,studentid:studentid});	
+			}
+
+
+			var fdiv=document.getElementById('headlist');
+			for(var ia=0; ia<headlist.length; ia++){
+				var sdiv=document.createElement('div');
+				var sdiva=document.createElement('a');	
+				sdiva.innerHTML=headlist[ia];
+				sdiv.appendChild(sdiva);
+				fdiv.appendChild(sdiv);
+			}
+
+
+
+			function readyEdit(udiv,numid){
+				//restore
+				var slotedit=document.getElementById('slotedit');
+				if(slotedit){
+					var fdiv=document.createElement('div');
+					fdiv.className='slot';
+					for(var ia=0; ia<slotedit.childNodes.length-1; ia++){
+
+						var sdiv=document.createElement('div');
+						var sdiva=document.createElement('a');
+						sdiva.innerHTML=slotedit.childNodes[ia].childNodes[0].value;
+
+						if(ia==0){
+							//sdivi.id='updateapplieddate'+numid;
+						}
+						sdiv.appendChild(sdiva);
+						fdiv.appendChild(sdiv);
+					}
+					fdiv.onclick=function(i,k){
+						return function(){
+							readyEdit(i,k)
+						}
+					}(fdiv,slotedit.getAttribute('data-numid'));
+					fdiv.id='slot'+slotedit.getAttribute('data-numid');
+					fdiv.setAttribute('data-numid',slotedit.getAttribute('data-numid'));
+					slotedit.parentNode.insertBefore(fdiv,slotedit)
+					slotedit.remove();
+
+					
+				}
+
+
+				var fdiv=document.createElement('div');
+				var dataset=[];
+
+				for(var ia=0; ia<udiv.childNodes.length; ia++){
+					dataset.push(udiv.childNodes[ia].childNodes[0].innerHTML);
+
+					var sdiv=document.createElement('div');
+					var sdivi=document.createElement('input');
+					sdivi.type='text';
+					sdivi.value=udiv.childNodes[ia].childNodes[0].innerHTML;
+					sdivi.id='update'+headlist[ia]+numid;
+
+					if(ia==0){
+						sdivi.id='updateapplieddate'+numid;
+					}
+					sdiv.appendChild(sdivi);
+					fdiv.appendChild(sdiv);
+				}
+
+
+				fdiv.className='slot';
+				fdiv.id='slotedit';
+				fdiv.setAttribute('data-numid',numid)
+				udiv.parentNode.insertBefore(fdiv,udiv)
+				udiv.remove();
+
+				$("#updateapplieddate"+numid).datepicker();
+
+				var fbutton=document.createElement('button');
+				fbutton.innerHTML='click';
+				fbutton.onclick=function(k){	
+					return function(){
+						manageData('update',k)
+					}
+				}(numid);
+				fdiv.appendChild(fbutton);
+
+			}
+			socket.on('studentinfogetdataafter',function(a){
+
+				removeallele('writingdetail')
+				var qdiv=document.getElementById('writingdetail');
+				for(var ia=0; ia<a.a.length; ia++){
+					var udiv=document.createElement('div');
+					udiv.className='slot';
+					udiv.id='slot'+a.a[ia].numid;
+					for(let k of headlist){
+						var chk=0;
+						for(let p in a.a[ia]){
+							if(p==k){
+								chk=1;
+								break;
+							}
+						}
+						if(chk==1){
+							var sdiv=document.createElement('div');
+							var sdiva=document.createElement('a');	
+							sdiva.innerHTML=a.a[ia][k];
+							sdiv.appendChild(sdiva);
+							udiv.appendChild(sdiv);
+							
+						}
+					}
+
+					udiv.setAttribute('data-numid',a.a[ia].numid)
+					udiv.onclick=function(i,k){
+						return function(){
+							readyEdit(i,k);
+						}
+					}(udiv,a.a[ia].numid);
+					qdiv.appendChild(udiv);
+				}
+	
+			});
+			
+
+
+
+			function removeallele(elename){
+				var ele=document.getElementById(elename)
+				while(ele.firstChild){
+					ele.removeChild(ele.firstChild);
+				}
+			}
+
+
+			function toDate(b){
+				let fullyear = b.getFullYear();
+				let month = b.getMonth()+1;
+				let day = b.getDate();
+				return fullyear+'-'+month+'-'+day;
+			}
+			var duringtime=30;
+			function calluserclasshistory(username){
+				socket.emit('showuserhistoryprbdisplay',{time:duringtime,username:username})
+			}
+
+			function clabExcute(){
+				var clab=document.getElementsByClassName('evalresultdiv');
+				for(var ia=0; ia<clab.length; ia++){
+					for(ib=0; ib<clab[ia].childNodes.length; ib++){
+						if(clab[ia].childNodes[ib].style.border!=''){
+							console.log('yes');
+						}else{
+							console.log('no');
+						}
+					}
+				}
+
+
+				var di=document.getElementsByClassName('directeval_install');
+				for(var ia=0; ia<di.length; ia++){
+					for(ib=0; ib<di[ia].childNodes.length; ib++){
+						if(di[ia].childNodes[ib].style.border!=''){
+							console.log('yes');
+						}else{
+							console.log('no');
+						}
+					}
+				}
+
+			}
+			function displayPrb(prbset,opt){
+				removeallele('prbdisplay');
+				var prbdrawer=document.createElement('div');
+				prbdrawer.id='prbdrawer';
+
+
+				var evalbuttondiv=document.createElement('div');
+				var evalbutton=document.createElement('button');
+				evalbutton.onclick=function(){
+					displayPrb(prbset,1);
+				}
+
+				var clabbuttondiv=document.createElement('div');
+				var clabbutton=document.createElement('button');
+				clabbutton.innerHTML='clab';
+				clabbutton.onclick=function(){
+					return function(){
+						clabExcute();
+					}
+				}();
+				clabbuttondiv.appendChild(clabbutton);
+
+				evalbutton.innerHTML='Evaluation mode';
+				evalbuttondiv.appendChild(evalbutton);
+				prbdrawer.appendChild(evalbuttondiv);
+				//prbdrawer.appendChild(clabbuttondiv);
+
+
+
+				var solveobj=[];
+
+
+				for(var ia=0; ia<prbset.length; ia++){
+
+				
+
+				
+					var pdrawer=prbdrawer.childNodes;
+					var chk1=0; //preventing duplicated problem display
+					for(var ic=0; ic<pdrawer.length; ic++){
+						if(pdrawer[ic].id=='box'+prbset[ia][0][0]+prbset[ia][2]){
+							chk1=1;
+							break;
+						}
+					}
+
+					if(opt!=1){
+						chk1=0;
+					}
+
+					if(chk1 != 1){
+						var prbbox=document.createElement('div');
+						prbbox.id='box'+prbset[ia][0][0]+prbset[ia][2];
+						prbbox.className='prbbox';
+
+						var prbcontent=document.createElement('div');
+						prbcontent.className='prbcontent';
+						var prbcontenta=document.createElement('a');
+						prbcontenta.innerHTML=prbset[ia][0][1];
+						prbcontent.appendChild(prbcontenta);
+
+						
+						prbbox.appendChild(prbcontent);
+
+
+						if(prbset[ia][0][8]!=null){
+							var prbpicdiv=document.createElement('div');
+							prbpicdiv.className='prbpicdiv';
+							var prbpic=document.createElement('img')
+							prbpic.src=prbset[ia][0][8];
+
+							prbpicdiv.appendChild(prbpic);
+							prbbox.appendChild(prbpicdiv);
+						}
+
+
+
+			
+
+						if(prbset[ia][2]=='instructprb'){
+							var prbevaluation=document.createElement('div');
+							prbevaluation.style.backgroundColor='#C9B3E1'
+		
+							prbevaluation.id='eval'+prbset[ia][1];
+							if(opt==1){  // opt1 is evaluation allowed
+								prbbox.appendChild(directEval_install(prbevaluation,prbset[ia][0][0],userinfo.username,chosenusername,prbset[ia][1]));
+							}
+
+							var prbchoicebox=document.createElement('div');
+							var prbchoice1=document.createElement('div');
+							prbchoice1.innerHTML=prbset[ia][0][4];
+							var prbchoice2=document.createElement('div');
+							prbchoice2.innerHTML=prbset[ia][0][5];
+							var prbchoice3=document.createElement('div');
+							prbchoice3.innerHTML=prbset[ia][0][6];
+							var prbchoiceans=document.createElement('div');
+							prbchoiceans.innerHTML=prbset[ia][0][2];
+
+							prbchoicebox.appendChild(prbchoice1);
+							prbchoicebox.appendChild(prbchoice2);
+							prbchoicebox.appendChild(prbchoice3);
+							prbchoicebox.appendChild(prbchoiceans);
+							prbbox.appendChild(prbchoicebox);
+
+
+							prbchoicebox.onclick=function(i){
+								return function(){	
+									checkR1IncludeList(i,cps);
+								}
+							}(prbset[ia][0][0]);
+
+
+
+
+
+							prbdrawer.appendChild(prbbox);
+						}else if(prbset[ia][2]=='sharehwresult' || prbset[ia][2]=='prbsolve' || prbset[ia][2]=='sharewrssresult' || prbset[ia][2]=='shareglresult'){
+							var prbpicdiv=document.createElement('div');
+							prbpicdiv.className='prbpicdiv';
+							prbpicdiv.id='img'+prbset[ia][3];
+							var prbpic=document.createElement('img')
+							if(prbset[ia][2]=='prbsolve' || prbset[ia][2]=='sharewrssresult'){
+								prbpic.src='/usernote/wrsswritingpic/'+prbset[ia][3];
+							}else{
+								prbpic.src='/usernote/mmcphomework/'+prbset[ia][3];
+							}
+
+							var chk=0;
+							for(var ic=0; ic<solveobj.length; ic++){
+								if(solveobj[ic].solvepic==prbset[ia][3]){
+									chk=1;
+									break;
+								}
+								
+							}
+							if(chk==0){
+								solveobj.push({prbid:prbset[ia][0][0],solvepic:prbset[ia][3],evalresult:''});
+								prbpicdiv.appendChild(prbpic);
+								prbbox.appendChild(prbpicdiv);
+
+
+								var prbchoicebox=document.createElement('div');
+								var prbchoice1=document.createElement('div');
+								prbchoice1.innerHTML=prbset[ia][0][4];
+								var prbchoice2=document.createElement('div');
+								prbchoice2.innerHTML=prbset[ia][0][5];
+								var prbchoice3=document.createElement('div');
+								prbchoice3.innerHTML=prbset[ia][0][6];
+								var prbchoiceans=document.createElement('div');
+								prbchoiceans.innerHTML=prbset[ia][0][2];
+
+								prbchoicebox.appendChild(prbchoice1);
+								prbchoicebox.appendChild(prbchoice2);
+								prbchoicebox.appendChild(prbchoice3);
+								prbchoicebox.appendChild(prbchoiceans);
+								prbbox.appendChild(prbchoicebox);
+
+	
+								prbchoicebox.onclick=function(i){
+									return function(){	
+										checkR1IncludeList(i,cps);
+									}
+								}(prbset[ia][0][0]);
+
+								prbdrawer.appendChild(prbbox);
+
+							}
+
+
+							//var prbevaluation=document.createElement('div');
+							//prbevaluation.style.backgroundColor='#C9F3E1'
+		
+							//prbevaluation.id='eval'+prbset[ia][0][0];
+							//prbbox.appendChild(directEval_install(prbevaluation,prbset[ia][0][0],userinfo.username,chosenusername,prbset[ia][1]));
+
+
+						}else{
+							console.log('err', prbset[ia][2]);
+						}
+
+
+
+					}else{
+					}
+
+				}
+				
+				var prbdisplay=document.getElementById('prbdisplay')
+				prbdisplay.appendChild(prbdrawer);
+				if(opt==1){  // opt1 is evaluation allowed
+					assignFunc(solveobj,'img',0,userinfo.username,'',chosenusername)
+				}
+				realtimeEqualizer(userinfo.username,chosenusername,10000,'eval','directeval_install');
+				realtimeEqualizer(userinfo.username,chosenusername,10000,'img','hw');
+
+				MathJax.Hub.Queue(["Typeset",MathJax.Hub,prbdisplay]);
+			}
+			socket.on('showuserhistoryprbdisplayafter',function(a){
+				removeallele('classperiod');
+				removeallele('prbdisplay');
+
+
+				var dateref=new Date('2020-01-06').getTime()/1000/60/60/24; //monday start
+				//don't know about the reason but, the date indicate sunday but dateref indicate monday. so there is difference the written date and result date code. 
+				var dateoftoday=Math.floor(new Date().getTime()/1000/60/60/24);
+
+
+				if(a.plist.length!=0){
+					var fday=new Date(a.plist[0][4].split(' ')[0])
+					var dateoffirstpic=Math.floor(fday.getTime()/1000/60/60/24);
+				}else{
+					var dateoffirstpic=dateoftoday
+				}
+				var weekofhbegin=dateoffirstpic-(dateoffirstpic-dateref)%7;
+					
+				var weekofprocessing=weekofhbegin;
+
+				var class7data=[];
+				var num=1;
+
+				var test=0;
+				var stmaxmin=0;
+				while(weekofprocessing <= dateoftoday){
+					var begindate=new Date(weekofprocessing*1000*3600*24);
+					class7data.push({num:num, date:toDate(begindate),classdays:{mon:[],tue:[],wed:[],thu:[],fri:[],sat:[],sun:[]}})
+					for(var ia=0; ia<a.plist.length; ia++){
+						var odate=new Date(a.plist[ia][4].split(' ')[0]);
+						var dateofclass=Math.floor(odate.getTime()/1000/60/60/24);
+
+						if(weekofprocessing <= dateofclass && dateofclass< weekofprocessing+7){
+							var dayofclass=odate.getDay();
+							if(dayofclass==1){
+								class7data[class7data.length-1].classdays.mon.push({prb:a.plist[ia][0],instructkind:a.plist[ia][2],date:a.plist[ia][4],numid:a.plist[ia][6],cptinfo:a.plist[ia][5]})
+							}else if(dayofclass==2){
+								class7data[class7data.length-1].classdays.tue.push({prb:a.plist[ia][0],instructkind:a.plist[ia][2],date:a.plist[ia][4],numid:a.plist[ia][6],cptinfo:a.plist[ia][5]})
+							}else if(dayofclass==3){
+								class7data[class7data.length-1].classdays.wed.push({prb:a.plist[ia][0],instructkind:a.plist[ia][2],date:a.plist[ia][4],numid:a.plist[ia][6],cptinfo:a.plist[ia][5]})
+							}else if(dayofclass==4){
+								class7data[class7data.length-1].classdays.thu.push({prb:a.plist[ia][0],instructkind:a.plist[ia][2],date:a.plist[ia][4],numid:a.plist[ia][6],cptinfo:a.plist[ia][5]})
+							}else if(dayofclass==5){
+								class7data[class7data.length-1].classdays.fri.push({prb:a.plist[ia][0],instructkind:a.plist[ia][2],date:a.plist[ia][4],numid:a.plist[ia][6],cptinfo:a.plist[ia][5]})
+							}else if(dayofclass==6){
+								class7data[class7data.length-1].classdays.sat.push({prb:a.plist[ia][0],instructkind:a.plist[ia][2],date:a.plist[ia][4],numid:a.plist[ia][6],cptinfo:a.plist[ia][5]})
+							}else if(dayofclass==0){
+								class7data[class7data.length-1].classdays.sun.push({prb:a.plist[ia][0],instructkind:a.plist[ia][2],date:a.plist[ia][4],numid:a.plist[ia][6],cptinfo:a.plist[ia][5]})
+							}
+						}
+			
+
+					}
+					weekofprocessing=weekofprocessing+7;
+					num+=1;
+					test+=1;
+					if(test>10000){
+						console.log('infinite error');
+						break;
+					}
+
+				}
+
+				var classperiod=document.getElementById('classperiod');
+				for(var ia=class7data.length-1; ia >= 0; ia--){
+					var classweek=document.createElement('div');
+					classweek.className='classweek';
+				
+
+					var date=document.createElement('div');
+					date.className='days';
+					date.style.border='1px solid black';
+					var datea=document.createElement('a');
+					datea.innerHTML=class7data[ia].date;
+					date.appendChild(datea);
+					classweek.appendChild(date);
+					
+	
+					var day1=document.createElement('div');
+					day1.className='days';
+
+					var day1instruct=document.createElement('div');
+						
+					var day1instructa=document.createElement('a');
+					day1instructa.innerHTML=class7data[ia].classdays.mon.length;
+					day1instruct.appendChild(day1instructa);
+					day1.appendChild(day1instruct);
+
+					
+					var prbdetail1=document.createElement('div');
+					prbdetail1.className='prbdetail';
+					var prblistday1=[];
+					for(var ib=0; ib<class7data[ia].classdays.mon.length; ib++){
+						var fdiv=document.createElement('div');
+						var fdiva=document.createElement('a');
+						fdiva.innerHTML=class7data[ia].classdays.mon[ib].date;
+						fdiv.appendChild(fdiva);
+						prbdetail1.appendChild(fdiv);
+						prblistday1.push([class7data[ia].classdays.mon[ib].prb,class7data[ia].classdays.mon[ib].numid,class7data[ia].classdays.mon[ib].instructkind,class7data[ia].classdays.mon[ib].cptinfo]);
+					}
+
+					day1instruct.onclick=function(i){
+						return function(){
+							displayPrb(i,0);
+						}
+					}(prblistday1)
+					day1.appendChild(prbdetail1);
+					classweek.appendChild(day1);
+
+
+
+					var day2=document.createElement('div');
+					day2.className='days';
+					var day2instruct=document.createElement('div');
+					var day2instructa=document.createElement('a');
+					day2instructa.innerHTML=class7data[ia].classdays.tue.length;
+					day2instruct.appendChild(day2instructa);
+					day2.appendChild(day2instruct);
+
+					var prblistday2=[];
+					var prbdetail2=document.createElement('div');
+					prbdetail2.className='prbdetail';
+					for(var ib=0; ib<class7data[ia].classdays.tue.length; ib++){
+						var fdiv=document.createElement('div');
+						var fdiva=document.createElement('a');
+						fdiva.innerHTML=class7data[ia].classdays.tue[ib].date;
+						fdiv.appendChild(fdiva);
+						prbdetail2.appendChild(fdiv);
+						//prblistday2.push(class7data[ia].classdays.tue[ib].prb);
+						prblistday2.push([class7data[ia].classdays.tue[ib].prb,class7data[ia].classdays.tue[ib].numid,class7data[ia].classdays.tue[ib].instructkind,class7data[ia].classdays.tue[ib].cptinfo]);
+					}
+					day2.appendChild(prbdetail2);
+					classweek.appendChild(day2);
+
+					day2instruct.onclick=function(i){
+						return function(){
+							displayPrb(i,0);
+						}
+					}(prblistday2)
+					day2.appendChild(prbdetail2);
+
+
+
+
+
+
+					var day3=document.createElement('div');
+					day3.className='days';
+					var day3instruct=document.createElement('div');
+					var day3instructa=document.createElement('a');
+					day3instructa.innerHTML=class7data[ia].classdays.wed.length;
+					day3instruct.appendChild(day3instructa);
+					day3.appendChild(day3instruct);
+					//classweek.appendChild(day3);
+					var prblistday3=[];
+
+					var prbdetail3=document.createElement('div');
+					prbdetail3.className='prbdetail';
+					for(var ib=0; ib<class7data[ia].classdays.wed.length; ib++){
+						var fdiv=document.createElement('div');
+						var fdiva=document.createElement('a');
+						fdiva.innerHTML=class7data[ia].classdays.wed[ib].date;
+						fdiv.appendChild(fdiva);
+						prbdetail3.appendChild(fdiv);
+						//prblistday3.push(class7data[ia].classdays.wed[ib].prb);
+						prblistday3.push([class7data[ia].classdays.wed[ib].prb,class7data[ia].classdays.wed[ib].numid,class7data[ia].classdays.wed[ib].instructkind,class7data[ia].classdays.wed[ib].cptinfo]);
+					}
+					day3.appendChild(prbdetail3);
+					classweek.appendChild(day3);
+
+					day3instruct.onclick=function(i){
+						return function(){
+							displayPrb(i,0);
+						}
+					}(prblistday3)
+					day3.appendChild(prbdetail3);
+
+
+
+
+
+
+					var day4=document.createElement('div');
+					day4.className='days';
+					var day4instruct=document.createElement('div');
+					var day4instructa=document.createElement('a');
+					day4instructa.innerHTML=class7data[ia].classdays.thu.length;
+					day4instruct.appendChild(day4instructa);
+					day4.appendChild(day4instruct);
+					//classweek.appendChild(day4);
+
+					var prblistday4=[];
+					var prbdetail4=document.createElement('div');
+					prbdetail4.className='prbdetail';
+					for(var ib=0; ib<class7data[ia].classdays.thu.length; ib++){
+						var fdiv=document.createElement('div');
+						var fdiva=document.createElement('a');
+						fdiva.innerHTML=class7data[ia].classdays.thu[ib].date;
+						fdiv.appendChild(fdiva);
+						prbdetail4.appendChild(fdiv);
+						//prblistday4.push(class7data[ia].classdays.thu[ib].prb);
+						prblistday4.push([class7data[ia].classdays.thu[ib].prb,class7data[ia].classdays.thu[ib].numid,class7data[ia].classdays.thu[ib].instructkind,class7data[ia].classdays.thu[ib].cptinfo]);
+					}
+					day4.appendChild(prbdetail4);
+					classweek.appendChild(day4);
+
+					day4instruct.onclick=function(i){
+						return function(){
+							displayPrb(i,0);
+						}
+					}(prblistday4)
+					day4.appendChild(prbdetail4);
+
+
+
+					var day5=document.createElement('div');
+					day5.className='days';
+					var day5instruct=document.createElement('div');
+					var day5instructa=document.createElement('a');
+					day5instructa.innerHTML=class7data[ia].classdays.fri.length;
+					day5instruct.appendChild(day5instructa);
+					day5.appendChild(day5instruct);
+					//classweek.appendChild(day5);
+
+
+					var prblistday5=[];
+					var prbdetail5=document.createElement('div');
+					prbdetail5.className='prbdetail';
+					for(var ib=0; ib<class7data[ia].classdays.fri.length; ib++){
+						var fdiv=document.createElement('div');
+						var fdiva=document.createElement('a');
+						fdiva.innerHTML=class7data[ia].classdays.fri[ib].date;
+						fdiv.appendChild(fdiva);
+						prbdetail5.appendChild(fdiv);
+						//prblistday5.push(class7data[ia].classdays.fri[ib].prb);
+						prblistday5.push([class7data[ia].classdays.fri[ib].prb,class7data[ia].classdays.fri[ib].numid,class7data[ia].classdays.fri[ib].instructkind,class7data[ia].classdays.fri[ib].cptinfo]);
+					}
+					day5.appendChild(prbdetail5);
+					classweek.appendChild(day5);
+
+					day5instruct.onclick=function(i){
+						return function(){
+							displayPrb(i,0);
+						}
+					}(prblistday5)
+					day5.appendChild(prbdetail5);
+
+
+
+					var day6=document.createElement('div');
+					day6.className='days';
+					var day6instruct=document.createElement('div');
+					var day6instructa=document.createElement('a');
+					day6instructa.innerHTML=class7data[ia].classdays.sat.length;
+					day6instruct.appendChild(day6instructa);
+					day6.appendChild(day6instruct);
+					//classweek.appendChild(day6);
+
+					var prblistday6=[];
+					var prbdetail6=document.createElement('div');
+					prbdetail6.className='prbdetail';
+					for(var ib=0; ib<class7data[ia].classdays.sat.length; ib++){
+						var fdiv=document.createElement('div');
+						var fdiva=document.createElement('a');
+						fdiva.innerHTML=class7data[ia].classdays.sat[ib].date;
+						fdiv.appendChild(fdiva);
+						prbdetail6.appendChild(fdiv);
+						//prblistday6.push(class7data[ia].classdays.sat[ib].prb);
+						prblistday6.push([class7data[ia].classdays.sat[ib].prb,class7data[ia].classdays.sat[ib].numid,class7data[ia].classdays.sat[ib].instructkind,class7data[ia].classdays.sat[ib].cptinfo]);
+					}
+					day6.appendChild(prbdetail6);
+					classweek.appendChild(day6);
+
+					day6instruct.onclick=function(i){
+						return function(){
+							displayPrb(i,0);
+						}
+					}(prblistday6)
+					day6.appendChild(prbdetail6);
+
+
+
+					var day0=document.createElement('div');
+					day0.className='days';
+					var day0instruct=document.createElement('div');
+					var day0instructa=document.createElement('a');
+					day0instructa.innerHTML=class7data[ia].classdays.sun.length;
+					day0instruct.appendChild(day0instructa);
+					day0.appendChild(day0instruct);
+					//classweek.appendChild(day0);
+
+					var prbdetail0=document.createElement('div');
+					prbdetail0.className='prbdetail';
+					var prblistday0=[];
+					for(var ib=0; ib<class7data[ia].classdays.sun.length; ib++){
+						var fdiv=document.createElement('div');
+						var fdiva=document.createElement('a');
+						fdiva.innerHTML=class7data[ia].classdays.sun[ib].date;
+						fdiv.appendChild(fdiva);
+						prbdetail0.appendChild(fdiv);
+						//prblistday0.push(class7data[ia].classdays.sun[ib].prb);
+						prblistday0.push([class7data[ia].classdays.sun[ib].prb,class7data[ia].classdays.sun[ib].numid,class7data[ia].classdays.sun[ib].instructkind,class7data[ia].classdays.sun[ib].cptinfo]);
+					}
+					day0.appendChild(prbdetail0);
+					classweek.appendChild(day0);
+
+					day0instruct.onclick=function(i){
+						return function(){
+							displayPrb(i,0);
+						}
+					}(prblistday0)
+					day0.appendChild(prbdetail0);
+
+
+
+
+					classperiod.appendChild(classweek);
+
+				}	
+
+			});
+
+			function userColorset(username){
+				var colordiv=document.getElementsByClassName('usercolorset');
+				for(var ia=0; ia<colordiv.length; ia++){
+					colordiv[ia].style.backgroundColor='';
+					colordiv[ia].style.color='black';
+				}
+				document.getElementById('chosen'+username).style.backgroundColor='#DDF2BF';
+				document.getElementById('chosen'+username).childNodes[0].style.color='black';
+				
+			}
+
+
+			var chosenusername='';
+			socket.on('callstdlistafter',function(a){
+				var indstd=[];
+				for(var ia=0; ia<a.a.length; ia++){
+					var chk=0;
+					for(var ib=0; ib<indstd.length; ib++){
+						if(indstd[ib][0]==a.a[ia].username){
+							chk=1;
+							break;
+						}
+					}
+					if(chk==0){
+						indstd.push([a.a[ia].username,a.a[ia].DisplayName]);
+					}
+				}	
+
+				var mmcpsetobj=[];
+				for(var ia=0; ia<indstd.length; ia++){
+					mmcpsetobj[ia]={username:indstd[ia][0],mmcpcon:[],Displayname:indstd[ia][1]}
+					for(var ib=0; ib<a.a.length; ib++){
+						if(indstd[ia][0]==a.a[ib].username){
+							mmcpsetobj[ia].mmcpcon.push([a.a[ib].mmcpconid,a.a[ib].listinfo,a.a[ib].prblist])
+						}
+					}
+				}
+
+
+
+				var userlist=document.getElementById('stdlist');
+				for(var ia=0; ia<mmcpsetobj.length; ia++){
+					var fa=document.createElement('div');			
+					fa.className='usercolorset';
+					fa.id='chosen'+mmcpsetobj[ia].username;
+					
+					fa.onclick=function(i){
+						return function(){
+							userColorset(i);
+							calluserclasshistory(i);
+							chosenusername=i;
+							callGetdata(i);
+						}
+					}(mmcpsetobj[ia].username);
+					var faa=document.createElement('a');
+					faa.className='usercolorset';
+					faa.style.color='black';
+					faa.style.textDecoration='none';
+
+					faa.innerHTML=mmcpsetobj[ia].Displayname;
+					fa.appendChild(faa);
+					userlist.appendChild(fa);
+				}
+				var dbutton=document.createElement('button');
+				dbutton.innerHTML='All time';
+				dbutton.onclick=function(){
+					return function(){
+						duringtime=1000;
+					}
+				}();
+				var rbutton=document.createElement('button');
+				rbutton.innerHTML='Recent time';
+				rbutton.onclick=function(){
+					return function(){
+						duringtime=30;
+					}
+				}();
+				userlist.appendChild(dbutton);
+				//userlist.appendChild(rbutton);
+
+				var hwbutton=document.createElement('button');
+				hwbutton.innerHTML='hwbutton';
+				hwbutton.onclick=function(){
+					return function(){
+						window.open('/mmcp/teacherhwcheck?username='+chosenusername,'_blacnk');
+					}
+				}();
+				userlist.appendChild(hwbutton);
+
+				var chisbutton=document.createElement('button');
+				chisbutton.innerHTML='class history';
+				chisbutton.onclick=function(){
+					return function(){
+
+						window.open('/vdrg/hwuserhistory','_blank');
+					}
+				}();
+				userlist.appendChild(chisbutton);
+
+				var chisbutton=document.createElement('button');
+				chisbutton.innerHTML='r1_statistics';
+				chisbutton.onclick=function(){
+					return function(){
+
+						window.open('/vdrg/r1userstatistics?username='+chosenusername,'_blank');
+					}
+				}();
+				userlist.appendChild(chisbutton);
+
+
+				var chisbutton=document.createElement('button');
+				chisbutton.innerHTML='subjectanalysis';
+				chisbutton.onclick=function(){
+					return function(){
+
+						window.open('/vdrg/subjectanalysis_mentor?username='+chosenusername,'_blank');
+					}
+				}();
+				userlist.appendChild(chisbutton);
+
+
+
+
+				var chisbutton=document.createElement('button');
+				chisbutton.innerHTML='hwconnect';
+				chisbutton.onclick=function(){
+					return function(){
+
+						window.open('/mmcp/teachermmcpconnect','_blank');
+					}
+				}();
+				userlist.appendChild(chisbutton);
+
+
+			});
+			function callStdlist(){
+				socket.emit('callstdlist',{username:userinfo.username});
+			}
+			callStdlist();
+

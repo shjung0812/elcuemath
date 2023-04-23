@@ -1,0 +1,271 @@
+html
+	head
+		style.
+			body {
+				background-color:#dddddd;
+			}
+			#title a {
+				text-decoration:none;
+				color:black;
+				font-size:2em;
+			}
+			#caselist div a:first-child{
+				display:inline-block;
+				width:1%;
+			}
+			#caselist div a:nth-child(1){
+				display:inline-block;
+				width:5%;
+			}
+		
+		script(type='text/javascript' async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML").
+		script(src='/socket.io/socket.io.js')
+		script.
+			window.onload=function(){
+				displayfreepcp();
+			}
+			Element.prototype.remove=function(){
+				this.parentElement.removeChild(this);
+			}
+			NodeList.prototype.remove = HTMLCollection.prototype.remove = function(){
+				for(var i=this.length -1; i>=0; i--){
+					if(this[i]&& this[i].parentElement){
+						this[i].parentElement.removeChild(this[i]);
+					}
+				}	
+			}
+			function removeElementOfDiv(regbdivid){
+				var fdiv=document.getElementById(regbdivid);
+				if(fdiv){
+					while(fdiv.firstChild){
+						fdiv.removeChild(fdiv.firstChild);
+					}
+				}
+			}
+			function displaycrpcplist(caseid){
+				removeElementOfDiv('displaycrpcplist');
+				var crpcp=!{JSON.stringify(crpcp)};
+				
+				var crpcplist;
+				for(var ia=0; ia<crpcp.length ;ia++){
+					if(crpcp[ia][0][0]==caseid){
+						crpcplist=crpcp[ia][1];
+					}
+				}
+				var crpcpboard=document.createElement('DIV');
+				crpcpboard.style.width='100%';
+				crpcpboard.style.backgroundColor='#336633';
+				crpcpboard.style.overflow='auto';
+				crpcpboard.setAttribute('id','crpcpboard');
+
+				var crpcplistdiv=document.createElement('DIV');
+				crpcplistdiv.style.width='50%';
+				crpcplistdiv.style.cssFloat='left';
+				crpcplistdiv.style.backgroundColor='#447744';
+
+				
+				if(crpcplist.length==0){
+					var vdiv=document.createElement('DIV');
+					var va=document.createElement('A');
+					va.innerHTML='No crPCP Here';
+					vdiv.appendChild(va);
+					crpcplistdiv.appendChild(vdiv);
+				}else{
+					for(var ib=0; ib<crpcplist.length; ib++){
+						var vdiv=document.createElement('DIV');
+						var va=document.createElement('A');
+						va.innerHTML=crpcplist[ib][1].replace(/\\\\/g,"\\");;
+						vdiv.onclick=function(i,j,k){return function(){crpcpoption(i,j,k);};}(crpcplist[ib][0],crpcplist[ib][1],caseid);	
+						vdiv.appendChild(va);
+						crpcplistdiv.appendChild(vdiv);
+					}
+				}
+
+				crpcpboard.appendChild(crpcplistdiv);
+				MathJax.Hub.Queue(["Typeset",MathJax.Hub,crpcpboard]);
+				document.getElementById('displaycrpcplist').appendChild(crpcpboard);
+
+				
+				
+			}
+			function crpcpedit(pcpid,pcpinfo){
+				var option2input=document.getElementById('option2input');
+				var newinput=option2input.value;
+				var socket=io('/pls');
+				socket.emit('plspcpupdate',{pcpid:pcpid,newinput:newinput});
+				socket.on('rstplspcpupdate',function(){
+					window.location.reload(true);
+				});
+
+			}
+			function crpcpoption(pcpid,pcpinfo,caseid){
+				removeElementOfDiv('optionboarddiv');
+				
+				var fdiv=document.getElementById('optionboarddiv');
+				if(fdiv){
+					fdiv.remove();
+				}
+		
+				var optionboarddiv=document.createElement('DIV');
+				optionboarddiv.style.width='50%';
+				optionboarddiv.style.cssFloat='left';
+				optionboarddiv.style.backgroundColor='#55cc55';
+				optionboarddiv.style.overflow='auto';
+				optionboarddiv.setAttribute('id','optionboarddiv');
+
+				var option1=document.createElement('DIV');
+				option1.style.width='100%';
+				option1.style.height='5%';
+				option1.style.backgroundColor='#447744';
+				option1.onclick=function(i,j){return function(){removecrpcp(i,j)}}(pcpid,caseid);
+				option1.innerHTML='Remove';
+
+				var option2=document.createElement('DIV');
+				option2.style.width='100%';
+				option2.style.height='5%';
+				option2.style.backgroundColor='#117711';
+
+				var option2input=document.createElement('input');
+				option2input.style.width='80%';
+				option2input.style.cssFloat='left';
+				option2input.setAttribute('id','option2input');
+				option2input.value=pcpinfo;
+				
+				var option2button=document.createElement('div');
+				option2button.style.width='20%';
+				option2button.style.cssFloat='left';
+				option2button.innerHTML='update';
+				option2button.onclick=function(i,j){return function(){crpcpedit(i,j)}}(pcpid,'');
+
+				option2.appendChild(option2input);
+				option2.appendChild(option2button);
+
+				optionboarddiv.appendChild(option1);
+				optionboarddiv.appendChild(option2);
+
+				document.getElementById('crpcpboard').appendChild(optionboarddiv);
+			}
+			function removecrpcp(pcpid,caseid){
+				var socket=io('/pls');
+				socket.emit('removecrpcp',{caseid:caseid,pcpid:pcpid});
+				socket.on('rstremovecrpcp',function(){
+					window.location.reload(true);
+				});
+			}
+			function displayfreepcp(){
+				var crpcp=!{JSON.stringify(crpcp)};
+				var pcplist=!{JSON.stringify(pcplist)};
+				var caselist=!{JSON.stringify(caselist)};
+
+				var vpcplist=[];
+				var achk;
+				for(var ie=0; ie<pcplist.length; ie++){
+					achk=0;
+					for(var ic=0; ic<crpcp.length; ic++){
+						for(var id=0; id<crpcp[ic][1].length; id++){
+							if(crpcp[ic][1][id][0]==pcplist[ie][0]){
+								achk=1;
+								break;
+							}
+						}
+						if(achk==1){
+							break;
+						}
+					}
+					if(achk==0){
+						vpcplist.push(pcplist[ie])
+					}
+				}
+
+				
+				var pcplistboard=document.createElement('DIV');
+				pcplistboard.style.width='100%';
+				pcplistboard.style.overflow='auto';
+				pcplistboard.style.backgroundColor='#aa00aa';
+				pcplistboard.setAttribute('id','pcplistboard');
+
+				var pcplistcontdiv=document.createElement('DIV');	
+				pcplistcontdiv.style.width='50%';
+				pcplistcontdiv.style.cssFloat='left';
+				pcplistcontdiv.style.backgroundColor='#dd66dd';
+				pcplistcontdiv.setAttribute('id','pcplistcontdiv');
+				
+				for(var ig=0; ig<vpcplist.length; ig++){
+					var vdiv=document.createElement('DIV');	
+					var va=document.createElement('A');
+					va.innerHTML=vpcplist[ig][1].replace(/\\\\/g,"\\");
+					vdiv.setAttribute('id',vpcplist[ig][0])
+					vdiv.appendChild(va);
+					vdiv.onclick=function(i){return function(){expandcaselist(i)}}(vpcplist[ig][0]);
+					pcplistcontdiv.appendChild(vdiv);
+				}
+				MathJax.Hub.Queue(["Typeset",MathJax.Hub,pcplistcontdiv]);
+
+	
+
+				pcplistboard.appendChild(pcplistcontdiv);
+				document.getElementById('displaypcplist').appendChild(pcplistboard);
+			}
+
+			function focuscaselist(pcsid){
+				var fc=document.getElementById('pcplistcontdiv');
+				for(var ia=0; ia<fc.childNodes.length; ia++){
+					fc.childNodes[ia].style.backgroundColor='';
+				}
+
+				document.getElementById(pcsid).style.backgroundColor='#dd22dd';
+				
+			}
+			function expandcaselist(pcpid){
+		
+				var cse=document.getElementById('caselistcontdiv');
+				if(cse){
+					cse.remove();
+				}
+			
+				var caselist=!{JSON.stringify(caselist)};
+	
+				var caselistcontdiv=document.createElement('DIV');
+				caselistcontdiv.style.width='50%';
+				caselistcontdiv.style.cssFloat='left';
+				caselistcontdiv.style.backgroundColor='#dd22dd';
+				caselistcontdiv.setAttribute('id','caselistcontdiv');
+		
+				for(var ih=0 ;ih<caselist.length; ih++){
+					var vdiv=document.createElement('DIV');
+					var va=document.createElement('A');
+					va.innerHTML=caselist[ih][1];
+					vdiv.appendChild(va);
+					vdiv.onclick=function(i,j){return function(){registercrpcp(i,j);};}(caselist[ih][0],pcpid);
+					caselistcontdiv.appendChild(vdiv);
+				}
+
+				var pcplistboard=document.getElementById('pcplistboard');
+				pcplistboard.appendChild(caselistcontdiv);
+
+
+
+				focuscaselist(pcpid);
+				
+			}
+
+			function registercrpcp(caseid,pcpid){
+				var socket=io('/pls');
+				socket.emit('plsregistercrpcp',{caseid:caseid,pcpid:pcpid});
+				socket.on('rstplsregistercrpcp',function(){
+					alert('pcp is registered to case');
+					window.location.reload(true);
+				})
+			}
+
+	body
+		div(id='title')
+			a(href='./pcsclassify?stchk=-1') CRPCP Management
+		div(id='caselist')
+			-for(var ia=0; ia<caselist.length; ia++){
+				div(onclick='displaycrpcplist("'+caselist[ia][0]+'")')
+					a=caselist[ia][2]
+					a=caselist[ia][1]
+			-}
+		div(id='displaycrpcplist')
+		div(id='displaypcplist')

@@ -1,0 +1,181 @@
+html
+	head
+		style.
+			#displayvideo {
+				display:none;
+			}
+			#displayvideo div {
+				width:100%;
+				text-align:center;
+				margin:0 auto;
+			}
+			iframe {
+				width:50vw;
+				height:50vh;
+			}
+			#Back a {
+				text-decoration:none;	
+				color:black;
+			}
+	body(onclick='videopreview()')
+		div
+			h1 register video id
+		div(id='Back')
+			a(href='./page') BACK
+		div
+			div(id='form')
+				form(action="./registervid/form" method='get')
+					input(type='text' name='vidaddr' id='videoaddr')
+					a(onclick='') address
+					input(type='text' name='vidinfo')
+					| vidinfo
+					input(type='hidden' name='prbid' id='idprbid')
+					input(type='submit' value='submit')
+				div(id='displayvideo')
+					div
+						iframe(id='videodevice')
+			div(id='prblist')
+				div(id='displaycsindex')
+					-for(var ia=0; ia<cslist.length; ia++){
+						div(onclick='callingprbid("'+cslist[ia][0]+'")')
+							a=cslist[ia][1]
+					-}
+				div(id='displayprblist')
+				div(id='displayfocusprbid')
+	script(src='/socket.io/socket.io.js')
+	script.
+		var gvidaddr=''
+		function videopreview(){
+			var vidaddr=document.getElementById('videoaddr');
+			if(vidaddr.value && gvidaddr!=vidaddr.value){
+				gvidaddr=vidaddr.value;
+				var viddev=document.getElementById('videodevice');
+				viddev.setAttribute('src',vidaddr.value);
+				var displayvideo=document.getElementById('displayvideo');
+				displayvideo.style.display='block';
+			}
+		}
+		var rpl=''; //registered problem list;
+		function removeallcolor(classname){
+			var allpcp=document.getElementsByClassName(classname);
+			for(var ia=0; ia<allpcp.length; ia++){
+				allpcp[ia].style.backgroundColor='';
+			}
+		}
+		function removeFocusingElement(){
+			var fdiv=document.getElementById('displayfocusprbid');
+			while(fdiv.firstChild){
+				fdiv.removeChild(fdiv.firstChild);
+			}
+		}
+		function FocusingRegisteredProblem(){
+			var socket=io('/rva')
+			var regbdiv=document.getElementById('displayfocusprbid');
+			removeFocusingElement();
+			if(rpl==''){
+			}else{
+			 	var o1rpl=rpl.split(',');
+				socket.emit('rvacallingregisteredproblem',{prblist:o1rpl});
+				socket.on('rvacrprblist',function(ps){
+					for(var ia=0; ia<ps.ps.length; ia++){
+						var vdiv=document.createElement('DIV');
+						var va0=document.createElement('A');
+						var va1=document.createElement('A');
+						va0.innerHTML=ps.ps[ia][0];
+						va1.innerHTML=ps.ps[ia][1];
+						vdiv.appendChild(va0);
+						vdiv.appendChild(va1);
+						vdiv.onclick=function(i){return function(){putprbid(i);};}(ps.ps[ia][0]) 
+						regbdiv.appendChild(vdiv);	
+	
+					}
+				});
+			}
+	
+	
+	
+		}
+		function PutColorOnProblem(){
+			var asprb;
+
+			if(rpl==''){
+				removeallcolor('prbbox');
+			}else{
+				removeallcolor('prbbox');
+				var o1rpl=rpl.split(',');
+				for(var ia=0; ia<o1rpl.length; ia++){
+					asprb=document.getElementById(o1rpl[ia]);
+					if(asprb){
+						asprb.style.backgroundColor='pink';
+					}		
+				}
+			}
+		}
+		function rplcheckprb(prbid){
+			var o1rpl=rpl.split(',');
+			var achk=0;
+			for(var ia=0; ia<o1rpl.length; ia++){
+				if(o1rpl[ia]==prbid){
+					achk=1;
+				}
+			}
+			if(achk==0){
+				return [0,''];
+			}else{
+				return [1,o1rpl];
+			}
+		}
+		function putprbid(prbid){
+			if(rpl==''){
+				rpl=prbid;
+			}else{
+				var prbchk=rplcheckprb(prbid);
+				if(prbchk[0]==0){
+					rpl=rpl+','+prbid;
+				}else{
+		
+					rpl='';
+					var idx=prbchk[1].indexOf(prbid);
+					prbchk[1].splice(idx,1);
+					for(var ia=0; ia<prbchk[1].length; ia++){
+						if(prbchk[1].length-1==ia){
+							rpl=rpl+prbchk[1][ia];
+						}else{
+							rpl=rpl+prbchk[1][ia]+',';
+						}
+					}	
+				}
+			}
+			PutColorOnProblem()
+			FocusingRegisteredProblem()
+			document.getElementById('idprbid').value=rpl;
+		}
+		function removealldisplay(){
+			var fdiv=document.getElementById('displayprblist');
+			while(fdiv.firstChild){
+				fdiv.removeChild(fdiv.firstChild);
+			}
+		}
+		function callingprbid(pcsid){
+			var socket=io('/rva')
+			removealldisplay();
+			var displayprblist=document.getElementById('displayprblist');
+			socket.emit('callingprblist',{pcsid:pcsid});
+			socket.on('rstprblist',function(ps){
+				for(var ia=0; ia<ps.crprb.length; ia++){
+					var vdiv=document.createElement('DIV');
+					var va0=document.createElement('A');
+					var va1=document.createElement('A');
+					va0.innerHTML=ps.crprb[ia][0];
+					va1.innerHTML=ps.crprb[ia][1];
+					vdiv.appendChild(va0);
+					vdiv.appendChild(va1);
+					vdiv.setAttribute('class','prbbox')
+					vdiv.setAttribute('id',ps.crprb[ia][0]);
+					vdiv.onclick=function(i){return function(){putprbid(i);};}(ps.crprb[ia][0]);
+
+					displayprblist.appendChild(vdiv);
+				}
+			});	
+		}
+		

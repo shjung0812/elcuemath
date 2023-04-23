@@ -1,0 +1,23 @@
+html
+	body
+		p hi
+		ol(id='roomids')
+		button(onclick="mysocket()") My socket
+		script(src='/socket.io/socket.io.js')
+		script(type='text/javascript' src='http://code.jquery.com/jquery-1.8.1.js')
+		script.
+			var ptag=document.getElementById('roomids')
+			var socket=io('/draw');
+			socket.on('rooml',function(ids){
+				var addli=document.createElement('li');
+				var addtxt=document.createTextNode(ids);
+				var addlink=document.createElement('a');
+
+				addlink.appendChild(addtxt);
+				addlink.setAttribute('href','drawingking?roomid='+ids);
+				addli.appendChild(addlink);
+				ptag.appendChild(addli)
+				document.body.appendChild(ptag);
+			});
+		
+			

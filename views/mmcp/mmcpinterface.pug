@@ -1,0 +1,90 @@
+html
+	head 
+		title='welcome '+ dsname+ ' User interface'
+		script(type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML")
+		script(src='/socket.io/socket.io.js')
+
+		style.
+			#mmcpconlist {
+				margin:0 0 5% 0 ;
+			}
+
+	body
+		div
+			h2=dsname+ ' 서술형숙제'
+		div
+			div(id='mmcpconlist')
+			div(id='mmcpprblist')
+				
+
+		script.
+
+			var socket = io('/mmcp');
+			var userid='#{userid}';
+			socket.on('connect',()=>{
+				console.log('mmcp connection ready');
+				var pagename='mmcp page0 writing homework'
+				
+				socket.emit('mmcplog',{username:userid, pagename:pagename})
+			});
+
+
+
+			function removeallele(parentid){
+				var parent=document.getElementById(parentid);
+				while(parent.firstChild){
+					parent.firstChild.remove();
+				}
+			}
+
+
+			function callEnvelope(b,mmcpconnectid){
+				var mmcpconnectidv=mmcpconnectid.split(',');
+				var mmcpprblistdiv=document.getElementById('mmcpprblist');
+				removeallele('mmcpprblist');
+				for(var ia=0; ia<mmcpconnectidv.length; ia++){
+					var coniddiv=document.createElement('div');
+					var coniddiva=document.createElement('A');
+					var chk=0;
+					for(var ib=0; ib<b.length; ib++){
+						console.log(b[ib].mmcpkind);
+						//if(b[ib].mmcpconid==mmcpconnectidv[ia]){
+						if(b[ib].mmcpconid==mmcpconnectidv[ia] && b[ib].mmcpkind=='hw'){
+							var prblist=b[ib]
+							coniddiva.href='./mmcphomework?mmcpprblist='+b[ib].mmcpprblist+'&mmcpconid='+b[ib].mmcpconid;
+							//coniddiva.href='./solvespace?mmcpprblist='+b[ib].mmcpprblist+'&mmcpconid='+b[ib].mmcpconid;
+							coniddiva.innerHTML=b[ib].mmcplistinfo+' : '+b[ib].numprb+' 개의 문제';
+							//coniddiva.innerHTML=b[ib].mmcplistinfo+' : '+b[ib].numprb+' 개의 문제';
+							coniddiv.appendChild(coniddiva);	
+							mmcpprblistdiv.appendChild(coniddiv);
+							chk=1;
+							break;
+						}
+
+					}
+					//if(chk==0){
+						//alert('there are problem.. no id in DB');
+					//}
+				}	
+			}
+
+			socket.on('callmmcpconnectlistforinterfaceafter',function(a){
+				var mmcpconlist=document.getElementById('mmcpconlist');
+				for(var ia=0; ia<a.a.length; ia++){
+					var conlistdiv=document.createElement('DIV');
+					var conlistdiva=document.createElement('A');
+					conlistdiva.innerHTML=a.a[ia].assigninfo;
+					conlistdiv.onclick=function(i,j){
+						return function(){
+							callEnvelope(i,j);
+						}
+					}(a.b,a.a[ia].mmcpconnectid);
+					conlistdiv.appendChild(conlistdiva);
+					mmcpconlist.appendChild(conlistdiv);
+				}
+			});
+
+			callMmcpconlist();
+			function callMmcpconlist(){
+				socket.emit('callmmcpconnectlistforinterface',{userid:userid});
+			}

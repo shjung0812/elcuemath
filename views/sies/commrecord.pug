@@ -1,0 +1,24 @@
+html
+	head
+		style.
+			.item {
+				background-color:red;
+				margin: 3% 0;
+			}
+			.item div {
+				width:33%;
+				float:left;
+				overflow:hidden;
+			}
+	body
+		h2='Comm Record , Number of items : '+record.length+1 
+		div
+			-for(var ia=0; ia<record.length; ia++){
+				div(class='item')
+					div
+						p=record[ia].ioption
+					div
+						p=record[ia].time_stamp
+					div
+						p=record[ia].dumpmaterial
+			-}

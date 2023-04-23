@@ -1,0 +1,36 @@
+html
+	
+	head
+		style.
+			#crsname a{
+				text-decoration:none;
+				font-size:2em;
+				color:black;
+			}
+			
+		script(type='text/javascript' async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML")
+		script(src='/socket.io/socket.io.js')
+		script(src='../qoc/qoc.js')
+		script.
+			window.onload=function(){
+				var eleset=!{JSON.stringify(eleset)};
+				var crs=eleset[0][2];
+				var neleset=ParsingEleset(eleset);
+				var mrst=MainPathList(neleset,'PRES');
+				ElementNameList(neleset);
+				var mainpath=mrst[0];
+				if(mrst[1][0]==0){
+				}else{
+					alert('Circling error');
+				}
+				ShowMainpathElement(mainpath,crs,neleset);
+
+
+			}
+	
+	body
+		div(id='crsname')
+			a(href='./qoc')=crs
+		div(id='mainpathelement')
+		div(id='chooseproblem')
+		div(id='choosevideo')

@@ -1,0 +1,453 @@
+html
+	head
+
+		title User interface
+		script(src='/socket.io/socket.io.js')
+		script(type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML")
+		style.
+			#headdiv {
+				width:100%;
+				height:20%;
+				background-color:#a9cce3;
+			}
+			#contdiv{
+				width:100%;
+				height:70%;
+			}
+			#prblistdiv{
+				width:50%;
+				height:100%;
+				float:left;
+				overflow:auto;	
+			}
+			#videolistdiv{
+				width:50%;
+				float:left;	
+			}
+			#optiondiv {
+				width:100%;
+				height:10%;
+				background-color:yellow;
+			}
+			#previousdiv {
+				width:10%;
+				height:100%;
+				background-color:#aaaaaa;
+				float:left;
+			}
+			#previousdiv button {
+				width:100%;
+				height:100%;
+				cursor:pointer;
+			}
+			#nextdiv button {
+				width:100%;
+				height:100%;
+				cursor:pointer;
+			}
+			#nextdiv {
+				width:10%;
+				height:100%;
+				float:right;
+				background-color:#aaaaaa;
+			}
+			.prbboxdiv {
+				margin:5% 0 0 0;
+				border:1mm ridge;
+			}
+
+			.prbmulti:hover {
+				color:white;
+				background-color:blue;
+				cursor:pointer;
+			}
+			.optiondiv {
+				width:100%;
+			}
+			.askcalltomentordiv {
+				width:40%;
+				float:right;
+				text-align:center;	
+				background-color:blue;
+				color:white;
+			}
+			.askcalltomentordiv:hover {
+				font-weight:bold;	
+				cursor:pointer;
+			}
+			.iknowitdiv {
+				width:60%;
+				float:left;
+				background-color:orange;
+				text-align:center;
+			}
+			.iknowitdiv:hover {
+				font-weight:bold;
+				cursor:pointer;
+			}
+
+			#savetoaskdiv {
+				width:100%;
+				height:60%;
+				overflow:auto;
+			}
+	body
+
+		div(id='headdiv')
+			div(id='savetoaskdiv')
+				p hi
+		div(id='contdiv')
+			div(id='prblistdiv')
+			div(id='videolistdiv')
+		div(id='optiondiv')
+			div(id='previousdiv')
+				button(onclick='callPrvRcon()') Previous
+			div(id='nextdiv')
+				button(onclick='callNextRcon()') Next
+
+		script.
+			//var username=!{JSON.stringify(userinfo)}.username;
+			var socket = io('/vdrg');
+			socket.on('connect',()=>{
+				console.log('connection ready');
+
+			});
+
+			var username='bob';
+
+
+
+
+			function rmStalist(prbid){
+				stalist.remove(prbid);
+				console.log(stalist);
+			}
+
+
+			var stalist=[];
+			socket.on('rdctcallsavetoasklistafter',function(a){
+				stalist=a.stalist;
+				var savetoaskdiv=document.createElement('div');
+				savetoaskdiv.id='savetoaskdiv';
+
+				for(var ia=0; ia<a.plist.length; ia++){
+					var staprbdiv=document.createElement('div');
+					var prbreadingdiv=document.createElement('div');
+					var prbreadingdiva=document.createElement('A');
+					prbreadingdiva.innerHTML=a.plist[ia][1];
+					prbreadingdiv.appendChild(prbreadingdiva);
+					staprbdiv.appendChild(prbreadingdiv);
+					savetoaskdiv.appendChild(staprbdiv);
+				}
+
+				var headdiv=document.getElementById('headdiv');
+				headdiv.appendChild(savetoaskdiv);
+				MathJax.Hub.Queue(["Typeset",MathJax.Hub,headdiv])	
+
+			});
+			function callSavetoasklist(){
+				socket.emit('rdctcallsavetoasklist',{username:username});
+			}
+
+			socket.on('rdctsavetoaskafter',function(a){
+				document.getElementById('savetoaskdiv').remove();
+				callSavetoasklist();
+			});	
+			function savetoAsk(prbid){
+				var chkarray=[];
+
+				var limitnum=5;
+	
+				if(stalist.length>=limitnum){
+					chkarray[0]=0;
+				}else{
+					chkarray[0]=1;
+				}
+
+				var chk=0;
+				chkarray[1]=1;
+				for(var ia=0; ia<stalist.length; ia++){
+					if(stalist[ia]==prbid){
+						chkarray[1]=0;
+						break;
+					}
+				}
+
+				var rst=1;
+				for(var ia=0; ia<chkarray.length; ia++){
+					rst*=chkarray[ia];
+				}
+
+				if(rst!=1){
+					console.log('there are problem', chkarray);
+				}else{
+					socket.emit('rdctsavetoask',{username:username,prbid:prbid,hisopt:'savetoask',rconinfo:[rconnum]});
+				}
+			}	
+			function removeall(elename){
+				var ele=document.getElementById(elename)
+				while(ele.firstChild){
+					ele.removeChild(ele.firstChild);
+				}
+			}
+
+			function putColoron(classN, idN,colorN){
+				var cn=document.getElementsByClassName(classN);
+				for(var ia=0; ia<cn.length; ia++){	
+					cn[ia].style.color='';
+					cn[ia].style.backgroundColor='';
+				}
+				document.getElementById(idN).style.backgroundColor=colorN[0];
+				document.getElementById(idN).style.color=colorN[1];
+			}
+
+
+
+			function removeColor(classN){
+				var cn=document.getElementsByClassName(classN);
+				for(var ia=0; ia<cn.length; ia++){	
+					cn[ia].style.color='';
+					cn[ia].style.backgroundColor='';
+				}
+
+
+			}
+
+			function colorOnvid(vlist){
+				for(var ia=0; ia<vlist.length; ia++){
+					var vdiv=document.getElementById(vlist[ia][0]);
+					vdiv.style.backgroundColor='yellow';
+				}
+			}
+
+
+			socket.on('rdctiknowitalreadyafter',function(){
+				socket.emit('callmyrcon',{username:username,state:'curr',rconnum:rconnum});
+			});
+
+			function iknowitAlready(prbid){
+				socket.emit('rdctiknowitalready',{prbid:prbid,username:username,hisopt:'iknowitalready',rconinfo:[rconnum]});
+			}
+
+			var rconnum;
+			var rconnumlast;
+			var prbanspanel=[];
+			socket.on('callmyrconafter',function(a){
+
+				console.log(a.mycon);
+				
+				removeall('prblistdiv');
+				removeall('videolistdiv');
+				removeall('headdiv');
+
+				rconnum=a.rconnum;
+				rconnumlast=a.runlength;
+				prbanspanel=[];//initialization;
+
+				var headdiv=document.getElementById('headdiv');
+				var indidiv=document.createElement('div');
+				var indidiva=document.createElement('A');
+				indidiva.innerHTML=rconnum+1+'/'+a.runlength;
+				indidiv.appendChild(indidiva);
+				headdiv.appendChild(indidiv);
+
+				var prblistdiv=document.getElementById('prblistdiv');
+				for(var ia=0; ia<a.mycon.length; ia++){
+					prbanspanel.push([a.mycon[ia].prbid])
+
+					var prbboxdiv=document.createElement('div');
+					prbboxdiv.className='prbboxdiv';
+					prbboxdiv.onmouseover=function(i){return function(){
+						if(i.length!=0){
+							colorOnvid(i);
+						}
+					}}(a.mycon[ia].vidinfo);
+
+					prbboxdiv.onmouseout=function(i){return function(){
+						if(i.length!=0){
+							removeColor('videolistclass');
+
+						}
+					}}(a.mycon[ia].vidinfo);
+
+
+
+					var optiondiv=document.createElement('div');
+					optiondiv.className='optiondiv';
+					if(a.mycon[ia].greyfilter!=1){
+
+						var iknowitdiv=document.createElement('div');
+						iknowitdiv.onclick=function(i){return function(){iknowitAlready(i)}}(a.mycon[ia].prbid);
+						iknowitdiva=document.createElement('A');
+						iknowitdiva.innerHTML='I know it Already';
+						iknowitdiv.className='iknowitdiv';
+						iknowitdiv.appendChild(iknowitdiva);
+						optiondiv.appendChild(iknowitdiv);
+
+						var askcalltomentordiv=document.createElement('div');
+						askcalltomentordiv.onclick=function(i){return function(){savetoAsk(i)}}(a.mycon[ia].prbid);
+						askcalltomentordiv.className='askcalltomentordiv';
+						var askcalltomentordiva=document.createElement('A');
+						askcalltomentordiva.innerHTML='Save to Ask';
+						askcalltomentordiv.appendChild(askcalltomentordiva);
+						optiondiv.appendChild(askcalltomentordiv);
+
+					}else{
+						prbboxdiv.style.backgroundColor='grey';
+					}
+
+			
+					prbboxdiv.appendChild(optiondiv);
+
+					var prbreadingdiv=document.createElement('div');
+					var prbreadingdiva=document.createElement('A');
+					prbreadingdiva.innerHTML=a.mycon[ia].prbcon[1];
+					prbreadingdiv.appendChild(prbreadingdiva);
+					prbboxdiv.appendChild(prbreadingdiv);
+
+
+					if(a.mycon[ia].prbcon[4]!='nofile' && a.mycon[ia].greyfilter!=1){
+
+						prbanspanel[ia][1]=a.mycon[ia].prbcon[3];
+
+						var prbmulti1=document.createElement('div');
+						var prbmulti2=document.createElement('div');
+						var prbmulti3=document.createElement('div');
+						var prbmulti4=document.createElement('div');
+						var prbmulti5=document.createElement('div');
+
+						prbmulti1.onclick=function(i,j){return function(){checkAns(i,j);}}(ia,1);
+						prbmulti2.onclick=function(i,j){return function(){checkAns(i,j);}}(ia,2);
+						prbmulti3.onclick=function(i,j){return function(){checkAns(i,j);}}(ia,3);
+						prbmulti4.onclick=function(i,j){return function(){checkAns(i,j);}}(ia,4);
+						prbmulti5.onclick=function(i,j){return function(){checkAns(i,j);}}(ia,5);
+	
+						prbmulti1.className='prbmulti';
+						prbmulti2.className='prbmulti';
+						prbmulti3.className='prbmulti';
+						prbmulti4.className='prbmulti';
+						prbmulti5.className='prbmulti';
+
+						
+						var prbmulti1a=document.createElement('a');
+						var prbmulti2a=document.createElement('a');
+						var prbmulti3a=document.createElement('a');
+						var prbmulti4a=document.createElement('a');
+						var prbmulti5a=document.createElement('a');
+
+					
+						prbmulti1a.innerHTML=a.mycon[ia].prbcon[4];
+						prbmulti2a.innerHTML=a.mycon[ia].prbcon[5];
+						prbmulti3a.innerHTML=a.mycon[ia].prbcon[6];
+						prbmulti4a.innerHTML='No Ans Exist';
+						prbmulti5a.innerHTML='Dont Know';
+
+						prbmulti1.appendChild(prbmulti1a);
+						prbmulti2.appendChild(prbmulti2a);
+						prbmulti3.appendChild(prbmulti3a);
+						prbmulti4.appendChild(prbmulti4a);
+						prbmulti5.appendChild(prbmulti5a);
+
+						prbboxdiv.appendChild(prbmulti1);
+						prbboxdiv.appendChild(prbmulti2);
+						prbboxdiv.appendChild(prbmulti3);
+						prbboxdiv.appendChild(prbmulti4);
+						prbboxdiv.appendChild(prbmulti5);
+					}
+
+					prblistdiv.appendChild(prbboxdiv);
+					
+				}
+
+
+				MathJax.Hub.Queue(["Typeset",MathJax.Hub,prblistdiv])	
+				var vlist=[];
+				for(var ia=0; ia<a.mycon.length; ia++){
+					for(var ib=0; ib<a.mycon[ia].vidinfo.length; ib++){
+						var chk=0;
+						for(var ic=0; ic<vlist.length; ic++){
+							if(vlist[ic][0]==a.mycon[ia].vidinfo[ib][0]){
+								chk=1;
+								break;
+							}
+						}
+						if(chk==0){
+							vlist.push(a.mycon[ia].vidinfo[ib]);
+						}
+					}
+				}
+
+				var videolistdiv=document.getElementById('videolistdiv');
+				for(var ia=0; ia<vlist.length; ia++){
+					var videoboxdiv=document.createElement('div');
+			
+					videoboxdiv.className='videolistclass';
+					videoboxdiv.id=vlist[ia][0];
+					var videoboxvid=document.createElement('iframe');
+					videoboxvid.src=vlist[ia][1];
+					videoboxdiv.appendChild(videoboxvid);
+					videolistdiv.appendChild(videoboxdiv);
+				}
+
+				callSavetoasklist();
+				
+			});
+
+
+			function checkAns(i,chnum){
+				// 0 wrong unintention
+				// 1 correct
+				// 2 confess dont'know
+
+
+				if(chnum==5){
+					tempAlert('선생님에게 문의하세요~', 2000,['blue','white']);
+					socket.emit('senduseractivity',{username:username,resultcode:2,prbid:prbanspanel[i][0],hisopt:'prbsolve',rconinfo:[rconnum]});
+				}else{
+					if(prbanspanel[i][1]==chnum){
+						tempAlert('Correct!',1000,['#64FE2E','black']);
+						socket.emit('senduseractivity',{username:username,resultcode:1,prbid:prbanspanel[i][0],hisopt:'prbsolve',rconinfo:[rconnum]});
+					}else{
+						tempAlert('Try Again You wrong!',1000,['red','black']);
+						socket.emit('senduseractivity',{username:username,resultcode:0,prbid:prbanspanel[i][0],hisopt:'prbsolve',rconinfo:[rconnum]});
+					}
+				}
+			}
+
+			function tempAlert(msg,duration,color){
+				var el = document.createElement("div");
+				el.setAttribute("style","position:absolute;top:10%;left:35%;background-color:"+color[0]+";padding:5% 10%;color:"+color[1]+";");
+				el.innerHTML = msg;
+				setTimeout(function(){
+					el.parentNode.removeChild(el);
+				},duration);
+				document.body.appendChild(el);
+			}
+
+
+
+
+			callMyRcon();
+			function callMyRcon(){
+				socket.emit('callmyrcon',{username:username,state:'ini'});
+			}
+
+			function callPrvRcon(){
+				if(rconnum==0){
+					tempAlert('this is first Section',1000,['purple','white']);	
+				}else{
+					socket.emit('callmyrcon',{username:username,state:'prv',rconnum:rconnum-1});
+				}
+				
+			}
+			function callNextRcon(){
+				if(rconnum==rconnumlast-1){
+					tempAlert('this is last Section',1000,['purple','white']);	
+				}else{
+					socket.emit('callmyrcon',{username:username,state:'next',rconnum:rconnum+1});
+				}
+			}
+			
+
+
+

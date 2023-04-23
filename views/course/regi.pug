@@ -1,0 +1,152 @@
+html
+ head
+  title excise
+  style.
+   #crslist{float:left; border-style:solid;}
+   .crscontent{float:left; padding:0 5px 0 5px;}
+   #forming{clear:left; width:400px;}
+   
+ body
+  h1 
+   a(href='http://143.248.16.217/admin/page') Course creationg, edition, delete page
+  script.
+   function myfunction(cidx){
+   var xdegsnick=document.getElementsByClassName("degsnick")
+   document.getElementById('iddegsnick').value=xdegsnick[cidx].innerHTML
+
+   var xcrsname=document.getElementsByClassName("crsname")
+   document.getElementById('idcrsname').value=xcrsname[cidx].innerHTML
+
+   var xpstage=document.getElementsByClassName("pstage")
+   document.getElementById('idpstage').value=xpstage[cidx].innerHTML
+
+   var xelepass=document.getElementsByClassName("elepass")
+   document.getElementById('idelepass').value=xelepass[cidx].innerHTML
+   
+   var xelenpass=document.getElementsByClassName("elenpass")
+   document.getElementById('idelenpass').value=xelenpass[cidx].innerHTML
+
+
+   var xelevideo=document.getElementsByClassName("elevideo")
+   document.getElementById('idelevideo').value=xelevideo[cidx].innerHTML
+
+
+   var xeleprbs=document.getElementsByClassName("eleprbs")
+   document.getElementById('ideleprbs').value=xeleprbs[cidx].innerHTML
+
+   var xele_criteria=document.getElementsByClassName("ele_criteria")
+   document.getElementById('idele_criteria').value=xele_criteria[cidx].innerHTML
+
+   var xelestatus=document.getElementsByClassName("elestatus")
+   document.getElementById('idelestatus').value=xelestatus[cidx].innerHTML
+   
+   var xeletime=document.getElementsByClassName("eletime")
+   document.getElementById('ideletime').value=xeletime[cidx].innerHTML
+   
+   var xrdvalue=document.getElementsByClassName("eletime")
+   document.getElementById('rdupdate').checked='checked'
+
+   var xupdatetxt=document.getElementsByClassName("elenum")
+   document.getElementById('idupdatetxt').value=xupdatetxt[cidx].innerHTML
+   }
+  div(id='crslist')
+   div(class='crscontent')
+    div
+     p elenumber
+    -for(var i=0; i<cdl.length ;i++){
+      //p(class='elenum')=cdl[i].elenum
+      p
+       button(class='elenum', type='button', onclick='myfunction('+i+')')=cdl[i].elenum
+    -}
+   div(class='crscontent')
+    div
+     p designer id
+    -for(var i=0; i<cdl.length ;i++){
+      p(class='degsnick')=cdl[i].degsnick  
+    -}
+   div(class='crscontent')
+    div
+     p course name
+    -for(var i=0; i<cdl.length ;i++){
+      p(class='crsname')=cdl[i].crsname  
+    -}
+   div(class='crscontent')
+    div
+     p present stage
+    -for(var i=0; i<cdl.length ;i++){
+      p(class='pstage')=cdl[i].pstage  
+    -}
+   div(class='crscontent')
+    div
+     p if it passes
+    -for(var i=0; i<cdl.length ;i++){
+      p(class='elepass')=cdl[i].elepass  
+    -}
+   div(class='crscontent')
+    div
+     p if it is NOT passed
+    -for(var i=0; i<cdl.length ;i++){
+      p(class='elenpass')=cdl[i].elenpass  
+    -}
+   div(class='crscontent')
+    div
+     p video address
+    -for(var i=0; i<cdl.length ;i++){
+      p(class='elevideo')=cdl[i].elevideo 
+    -}
+   div(class='crscontent')
+    div
+     p problems
+    -for(var i=0; i<cdl.length ;i++){
+      p(class='eleprbs')=cdl[i].eleprbs 
+    -}
+   div(class='crscontent')
+    div
+     p elestatus
+    -for(var i=0; i<cdl.length ;i++){
+      p(class='elestatus')=cdl[i].elestatus
+    -}
+   div(class='crscontent')
+    div
+     p Criteria
+    -for(var i=0; i<cdl.length ;i++){
+      p(class='ele_criteria')=cdl[i].ele_criteria 
+    -}
+   div(class='crscontent')
+    div
+     p Time
+    -for(var i=0; i<cdl.length ;i++){
+      p(class='eletime')=cdl[i].eletime
+    -}
+  div(id='forming') 
+   form(action='/admin/regi', method='post')
+    p degsnick(ex. shjung)
+    input(type='text',id='iddegsnick', name='degsnick', value='shjung')
+    p crsname(ex. 160907krxxye)
+    input(type='text',id='idcrsname', name='crsname')
+    p pstage elepres
+    input(type='text', id='idpstage',name='pstage')
+    p elepass eleyes0
+    input(type='text',id='idelepass', name='elepass')
+    p elenpass eleyes0
+    input(type='text',id='idelenpass', name='elenpass')
+    p elevideo address
+    input(type='text',id='idelevideo', name='elevideo')
+    p eleprbs p00014
+    input(type='text',id='ideleprbs', name='eleprbs')
+    p criteria 0.2
+    input(type='text',id='idele_criteria', name='criteria')
+    p elestatus1, 0, 2
+    input(type='text',id='idelestatus', name='elestatus')
+    p eletime 16:09:07 19:10:10
+    input(type='text', id='ideletime',name='eletime', value=ptime)
+    p course mode
+    input(type='radio', id='rdcreate',name='crsmode', value=0 checked)
+    | Create
+    input(type='radio', id='rdupdate', name='crsmode', value=1)
+    | Update
+    input(type='radio', id='rddelete',name='crsmode', value=2)
+    | Delete
+    p Update text
+    input(type='text',id='idupdatetxt', name='updatetxt')
+    input(type='submit' value='submit')

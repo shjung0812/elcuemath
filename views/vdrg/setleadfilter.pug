@@ -1,0 +1,507 @@
+html
+	head
+		script(src='/socket.io/socket.io.js')
+		script(type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML")
+		style.
+			#chosendisplay {
+				background-color:yellow;
+			}
+			#cptlist div {
+				padding: 0 0 0 5%;
+			}
+			#r3set, #r2set, #r1set, #chosendisplay {
+				border: 1px solid;
+			}
+			#updatebutton {
+				display:inline-block;
+			}
+		
+	body
+		div
+			div
+				h2(onclick='createfilterReady();') SetLeadfilter
+			div
+				div
+					input(type='text' id='filterinfo')
+				div(id='readydiv')
+					//button(onclick='createFilter()') submit
+			div(id='filterlist')
+			div(id='cptlist')
+				
+				
+		div
+			div(id='r3set')
+			div(id='r2set')
+			div(id='r1set')
+			div(id='prbcon')
+			div(id='chosendisplay')
+		script.
+			var socket = io('/vdrg');
+
+			socket.on('connect',()=>{
+				console.log('connection established');
+
+			});
+
+
+
+			function createfilterReady(){
+				removeallele('readydiv');
+
+				var createleadfiltera=document.createElement('a');
+				createleadfiltera.innerHTML='Create Leadfilter';
+			
+				var createleadfilteradiv=document.createElement('div');
+				createleadfilteradiv.appendChild(createleadfiltera);
+
+				var readydiv=document.getElementById('readydiv');
+				readydiv.appendChild(createleadfilteradiv);
+
+				var filterbtn=document.createElement('button');
+				filterbtn.innerHTML='submit';
+				filterbtn.onclick=function(){
+					return function(){
+						createFilter();
+					}
+				}();
+	
+				var filterbtndiv=document.createElement('div');
+				filterbtndiv.appendChild(filterbtn);
+				readydiv.appendChild(filterbtndiv);
+
+				document.getElementById('filterinfo').focus();
+				document.getElementById('filterinfo').value='';
+
+				
+			}
+
+
+			function buttonKeyadd(e){
+				var bka=document.getElementById('updatebutton');
+				if(bka != null){
+					bka.remove();
+				}
+
+				var btndiv=document.createElement('div');
+				btndiv.id='updatebutton';
+
+				var btn=document.createElement('button');
+				btn.innerHTML='update filter to r1';
+				
+				btn.onclick=function(){
+					return function(){
+						updateFilter();
+					}
+				}();
+				btndiv.appendChild(btn);
+				e.appendChild(btndiv);
+			}
+
+			socket.on('vdrgupdateleadfilterinfoafter',function(a){
+				document.getElementById(a.leadfilter).innerHTML=a.filterinfo;				
+			});
+
+			function updateFilterinfo(leadfilter){
+				var val=document.getElementById('filterinfo').value;
+				socket.emit('vdrgupdateleadfilterinfo',{leadfilter:leadfilter, filterinfo:val});
+			}
+
+		
+			function modifyeditReady(filterid,filterinfo){
+				removeallele('readydiv');
+
+				var leadfilterinfo=document.createElement('a');
+				leadfilterinfo.innerHTML='leadfilterinfo';
+		
+				var leadfilterdiv=document.createElement('div');
+				leadfilterdiv.appendChild(leadfilterinfo);
+				leadfilterdiv.id='leadfilterdiv';
+
+				var readydiv=document.getElementById('readydiv');
+				readydiv.appendChild(leadfilterdiv);
+
+				var leadfilterbtn=document.createElement('button');
+				leadfilterbtn.innerHTML='filterinfo Update';
+				leadfilterbtn.onclick=function(i){
+					return function(){
+						updateFilterinfo(i);
+					}
+				}(filterid);
+				
+
+				var leadfilterbtndiv=document.createElement('div');
+				leadfilterbtndiv.id='leadfilterbtndiv';
+				leadfilterbtndiv.appendChild(leadfilterbtn);
+				readydiv.appendChild(leadfilterbtndiv);
+
+				
+				document.getElementById('filterinfo').focus();
+				document.getElementById('filterinfo').value=filterinfo;
+
+			}	
+
+			function updateFilter(){
+				if(chosenfilter){
+					socket.emit('filterupdateleadfiltertor1',{chosenfilter:chosenfilter,chosenlist:chosenlist});
+				}
+			}
+
+			function putColoron(classN, idN,colorN){
+				var cn=document.getElementsByClassName(classN);
+				for(var ia=0; ia<cn.length; ia++){	
+					cn[ia].style.color='';
+					cn[ia].style.backgroundColor='';
+				}
+				document.getElementById(idN).style.backgroundColor=colorN[0];
+				document.getElementById(idN).style.color=colorN[1];
+			}
+
+
+
+
+			var chosenfilter='';
+			function chosenFilter(filterid){
+				chosenfilter=filterid;
+			}
+
+			function setEnvironment(){
+			//	chosenRepresent();	
+			}
+
+			var stat={chosencolor:'blue', fontcolor:'white'}
+			function chosenRepresent(){
+				removeAllRepresent('r1set');
+				removeallele('chosendisplay')
+				if(chosenlist.length!=0){
+					var chosenlistl=chosenlist;
+
+
+					var chd=document.getElementById('chosendisplay');
+
+					for(var ia=0; ia<chosenlistl.length; ia++){
+							var rpdiv=document.getElementById(chosenlistl[ia][0]);
+							if(rpdiv){
+								rpdiv.style.backgroundColor=stat.chosencolor;
+								rpdiv.style.color=stat.fontcolor;
+							}
+
+
+							//chosendisplay
+
+							var cdiv=document.createElement('div');
+							cdiv.onclick=function(i){
+								return function(){
+								 	clickToChosen(i)
+								}
+							}(chosenlistl[ia][0]);
+							var cdiva=document.createElement('a');
+							cdiva.innerHTML=chosenlistl[ia][2];
+							cdiv.appendChild(cdiva);
+							chd.appendChild(cdiv);
+					}
+
+					
+
+				}
+		
+			}
+
+
+			function removeAllRepresent(cname){
+				var rdiv=document.getElementsByClassName(cname);
+				for(var ia=0; ia<rdiv.length; ia++){
+					rdiv[ia].style.backgroundColor='';
+					rdiv[ia].style.color='';
+				}
+			}
+			function removeItemFromExist(liststr,item){
+				var liststrl=liststr;
+
+				var nlist=[];
+				for(var ia=0; ia<liststrl.length; ia++){
+					if(liststrl[ia][0]==item){
+					}else{
+						nlist.push(liststrl[ia]);
+					}
+				}
+				return nlist;	
+			}
+			function checkItemExist(liststr,item){
+				var liststrl=liststr;
+
+				var chk=0;
+				for(var ia=0; ia<liststrl.length; ia++){
+					if(liststrl[ia][0]==item){
+						chk=1;
+						break;
+					}
+				}
+
+				return chk;
+			}
+
+
+			var swap=function(array,i,j){
+				var temp=array[i];
+				array[i]=array[j];
+				array[j]=temp;
+			}
+	
+			var sortind=function(array){
+				for(var i=0; i<array.length; i++){
+					for(var j=1;j<array.length; j++){
+						if(array[j-1][1]>array[j][1]){
+							swap(array,j-1,j);
+						}
+					}
+				}
+				return array;
+			}
+
+
+
+
+			function selectTop(arr){
+				var t=0;
+				for(var ia=0; ia<arr.length; ia++){	
+					if(arr[ia][1]>t){
+						t=arr[ia][1];
+					}
+				}
+				return t;
+			}
+
+
+			function clickToChosen(item,ls){
+				var chk=checkItemExist(chosenlist,item);
+				if(chk==0){//no exist
+					chosenlist.push([item,selectTop(chosenlist)+1,ls]);
+				}else{
+					chosenlist=removeItemFromExist(chosenlist,item);
+				}
+				chosenlist=sortind(chosenlist);
+
+				chosenRepresent();
+
+			}	
+
+
+			socket.on('callincludedr1after',function(a){
+				removeallele('cptlist');
+				console.log(a);
+				var cptlist=document.getElementById('cptlist');
+
+				
+				chosenlist=[];
+				for(var ia=0; ia<a.a.length; ia++){
+					chosenlist.push([a.a[ia].cptid,ia,a.a[ia].listinfo]);
+					var cdiv=document.createElement('div');
+					cdiv.id='in'+a.a[ia].cptid;
+
+
+					var r1varia=document.createElement('a');
+					r1varia.innerHTML='R1vari'
+					console.log(a);
+					r1varia.href='./filter/fruconnect?filterconid='+a.a[ia].filterconid+'&filterid='+a.a[ia].filterid+'&cptid='+a.a[ia].cptid;
+					cdiv.appendChild(r1varia);
+
+
+					var cdiva=document.createElement('A');
+					cdiva.innerHTML=a.a[ia].listinfo;
+					cdiv.appendChild(cdiva);
+
+					var cdivedit=document.createElement('A');
+					cdivedit.innerHTML='Edit';
+
+					//editfiltera.href='./fruconnect?filterconid='+ordercptlist[ia][0].filterconid+'&filterid='+ordercptlist[ia][0].filterid+'&cptid='+ordercptlist[ia][0].childcol+'&username='+username;
+					cdivedit.href='./leadfiltertor1/edit?cptid='+a.a[ia].cptid;
+					cdiv.appendChild(cdivedit);
+
+
+					cptlist.appendChild(cdiv);
+				}
+
+				chosenRepresent();
+			});
+
+			function callIncludedR1(filterid){
+				socket.emit('callincludedr1',{filterid:filterid})
+			}
+			socket.on('callfilterlistafter',function(a){
+				var filterlist=document.getElementById('filterlist');
+				for(var ia=0; ia<a.a.length; ia++){
+					var fdiv=document.createElement('div');	
+					fdiv.className='filteridlist';
+					fdiv.id=a.a[ia].filterid;
+					fdiv.onclick=function(i,j,k){
+						return function(){
+							chosenFilter(i);
+							putColoron('filteridlist',i,['red','white'])
+							modifyeditReady(i,j)
+							callIncludedR1(i);
+							buttonKeyadd(k);
+						}
+					}(a.a[ia].filterid,a.a[ia].filterinfo,fdiv);
+					var fdiva=document.createElement('a');
+					fdiva.innerHTML=a.a[ia].filterinfo;
+					fdiv.appendChild(fdiva);
+					filterlist.appendChild(fdiv);
+				}
+			});
+
+			callfilterlist();
+			function callfilterlist(){
+				socket.emit('callfilterlist');
+			}
+
+
+			socket.on('createleadfilterafter',function(a){
+				alert('created');
+			});
+
+			function createFilter(){
+				var filterinfo=document.getElementById('filterinfo').value;
+				var opt='r1leadfilter'
+				if(filterinfo!='' && opt!=''){
+					socket.emit('createleadfilter',{filterinfo:filterinfo,opt:opt});
+				}else{
+					alert('fillter the info');
+				}
+			}
+
+
+			socket.on('vdrgcallleadfilterprblistafter',function(r){
+				var vdiv;
+				var va0;
+				var va1;
+				removeallele('prbcon');
+				var fdiv=document.getElementById('prbcon');
+				for(var ia=0; ia<r.prbcon.length; ia++){
+					vdiv=document.createElement('DIV');	
+					va0=document.createElement('A');
+					va1=document.createElement('A');
+					va0.innerHTML=r.prbcon[ia][0];
+					va1.innerHTML=r.prbcon[ia][1];
+					vdiv.appendChild(va0);
+					vdiv.appendChild(va1);
+
+					if(r.prbcon[ia][8]!=null){
+						var imgdiv=document.createElement('div');
+						var imgsrc=document.createElement('img');
+						imgdiv.className='imgdiv';
+						imgsrc.src=r.prbcon[ia][8];
+						imgdiv.appendChild(imgsrc);
+						vdiv.appendChild(imgdiv);
+					}
+
+					fdiv.appendChild(vdiv);
+				
+					
+				}
+				//MathJax.Hub.Queue(["Typeset",MathJax.Hub,fdiv])	
+			});
+
+
+			function callPrbcon(prblist,r1id){
+				socket.emit('vdrgcallleadfilterprblist',{plist:prblist,r1id:r1id})
+			}
+
+			var chosenlist=[];
+			socket.on('vdrgcallr1after',function(a){
+				removeallele('r1set');
+				//chosenlist=[];
+
+				var r1setdiv=document.getElementById('r1set');
+				for(var ia=0; ia<a.b.length; ia++){
+					var r1div=document.createElement('div');
+					r1div.onclick=function(i,j){
+						return function(){
+							clickToChosen(i,j);
+						}
+					}(a.b[ia].cptid,a.b[ia].listinfo);
+					r1div.id=a.b[ia].cptid;
+					r1div.className='r1set';
+					var r1diva=document.createElement('a');
+					r1diva.innerHTML=a.b[ia].listinfo;
+					r1div.appendChild(r1diva);
+					r1setdiv.appendChild(r1div);
+				}
+
+				chosenRepresent();
+			});
+
+
+
+			function callR1(r2id){
+				socket.emit('vdrgcallr1',{r2id:r2id});
+			}
+
+
+
+
+
+			function removeallele(parentid){
+				var parent=document.getElementById(parentid);
+				while(parent.firstChild){
+					parent.firstChild.remove();
+				}
+			}
+
+
+			function callR2(r3id){
+				socket.emit('vdrgcallr2',{r3id:r3id});
+			}
+
+			socket.on('vdrgcallr2after',function(a){
+				removeallele('r2set');
+				var r2setdiv=document.getElementById('r2set');
+				for(var ia=0; ia<a.b.length; ia++){
+					var r2div=document.createElement('div');
+					r2div.id=a.b[ia].r2id;
+					r2div.className='r2div';
+					r2div.onclick=function(i,j){
+						return function(){
+							callR1(i);
+							putColoron('r2div',i,['blue','white']);
+							//funckeyAdd(j);
+							//listinfoEditReady(i);			
+						}
+					}(a.b[ia].r2id,r2div);
+					var r2diva=document.createElement('a');
+					r2diva.id=a.b[ia].r2id+'a';
+					r2diva.innerHTML=a.b[ia].r2listinfo;
+					r2div.appendChild(r2diva);
+					r2setdiv.appendChild(r2div);
+				}
+			});
+
+
+
+
+
+			callR3set();
+			function callR3set(){
+				socket.emit('vdrgcallr3set');
+			}
+
+
+
+			socket.on('vdrgcallr3setafter',function(a){
+				var r3set=document.getElementById('r3set');
+				for(var ia=0; ia<a.a.length; ia++){
+					var r3setdiv=document.createElement('div');
+					var r3setdiva=document.createElement('A');
+					r3setdiv.onclick=function(i){
+						return function(){
+							callR2(i);
+						}
+					}(a.a[ia].r3id)
+
+					r3setdiva.innerHTML=a.a[ia].listinfo;
+					r3setdiv.appendChild(r3setdiva);
+					r3set.appendChild(r3setdiv);
+				}
+			});
+
+	
+

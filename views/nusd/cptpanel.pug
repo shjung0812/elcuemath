@@ -1,0 +1,169 @@
+html
+	head
+		title CPT Panel
+		script(src='/socket.io/socket.io.js')
+		script(type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML")
+		style.
+			body {
+				padding:0;
+				margin:0;
+			}
+			#panel {
+				width:100%;
+				height:100%;
+			}
+			#cptpanel {
+				width:10%;
+				height:100%;
+				float:left;
+			}
+			#cptprblistdiv {
+				width:90%;
+				height:100%;
+				float:left;
+				background-color:#555555;
+			}
+			.cptprbdiv {
+				width:20%;
+				height:20%;
+				float:left;
+				border:solid;
+			}
+			.cptprbdiv div {
+				width:100%;
+				height:100%;
+			}
+
+
+	body
+		div(id='panel')
+			div(id='cptprblistdiv')
+			div(id='cptpanel')
+				div
+					a(href='/admin/cpt?stchk=1' target='_blank' rel='noopenner noreferer' style='text-decoration:none') CPT
+				div(id='cptprbsetlistdiv')
+					-for(var ia=0; ia<rs.length; ia++){
+						div(class='prbsetlist')
+							a(onclick='callprblist("'+rs[ia].prblist+'",1)')=rs[ia].listinfo
+					-}	
+
+				div(id='userpanel')
+					div(id='userlist')
+						div(id='userlistdiv')
+
+		script.
+			var socket = io('/nusd');
+			var chosenuser='';
+			
+			
+			socket.on('connect',()=>{
+				console.log('connection ready');
+				socket.emit('nusdsocketidregister',{socketid:socket.id,username:'mentor(optional)',position:2});
+
+			});
+
+
+
+			function callprblist(plist){
+				socket.emit('nusdcallprblist',{plist:plist});
+			}
+			socket.on('nusdgetprblist',function(p){
+				removeallele('cptprblistdiv');	
+				var cptprblistdiv=document.getElementById('cptprblistdiv');
+				for(var ia=0; ia<p.prbcon.length; ia++){
+					var cptprbdiv=document.createElement('div');
+					cptprbdiv.className='cptprbdiv';
+					var cptprbdivprb=document.createElement('div');
+					var cptprbdivprba=document.createElement('a');
+					cptprbdivprba.innerHTML=p.prbcon[ia][1];
+					cptprbdivprb.appendChild(cptprbdivprba);
+					cptprbdiv.appendChild(cptprbdivprb);
+
+					var prbobj={};
+					var sendoption=0;
+					prbobj.prb=p.prbcon[ia][1];
+					prbobj.sendoption=sendoption;
+
+					cptprbdiv.onclick=function(i){return function(){sendSomething(i,1)}}(prbobj);
+
+					cptprblistdiv.appendChild(cptprbdiv);
+				}	
+				MathJax.Hub.Queue(["Typeset",MathJax.Hub,"cptprblistidv"])	
+			});	
+			var userlist=!{JSON.stringify(userlist)};
+			function fillUsers(userlist){
+				removeallele('userlistdiv')
+				var userlistdiv=document.getElementById('userlistdiv');
+				for(var ia=0; ia<userlist.length; ia++){
+					var udiv=document.createElement('div');
+					udiv.className='userlist'
+					var udiva=document.createElement('A');
+					udiv.onclick=function(i,j){ return function(){chosenuser=i;
+						var chosen=document.getElementById('chosenuser');
+						chosen.value=i;
+						chosenuser=i;
+						colorErase('userlist');
+						j.style.backgroundColor='red';
+						
+						
+					}}(userlist[ia].username,udiv);
+					udiva.innerHTML=userlist[ia].username;
+					udiv.appendChild(udiva);
+					userlistdiv.appendChild(udiv);
+				}
+			};
+			fillUsers(userlist);
+
+
+			function colorErase(cname){
+				var cdiv=document.getElementsByClassName(cname);
+				for(var ia=0; ia<cdiv.length; ia++){
+					cdiv[ia].style.backgroundColor='';
+				}
+			}
+			socket.on('mentoruserlistrefresh',function(a){
+				fillUsers(a.userlist);
+			});
+			function removeallele(parentid){
+				var parent=document.getElementById(parentid);
+				while(parent.firstChild){
+					parent.firstChild.remove();
+				}
+			}
+
+
+			function sendSomething(prbobj,opt){
+				var chosenuserinput=document.getElementById('chosenuser');
+				//var nusdlist=document.getElementById('nusdlist');
+				if(chosenuserinput.value!=''){
+				
+					if(opt==0){
+						socket.emit('numbersent',{username:chosenuserinput.value, nusdlist:nusdlist.value,opt:opt});
+						alert('number sent')
+						//nusdlist.value=''; 	
+						removeallele('numspace');
+					}else if(opt==1){// send problem
+						socket.emit('numbersent',{username:chosenuserinput.value, prbobj:prbobj,opt:opt});
+						
+				
+						removeallele('shareinputdiv');
+						var msgdiv=document.createElement('div');	
+						var msga=document.createElement('A');
+						msga.innerHTML=prbobj.prb;
+						msga.style.color='white';
+						msga.style.fontSize='1.5vw';
+						msgdiv.appendChild(msga);
+						shareinputdiv.appendChild(msgdiv);
+
+						if(prbobj.sendoption==0){
+						}else if(prbobj.sendoption==1){
+						}
+
+						MathJax.Hub.Queue(["Typeset",MathJax.Hub,"shareinputdiv"])	
+		
+					}
+				}else{
+					alert('error! check send number and user selection');
+				} 
+			}
+

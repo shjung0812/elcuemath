@@ -1,0 +1,228 @@
+html
+	head
+		script(src='/socket.io/socket.io.js')
+		script(src="https://cdn.jsdelivr.net/npm/peerjs@0.3.20/dist/peer.min.js")
+		style.
+			#videopopupwrap {
+				width:100%;
+				height:100%;
+			}
+			#mentorvideobox {
+				width:100%;
+				height:100%;
+			}	
+			#mentorvideo {
+				width:100%;
+			}
+
+	body
+		div(id='bodydiv')
+			div
+				button(id='btn') Request
+			div(id='videopopupwrap')
+				div(id='mentorvideobox')
+					video(id='mentorvideo' autoplay playsinline controls='false')
+				div(id='videooptionbox')
+					div(id='selfvideobox')
+						video(id='selfVideo' autoplay playsinline controls='false')
+					div(id='videodisconnectbox')
+
+		script.
+			var socket=io('/sies');
+			var a=0;
+
+
+			socket.on('connect',()=>{
+				console.log('connection ready');
+				socket.emit('siessendsocketid',{socketid:socket.id,userkind:1});
+			});
+
+			socket.on('siessendsocketidafter',function(a){
+				RTCGo(a.iceservers);
+			});
+
+			async function getConnectedDevices(type){
+				const devices = await navigator.mediaDevices.enumerateDevices();
+				return devices.filter(device => device.kind === type);
+			}
+
+			async function everythingReady(){
+				/*
+					checklist
+						getusermedia test,
+						audio input test,
+				*/
+
+				var equipChecklist=[];
+				var msglist=[];
+
+
+				const navimedia=await navigator.mediaDevices;
+				if(navimedia !== undefined){
+					equipChecklist.push(1);
+					msglist.push('navigator.mediaDevices ok')
+	
+					
+					const audios= await getConnectedDevices('audioinput');
+					if(audios && audios.length>0){
+						equipChecklist.push(1);
+						msglist.push('audio input ok')
+					}else{
+						equipChecklist.push(0);
+						msglist.push('audio input FAILED')
+					}
+					
+				}else{
+					equipChecklist.push(0);
+					const msg = 'navigator.mediaDevices is not found'
+					msglist.push(msg)
+				}
+	
+
+				return {equipcheck:equipChecklist, msglist:msglist}
+
+			}
+
+
+			var statusobj={};
+			async function firstSetting(){
+				const statuscheck=await everythingReady()
+				statusobj.firstsetting=1;
+				if(1){ //statuscheck;
+					statusobj.audioready=1;
+				
+				}else{
+					statusobj.audioready=0;			
+					console.log('the connection cannot be established');
+				}
+			};
+
+			firstSetting();
+
+
+
+			function RTCGo(iceservers){
+				const constraints = {
+					'video':false,
+					'audio':true
+				}
+
+
+
+					const configuration = {iceServers:iceservers};
+					const peerConnection = new RTCPeerConnection(configuration);
+
+					socket.on('webrtcservertoresponder', async (message) =>{
+						if(statusobj.audioready==1 && statusobj.firstsetting==1){
+						
+							if(message.offer){
+								peerConnection.setRemoteDescription(new RTCSessionDescription(message.offer));
+								console.log('mentor offer registered')
+								const answer = await peerConnection.createAnswer();
+								await peerConnection.setLocalDescription(answer);
+								console.log('My offer registered')
+				
+								socket.emit('webrtcrespondertoserver',{answer:answer});
+								console.log('My offer is sent to mentor')
+
+							}else{
+								console.log('problem occurred sending offer');
+							}
+						}else{
+							console.log('sorry audio and firstsetting should be ready');
+						}
+					});
+
+					peerConnection.onicecandidate=(e) => {
+						console.log('onicecandidate ',e);
+						socket.emit('webrtctoservernewicecandidate',{destination:'tocaller',newicecandidate:e.candidate});
+					};
+
+
+
+					socket.on('webrtctorespondernewicecandidate',async function(a){
+						if(a.newicecandidate){
+							console.log(a.newicecandidate,'responder');
+							await peerConnection.addIceCandidate(a.newicecandidate);
+						}
+					});
+
+
+					const remoteStream = new MediaStream();
+
+					peerConnection.addEventListener('track',async (event) => {
+						console.log('remote');
+						remoteStream.addTrack(event.track);
+						const remoteVideo = document.getElementById('mentorvideo');
+						remoteVideo.srcObject = remoteStream;
+						remoteVideo.onloadedmetadata = function(e){
+							remoteVideo.play();		
+						}
+
+
+					});
+
+
+			}
+
+
+
+
+
+		
+			var Call;
+			var Stream;
+			var peer;
+			socket.emit('siessharescreen',{userkind:1});
+			socket.on('siessharescreenafter',function(a){
+				peer = new Peer({
+					config: {
+							'iceServers':a.iceservers
+					}
+				});
+				peer.on('call',function(call){
+					Call=call
+
+					var selfvideobox=document.getElementById('selfvideobox');
+					var mentorvideobox=document.getElementById('mentorvideobox');
+		
+					var selfvideo=document.getElementById('selfvideo');
+					var mentorvideo=document.getElementById('mentorvideo');
+		
+					/*	
+					var constraints={video:true,audio:true}
+					navigator.mediaDevices.getUserMedia(constraints).then(function(stream){
+						selfvideo.srcObject = stream;
+						selfvideo.onloadedmetadata = function(e){
+							selfvideo.play();		
+						}
+						call.answer(stream)
+					}).catch(function(err){
+						console.log('out');
+						call.answer();
+					});
+					*/
+					
+
+					call.answer();
+					call.on('stream',function(remoteStream){
+						mentorvideo.srcObject = remoteStream;
+						mentorvideo.onloadedmetadata = function(e){
+							console.log(mentorvideo);
+							mentorvideo.play();		
+						}
+					});
+					//hideelement('messageforwaiting');
+				});
+
+				function inquieryRequest(){
+					socket.emit('siesmenteerequest',{peerid:peer.id,mentee:'menteeid',mentor:'shjung'});
+					console.log('inquieryRequest SEnt');
+			
+				}
+				document.getElementById('btn').onclick=function(){inquieryRequest();}
+
+			});	
+
+
+

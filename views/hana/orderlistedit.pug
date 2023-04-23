@@ -1,0 +1,364 @@
+html
+	head
+		h2 Edit
+		script(src='/socket.io/socket.io.js')
+		style.
+			#confirmedlist{
+				width:50%;
+				height:80%;
+				float:left;
+			}
+			#waitinglist {
+				width:30%;
+				height:80%;
+				float:left;
+			}
+			.itemwaiting {
+				text-align:center;
+			}
+			.orderwaiting {
+				text-align:right;
+			}
+			.itemwaiting a {
+				display:inline-block;
+				background-color:yellow;
+				height:4%;
+			}
+			.orderwaiting a {
+				background-color:blue;
+				display:inline-block;
+				height:5%;
+				color:white;
+			}
+			#fieldgo {
+				display:inline-block;
+				background-color:#aaaaaa;
+				font-size:5em;
+			}
+			#ordersetlist {
+				border:1px solid;
+			}
+	body
+		div
+			a(onclick="fieldGo()", id='fieldgo') Go
+			a(onclick="saveOrder('insert',null)", id='saveorder') Create order
+		div(id='ordersetlist')
+		
+		div(id='waitinglist')
+		div(id='confirmedlist')
+	script.
+		var socket = io('/whalse',{
+			transports:['websocket'],
+			upgrade:false
+		});
+
+		var givenprblist=[];
+		var rgprblist=[];
+
+
+
+		function callOrder(){
+			socket.emit('callorder');
+		}
+
+		callOrder();
+		socket.on('callorderafter',function(a){
+			console.log(a);
+			removeallele('ordersetlist');
+			for(var ia=0; ia<a.a.length; ia++){
+				var fdiv=document.createElement('div');
+				fdiv.className='ordersetcname';
+				fdiv.id='orderset'+a.a[ia].numid;
+				fdiv.onclick=function(i){
+					return function(){
+						//putColoron('ordersetcname', 'orderset'+i,['black','white'])
+					}
+				}(a.a[ia].numid);
+				var fdiva=document.createElement('a');
+				if(a.a[ia].orderinfo==null){
+				
+					fdiva.innerHTML='button'+a.a[ia].numid;
+				}else{
+					fdiva.innerHTML=a.a[ia].orderinfo;
+				}
+
+				var fbutton=document.createElement('button');
+				fbutton.onclick=function(i,k,l){
+					return function(){
+						putColoron('ordersetcname', 'orderset'+k,['black','white'])
+						settingList(i)
+
+
+
+						var createorder=document.getElementById('saveorder');
+						if(createorder !=null){
+							createorder.remove();
+						}
+
+						var fc=document.getElementsByClassName('cupdate');
+						for(var ic=0; ic<fc.length; ic++){
+							fc[ic].remove();
+						}
+
+
+						var fupdate=document.createElement('button');
+						fupdate.innerHTML='update';
+						fupdate.className='cupdate';
+						fupdate.onclick=function(j){
+							return function(){
+								saveOrder('update',j);
+							}
+						}(k);
+						l.appendChild(fupdate);
+					}
+				}(a.a[ia].orderset.split(','),a.a[ia].numid,fdiv);
+
+				fdiv.appendChild(fdiva);
+				fdiv.appendChild(fbutton);
+				fbutton.innerHTML='Display'
+				document.getElementById('ordersetlist').appendChild(fdiv);
+			}
+			
+			//settingList(a.a[1].orderset.split(','))
+		});
+
+		function saveOrder(opt,numid){
+			var fieldstring=''
+			for(var ia=0; ia<rgprblist.length; ia++){
+				if(ia!=rgprblist.length-1){
+					fieldstring=fieldstring+rgprblist[ia]+',';
+				}else{
+					fieldstring=fieldstring+rgprblist[ia];
+				}
+			}
+
+			if(opt=='insert'){
+				console.log('insert');
+				socket.emit('saveorder',{opt:opt,rgprblist:fieldstring});
+			}else if(opt=='update'){
+				socket.emit('saveorder',{opt:opt,numid:numid,rgprblist:fieldstring})
+			}
+		}
+		socket.on('saveorderafter',function(a){
+			console.log(a);
+			alert('saved');
+			callOrder();
+		});
+
+
+		var backdatahead;
+		function settingList(esslist){
+			rgprblist=[];
+			givenprblist=[];
+			for(let v in backdatahead){
+				var stchk=0; 
+				for(var ia=0; ia<esslist.length; ia++){
+					if(esslist[ia]==v){
+						stchk=1;
+						break;
+					}
+				}
+				if(stchk==1){
+					//rgprblist.push(v)
+				}else{
+					givenprblist.push(v)
+				}
+			}
+
+			for(let v of esslist){
+				rgprblist.push(v);
+			}
+			callPrbwaiting(givenprblist)
+			prbOrder();
+
+		}
+		socket.emit('whalsegetdata');
+		socket.on('whalsegetdataafter',function(a){
+			var esslist=['arrival0num','arrival1num','arrival2num','arrival3num','status0text','status1text','status2text','status3text','status0pic','status1pic','status2pic','status3pic','branchoffice']
+			backdatahead=a.data[0];
+			settingList(esslist);
+		});
+		var chosenprb='';
+
+		function fieldGo(){
+			var fieldgo=document.getElementById('fieldgo');
+			var fieldstring=''
+			for(var ia=0; ia<rgprblist.length; ia++){
+				if(ia!=rgprblist.length-1){
+					fieldstring=fieldstring+rgprblist[ia]+',';
+				}else{
+					fieldstring=fieldstring+rgprblist[ia];
+				}
+			}
+			fieldgo.href='/hana/whalse/output?fieldstring='+fieldstring;
+			fieldgo.click();
+		}
+
+
+		function putOrderon(ord){
+			var idx=idxOf(givenprblist,chosenprb);
+
+			if(chosenprb!=''){
+				rgprblist.splice(ord,0,givenprblist[idx]);
+				
+				chosenprb='';
+				prbOrder();
+				callPrbwaiting(givenprblist);
+			
+			}else{
+				alert('the prb is not chosen');
+			}
+			
+		}	
+
+
+		function removeallele(parentid){
+			var parent=document.getElementById(parentid);
+			while(parent.firstChild){
+				parent.firstChild.remove();
+			}
+		}
+
+
+		function callPrbwaiting(prblist){
+			removeallele('waitinglist');
+			var prbwaitingdiv=document.getElementById('waitinglist');
+
+			var waiting=[];
+			for(var ia=0; ia<prblist.length; ia++){
+				var chk=0;
+				for(var ib=0; ib<rgprblist.length; ib++){
+					if(rgprblist[ib]==prblist[ia]){
+						chk=1;
+						break;
+					}
+				}
+				if(chk==0){
+					waiting.push(prblist[ia])
+				}
+			}
+
+			for(var ia=0; ia<waiting.length; ia++){
+				var wdiv=document.createElement('div');
+				var wdiva=document.createElement('A');
+
+				var wdivadiv=document.createElement('div');
+				wdiva.innerHTML=waiting[ia];
+				wdivadiv.appendChild(wdiva);
+
+			
+				wdiv.id=waiting[ia];
+				wdiv.className='chosenprb'
+				wdiv.onclick=function(i){return function(){rgprb(i);}}(waiting[ia]);
+
+				wdiv.appendChild(wdivadiv);
+				prbwaitingdiv.appendChild(wdiv);
+			}
+		}		
+
+
+		function prbOrder(){	
+			removeallele('confirmedlist');
+			var prblistboard=document.getElementById('confirmedlist');
+			if(rgprblist.length==0){
+				var porder0=document.createElement('div');
+				var porder0a=document.createElement('A');
+				porder0a.innerHTML='porder0';
+				porder0.appendChild(porder0a);
+				porder0.onclick=function(i){return function(){putOrderon(i);}}(0);
+				prblistboard.appendChild(porder0);
+			}else{
+				for(var ia=0; ia<=rgprblist.length; ia++){
+					if(ia!=rgprblist.length){
+						var porder=document.createElement('div');
+						var pcon=document.createElement('div');
+						pcon.className='itemwaiting';
+						porder.className='orderwaiting';
+
+						var pordera=document.createElement('A');
+						var pcona=document.createElement('A');
+	
+						pordera.innerHTML='porder'+ia;
+						var pconadiv=document.createElement('div');
+						pcona.innerHTML=rgprblist[ia];
+						pconadiv.appendChild(pcona);
+
+					
+
+						pcona.onclick=function(i){return function(){removeFromrglist(i);}}(rgprblist[ia]);
+						pordera.onclick=function(i){return function(){putOrderon(i);}}(ia);
+
+						
+						porder.appendChild(pordera);
+
+		
+						pcon.appendChild(pconadiv);
+					
+
+						prblistboard.appendChild(porder);
+						prblistboard.appendChild(pcon);
+					}else{
+						var porder=document.createElement('div');
+						porder.className='orderwaiting';
+
+
+						var pordera=document.createElement('A');
+	
+						pordera.innerHTML='porder'+ia;
+
+						pordera.onclick=function(i){return function(){putOrderon(i);}}(ia);
+
+						porder.appendChild(pordera);
+
+						prblistboard.appendChild(porder);
+
+
+					}
+				}	
+			}
+		}
+		function putColoron(classN, idN,colorN){
+			var cn=document.getElementsByClassName(classN);
+			for(var ia=0; ia<cn.length; ia++){	
+				cn[ia].style.color='';
+				cn[ia].style.backgroundColor='';
+			}
+			document.getElementById(idN).style.backgroundColor=colorN[0];
+			document.getElementById(idN).style.color=colorN[1];
+		}
+
+
+
+		function rgprb(ele){
+			chosenprb=ele;
+			putColoron('chosenprb',ele,['blue','white']);
+		}
+		function idxOf(arr,itm){
+			var chk=0;
+			for(var ia=0; ia<arr.length; ia++){
+				if(arr[ia]==itm){
+					chk=1;
+					break;
+				}
+			}
+			if(chk==1){
+				return ia;
+			}else{
+				return -1;
+			}
+		}
+
+		function removeFromrglist(ele){
+			var idx=idxOf(rgprblist,ele);
+			if(idx>-1){
+				rgprblist.splice(idx,1);
+		
+			}else{
+				alert('error from remove rglist');
+			}
+			givenprblist.push(ele);
+			prbOrder();
+			callPrbwaiting(givenprblist);
+			rgprb(ele);
+		}
+

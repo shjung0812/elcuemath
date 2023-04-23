@@ -1,0 +1,441 @@
+html
+	head
+		title sies mentor page
+
+		style.
+			body {
+				padding:0;
+				margin:0;
+			}
+			#allwrap {
+				width:100%;
+				height:100%;
+			}
+			#crselebox {
+				width:100%;	
+				height:20%;
+			
+			}
+			#prbcontentbox {
+				width:100%;
+				height:80%;
+			}
+			#crsbox {
+				width:50%;
+				height:100%;
+				float:left;
+				overflow:auto;
+			}	
+			.crsdiv {
+				cursor:pointer;	
+			}
+			#elebox {
+				width:50%;
+				height:100%;
+				float:left;
+				overflow:auto;
+
+			}
+			.elesendwrap {
+				width:100%;
+				height:20%;
+				margin:2px 0;
+			}
+			.elename {
+				width:50%;
+				height:100%;
+				float:left;	
+				cursor:pointer;	
+				word-break: break-all;
+			}
+			.elesend {
+				width:50%;
+				height:100%;
+				float:left;
+				cursor:pointer;	
+			}
+			#crsprbwrap {
+				width:30%;
+				height:100%;
+				float:left;
+			}
+
+			#webcommwrap {
+				width:70%;
+				height:100%;
+				background-color:#663322;
+				float:left;
+			}	
+			#webplayerlistbox {
+				width:100%;
+				height:20%;
+				background-color:#99ff22;
+			}
+
+			#webplayerresult {
+				width:80%;
+				height:100%;
+				margin:0 10%;
+				background-color:#ffdd22;
+			}
+			.webplayerresultbox {
+				width:100%;
+				background-color:#aaaaaa;
+			}
+			.webplayerresultbox a {
+				text-decoration:none;
+				
+			}
+			#webplayervideobox {
+				width:100%;
+				height:80%;
+				background-color:#994422;
+			}
+
+			#webmentorbox {
+				width:100%;
+				height:50%;
+				background-color:#9944ff;
+				overflow:auto;
+			}
+			#webmentorbox video {
+				width:100%;
+				height:100%;
+			}
+			#webmenteebox {
+				width:100%;
+				height:50%;
+			}
+			#webmenteebox video {
+				width:100%;
+				height:50%;
+			}
+
+		script(src='/socket.io/socket.io.js')
+		script(src="https://cdn.jsdelivr.net/npm/peerjs@0.3.20/dist/peer.min.js")
+		script(type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML")
+		script.
+			Element.prototype.remove = function() {
+				this.parentElement.removeChild(this);
+			}
+			NodeList.prototype.remove = HTMLCollection.prototype.remove = function() {
+			for(var i = this.length - 1; i >= 0; i--) {
+				if(this[i] && this[i].parentElement) {
+					this[i].parentElement.removeChild(this[i]);
+				}
+			}
+			}
+
+
+			var peer = new Peer();
+			var socket=io('/sies');
+			var Call;
+			socket.on('connect',()=>{
+				console.log('connection ready');
+				socket.emit('siessendsocketid',{socketid:socket.id,userkind:0});
+
+				callcoursematerial();
+				
+			});
+
+
+
+
+				
+
+			peer.on('close',function(){
+				console.log('Peer connection destroyed');
+			});
+
+
+			function Calldisconnected(){
+				Call.close();
+				removeallele('webplayerlistbox');
+
+				var myvideo=document.getElementById('callervideo');
+				let myvideotrack=myvideo.srcObject
+				if(myvideotrack){
+					tracks=	myvideotrack.getTracks()
+			
+					tracks.forEach(function(track){
+						track.stop();
+					});
+					myvideo.srcObject = null;
+
+
+				}
+	
+				var ansvideo=document.getElementById('ansvideo');
+				let tracksobj=ansvideo.srcObject;
+				if(tracksobj){
+					let tracks1=tracksobj.getTracks();
+					tracks1.forEach(function(track){
+						track.stop();
+					});
+					ansvideo.srcObject = null;
+				}
+
+				socket.emit('connectionstopbymentor',{mentor:'shjung',mentee:'menteeid'});
+				removeallele('callervideo');
+				removeallele('ansvideo');
+				socket.emit('siescallterminatebymentor');
+				console.log('call disconnected')
+			
+			}
+
+
+			async function startCapture(displayMediaOptions){
+				let captureStream=null;
+				try {
+					captureStream=await navigator.mediaDevices.getDisplayMedia(displayMediaOptions);
+				} catch(err){
+					console.error("Error: " + err);
+				}
+				return captureStream;
+			}
+		
+			function mentorStreamon(peerid){
+
+				var constraints = {
+				video:{ width:{ideal:4086},height:{ideal:2106}},audio:true
+				};
+				constraints={video:true,audio:true}
+	
+					navigator.mediaDevices.getDisplayMedia({video:true,audio:true})
+					.then(stream=>{
+					navigator.mediaDevices.getUserMedia({audio:true}).then(micstream=>{
+					stream.addTrack(micstream.getAudioTracks()[0]);
+					console.log(stream.getTracks());	
+					var myvideo=document.getElementById('callervideo');
+					myvideo.srcObject = stream;
+					myvideo.onloadedmetadata = function(e){
+						myvideo.play();		
+					}
+			
+					Call=peer.call(peerid, stream);
+					Call.on('stream',function(remoteStream){
+						var ansvideo=document.getElementById('ansvideo');
+						ansvideo.srcObject = remoteStream;
+						ansvideo.onloadedmetadata = function(e){
+							ansvideo.play();		
+						}
+					});
+					});
+
+				},error=>{
+					console.log('Unable to acquire screen capture',error);
+				});
+
+
+				var resdivout=document.getElementById('webplayerlistbox');
+				removeallele('webplayerlistbox');
+
+				var terminatediv=document.createElement('DIV');
+				var terminatebutton=document.createElement('button');
+				terminatebutton.innerHTML='Disconnect inquiery';
+				terminatediv.appendChild(terminatebutton);
+				terminatediv.onclick=function(){Calldisconnected();}
+				resdivout.appendChild(terminatediv);
+			}
+
+
+
+			socket.on('siesmenteerequesttomentor',function(ma){
+				//	socket.on('mucmresidsent',function(rpeer){
+				var resdivout=document.getElementById('webplayerlistbox');
+				removeallele('webplayerlistbox');
+				var resdiv=document.createElement('div');
+				var resbutton=document.createElement('button');
+				//resbutton.innerHTML=rpeer.csts[ia][0];
+				resbutton.innerHTML='Menteeconnected'
+				resbutton.onclick=(function(i){return function(){
+					mentorStreamon(i);
+					signalServerMentorAccept();
+				}})(ma.peerid);
+				resdiv.appendChild(resbutton)
+				resdivout.appendChild(resdiv);
+
+			});
+
+
+			socket.on('coursematerialsend',function(ma){
+				var coursematerialdiv=document.getElementById('crsbox');
+				//var coursematerialdiv=document.getElementById('coursematerial');
+				for(var ia=0; ia<ma.crslist.length; ia++){
+					var crsdiv=document.createElement('DIV');
+					crsdiv.className='crsdiv';
+					var crsdivp=document.createElement('P');
+					crsdivp.innerHTML=ma.crslist[ia].crsname;
+					crsdiv.onclick=(function(i){return function(){requestElementOfCrs(i)}})(ma.crslist[ia].crsname);
+					crsdiv.appendChild(crsdivp);
+					coursematerialdiv.appendChild(crsdiv);
+				}
+			});
+
+
+			socket.on('sentelementlist',function(ma){
+				console.log('elementlist and problem list is called');
+				var elementlist=document.getElementById('elebox');
+				for(var ia=0; ia<ma.elelist.length; ia++){
+					var wdiv=document.createElement('DIV');
+					wdiv.className='elesendwrap';
+					var adiv=document.createElement('DIV');
+					adiv.className='elename';
+					adiv.onclick=(function(i,j,l){return function(){
+						playlecture(j) ;//video address
+						requestPrblist(i,l);//prblist
+					}})(ma.elelist[ia].eleprbs,ma.elelist[ia].vidaddr,[ma.crsname,ma.elelist[ia].pstage,ma.elelist[ia].eleprbs.split(','),ma.elelist[ia].vidaddr,'menteeid'])
+					var ap=document.createElement('p');
+					ap.innerHTML=ma.elelist[ia].pstage;
+					adiv.appendChild(ap);
+					var bdiv=document.createElement('DIV');
+					bdiv.className='elesend';
+					bdiv.innerHTML='Send';
+					bdiv.onclick=(function(i,j,k,l,m){return function(){ SentToMentee(i,j,k,l,m)}})(ma.crsname,ma.elelist[ia].pstage,ma.elelist[ia].eleprbs.split(','),ma.elelist[ia].vidaddr,'meenteeid');
+					wdiv.appendChild(adiv);
+					wdiv.appendChild(bdiv);
+					elementlist.appendChild(wdiv);
+					
+				}	
+			
+			});
+
+
+			socket.on('sentprblist',function(ma){
+				removeallele('prbcontentprb');
+				var prblist=document.getElementById('prbcontentprb');
+				for(var ia=0; ia<ma.prblist.length; ia++){
+					var prbwrab=document.createElement('div');
+					var prbcontent=document.createElement('div');
+					var prbcontentp=document.createElement('p');
+					prbcontentp.innerHTML=ma.prblist[ia][1];
+					prbcontent.appendChild(prbcontentp);
+					prbwrab.appendChild(prbcontent);
+					prblist.appendChild(prbwrab);
+				}
+	
+				var sendbutton=document.createElement('button');
+				sendbutton.innerHTML='Send This';
+				sendbutton.onclick=function(){
+					SentToMentee(ma.sendinput[0],ma.sendinput[1],ma.sendinput[2],ma.sendinput[3],ma.sendinput[4])
+				}
+				prblist.appendChild(sendbutton);
+				MathJax.Hub.Queue(["Typeset",MathJax.Hub,"prbcontentprb"])	
+				console.log('problem list is called');
+
+			});
+
+			socket.on('menteerequestaccepted',function(ma){
+				alert('Requsted is accepted!!');
+				console.log(ma.menteeid);
+			});
+
+			socket.on('learningresulttomentor',function(ma){
+				var webplayerresult=document.getElementById('webplayerresult');
+				var webplayerresultbox=document.createElement('div');
+
+				var webplayerresultboxp=document.createElement('a');
+				webplayerresultboxp.href='./mentor/display?resultid='+ma.resultid+'&userid='+ma.mentee;
+				webplayerresultboxp.target='_blank';
+				webplayerresultboxp.innerHTML=ma.mentee+' : '+ma.prbstatepanel[0][0]+' , '+ma.prbstatepanel[0][1]+' :  # of prb : '+ma.prbstatepanel[0][2]+' , PercentageCorrect : '+calPercentage(ma.prbstatepanel)[0] + ' ,PercentageIgrnore : ' +calPercentage(ma.prbstatepanel)[1];
+				webplayerresultbox.appendChild(webplayerresultboxp);
+				webplayerresultbox.className='webplayerresultbox';
+				webplayerresult.appendChild(webplayerresultbox);
+			});
+
+			function tempAlert(msg,duration){
+				var el = document.createElement("div");
+				el.setAttribute("style","position:absolute;top:10%;left:35%;background-color:white;padding:5% 10%;");
+				el.innerHTML = msg;
+				setTimeout(function(){
+					el.parentNode.removeChild(el);
+				},duration);
+				document.body.appendChild(el);
+			}
+
+
+			function calPercentage(panel){
+				var totalnumber=panel[0][2];
+				var numcorrect=0;
+				var numignore=0;
+				for(var ia=0; ia<panel[1].length; ia++){
+					if(panel[1][ia]==1){
+						numcorrect+=1;
+					}
+
+					if(panel[1][ia]==2){
+						numignore+=1;
+					}
+				}
+			
+				var numIncorrect=totalnumber-numcorrect;
+
+				var percentageCorrect=parseFloat(numcorrect*100/totalnumber).toFixed(2);
+				if(numIncorrect==0){
+					var percentageIgnore=0;
+				}else{
+					var percentageIgnore=parseFloat(numignore*100/numIncorrect).toFixed(2);
+				}
+	
+				return [percentageCorrect,percentageIgnore];
+				
+			}
+
+			function SentToMentee(crsname,ele,prbs,vidaddr,menteeid){
+				socket.emit('sentlearningmaterialtomentee',{crsname:crsname,ele:ele,prbs:prbs,vidaddr:vidaddr,mentor:'shjung',mentee:menteeid});
+				tempAlert('Sent to Mentee...',2000); 
+			}
+			
+
+
+			function requestPrblist(i,l){
+				socket.emit('callprblist',{prblist:i.split(','),sendinput:l});
+			}
+			function callcoursematerial(){
+				socket.emit('coursematerialcall');
+				console.log('all course are called');
+			}
+
+			function requestElementOfCrs(crs){
+				removeallele('elebox');
+				socket.emit('crselementcall',{crs:crs})
+				console.log('course Element is called');
+			}
+
+			function playlecture(vid){
+				removeallele('prbcontentvideo');
+				var avd=document.createElement('iframe');
+				avd.src=vid;
+				var videoplay=document.getElementById('prbcontentvideo')
+				videoplay.appendChild(avd);
+			}
+
+			function removeallele(parentid){
+				var parent=document.getElementById(parentid);
+				while(parent.firstChild){
+					parent.firstChild.remove();
+				}
+			}
+			
+			function signalServerMentorAccept(){
+				socket.emit('signalservermentoraccept',{mentor:'shjung',mentee:'menteeid'});
+			}
+
+	body
+		div(id='allwrap')
+			div(id='crsprbwrap')
+				div(id='crselebox')
+					div(id='crsbox')
+					div(id='elebox')
+				div(id='prbcontentbox')
+					div(id='prbcontentvideo')
+					div(id='prbcontentprb')
+			div(id='webcommwrap')
+				div(id='webplayerlistbox')
+					div(id='webplayerresult')
+				div(id='webplayervideobox')
+					div(id='webmentorbox')
+						video(id='callervideo')
+					div(id='webmenteebox')
+						video(id='ansvideo')
+

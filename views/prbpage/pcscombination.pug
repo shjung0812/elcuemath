@@ -1,0 +1,290 @@
+html
+	head
+		script(type='text/javascript' async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML")
+		script(src='/socket.io/socket.io.js')
+		script.
+			Element.prototype.remove=function(){
+				this.parentElement.removeChild(this);
+			}
+			NodeList.prototype.remove = HTMLCollection.prototype.remove = function(){
+				for(var i=this.length -1; i>=0; i--){
+					if(this[i]&& this[i].parentElement){
+						this[i].parentElement.removeChild(this[i]);
+					}
+				}
+			}
+			function removeElementOfDiv(regbdivid){
+				var fdiv=document.getElementById(regbdivid);
+				if(fdiv){
+					while(fdiv.firstChild){
+						fdiv.removeChild(fdiv.firstChild);
+					}
+				}
+			}
+			function pcpcountdisplay(){
+				removeElementOfDiv('pcpcountdisplay')
+				removeElementOfDiv('pcpcombdisplay')
+				var pcpcountdisplay=document.getElementById('pcpcountdisplay');
+
+				var prblistdiv=document.createElement('DIV');
+				prblistdiv.style.width='40%';
+				prblistdiv.style.height='100%';
+				prblistdiv.style.position='fixed';
+				prblistdiv.style.top='0';
+				prblistdiv.style.left='60%';
+				prblistdiv.style.backgroundColor='rgba(98,98,98,0.7)';
+			
+				var prbcontdiv=document.createElement('DIV');
+				prbcontdiv.style.width='90%';
+				prbcontdiv.style.height='90%';
+				prbcontdiv.style.margin='5%';
+				prbcontdiv.style.overflowY='scroll';
+				prbcontdiv.style.backgroundColor='#666666';
+				prbcontdiv.setAttribute('id','prbcontdiv');
+
+				var pcpg=!{JSON.stringify(pcpg)};
+				var indlist=[];
+				var achk;
+				var ua=0;
+				var branchnum=0;
+				for(var ia=0; ia<pcpg.length; ia++){
+					for(var ib=0; ib<pcpg[ia].length ;ib++){
+						for(var id=0; id<pcpg[ia][ib][0].length; id++){
+							achk=0;
+							for(var ic=0; ic<indlist.length; ic++){
+								if(indlist[ic][0]==pcpg[ia][ib][0][id][0]){
+									achk=1;
+								}
+							}
+							if(achk==0){
+								indlist[ua]=pcpg[ia][ib][0][id];
+								ua+=1;
+							}
+						}
+						branchnum+=1;
+					}
+				}
+
+				var count;
+				for(var ie=0; ie<indlist.length; ie++){
+					count=0;
+					for(var ig=0; ig<pcpg.length; ig++){
+						for(var ih=0; ih<pcpg[ig].length; ih++){
+							for(var ii=0; ii<pcpg[ig][ih][0].length; ii++){
+								if(indlist[ie][0]==pcpg[ig][ih][0][ii][0]){
+									count+=1;
+								}
+							}
+						}
+					}
+					indlist[ie].push(count);
+					indlist[ie].push((parseFloat(count/branchnum)*100).toFixed(1));
+				}
+
+				var swap=function(array,i,j){
+					var temp=array[i];
+					array[i]=array[j];
+					array[j]=temp;
+				}
+		
+				var sortind=function(array){
+					for(var i=0; i<array.length; i++){
+						for(var j=1;j<array.length; j++){
+							if(array[j-1][2]<array[j][2]){
+								swap(array,j-1,j);
+							}
+						}
+					}
+					return array;
+				}
+			
+				var nindlist=sortind(indlist);
+				for(var ia=0; ia<nindlist.length; ia++){
+					var vdiv=document.createElement('DIV');
+					var va0=document.createElement('A');
+					var va1=document.createElement('A');
+					var va2=document.createElement('A');
+				
+					va0.innerHTML=nindlist[ia][1].replace(/\\\\/g,"\\");
+					va1.innerHTML=nindlist[ia][2];
+					va2.innerHTML=nindlist[ia][3]+'%';
+
+					vdiv.style.width='100%';
+					va0.style.display='inline-block';
+					va0.style.width='67%';
+					va0.style.cssFloat='left';
+					va0.style.padding='0 0 0 3%';
+					va1.style.display='inline-block';
+					va1.style.width='15%';
+					va1.style.cssFloat='left';
+					va2.style.display='inline-block';
+					va2.style.width='15%';
+					va2.style.cssFloat='left';
+			
+					vdiv.style.height='3%';
+
+					vdiv.appendChild(va0);
+					vdiv.appendChild(va1);
+					vdiv.appendChild(va2);
+					vdiv.style.marginTop='10%';
+					prbcontdiv.appendChild(vdiv);
+					
+				}
+
+				MathJax.Hub.Queue(["Typeset",MathJax.Hub,prbcontdiv]);
+				prblistdiv.appendChild(prbcontdiv);
+				pcpcountdisplay.appendChild(prblistdiv);
+			}
+			function callprbconlist(strprb){
+				removeElementOfDiv('pcpcombdisplay')
+				removeElementOfDiv('pcpcountdisplay')
+				var socket=io('/pcs');
+				var pcpcombdisplay=document.getElementById('pcpcombdisplay');
+
+				socket.emit('callprbconlist',{strprb:strprb.split(',')});
+				socket.on('rstcallprbconlist',function(prbcon){
+					
+					var prblistdiv=document.createElement('DIV');
+					prblistdiv.style.width='40%';
+					prblistdiv.style.height='100%';
+					prblistdiv.style.position='fixed';
+					prblistdiv.style.top='0';
+					prblistdiv.style.left='60%';
+					prblistdiv.style.backgroundColor='rgba(98,98,98,0.7)';
+				
+					
+					var prbcontdiv=document.createElement('DIV');
+					prbcontdiv.style.width='90%';
+					prbcontdiv.style.height='90%';
+					prbcontdiv.style.margin='5%';
+					prbcontdiv.style.overflowY='scroll';
+					prbcontdiv.style.backgroundColor='#666666';
+					prbcontdiv.setAttribute('id','prbcontdiv');
+				
+
+					for(var ia=0; ia<prbcon.prbcon.length; ia++){
+						var vdiv=document.createElement('DIV');
+						var va0=document.createElement('A');
+						var va1=document.createElement('A');
+						var va2=document.createElement('A');
+			
+						va0.style.display='block';
+						va1.style.display='block';
+						va2.style.display='block';
+
+						va0.innerHTML=prbcon.prbcon[ia][0];
+						va1.innerHTML=prbcon.prbcon[ia][1];
+						va2.innerHTML=prbcon.prbcon[ia][2];
+
+						vdiv.appendChild(va0);
+						vdiv.appendChild(va1);
+						vdiv.appendChild(va2);
+			
+						vdiv.setAttribute('class','prbbox');
+
+						prbcontdiv.appendChild(vdiv);
+					}
+					prblistdiv.appendChild(prbcontdiv);
+					pcpcombdisplay.appendChild(prblistdiv);
+					MathJax.Hub.Queue(["Typeset",MathJax.Hub,pcpcombdisplay]);
+				});
+			}
+		style.
+			body,html {
+				width:100%;
+				height:100%;
+				background-color:#cccccc;
+			}
+			#tophead {
+				width:100%;
+				height:5%;
+			}
+			#title {
+				float:left;
+				width:30%;
+				height:100%;
+			}
+			#title a{
+				font-size:2em;
+				text-decoration:none;
+				color:black;
+				background-color:#cccccc;
+			}
+			#pcpcount {
+				float:left;
+				width:70%;
+				height:100%;
+				background-color:#cccccc;
+			}
+			#pcpcount a {
+				display:inline-block;
+				padding:.2% 0;
+				font-size:1.8em;
+				text-decoration:none;
+				color:gery;
+				background-color:#cccccc;
+			}
+			#pcpcombboard {
+				width:100%;
+				height:100%;
+				background-color:#cccccc;
+			}
+			.pcpdimensiondiv {
+				width:100%;
+				height:auto;
+				background-color:#eeeeee;
+			}
+			.pcpdimensionnumbox {
+				width:100%;
+				background-color:#cccccc;
+			}
+			.pcpdimensionlist {
+				width:100%;
+				background-color:#e9e9e9;
+			}
+			.pcpcombinationmatch {
+				width:90%;
+				background-color:#aaaaaa;
+				padding:.4% 5%;
+			}
+			.prbbox {
+				padding:2%;
+				width:96%;
+				height:auto;
+			}
+			::-webkit-scrollbar {
+				display:none;
+			}
+			.pcpcombinationdetail a:nth-child(n+1) {
+				display:inline-block;
+				width:16%;
+			}
+			.pcpcombinationdetail a:nth-child(1) {
+				display:inline-block;
+				width:2%;
+			}
+			
+	body
+		div(id='tophead')
+			div(id='title')
+				a(href='./pcsclassify?stchk=3') PCP Combination
+			div(id='pcpcount')
+				a(onclick='pcpcountdisplay()') PCP Count
+		div(id='pcpcombboard' onclick='removeElementOfDiv("pcpcombdisplay");removeElementOfDiv("pcpcountdisplay")')
+			-for(var ia=0; ia<pcpg.length; ia++){
+				div(class='pcpdimensiondiv')
+					div(class='pcpdimensionnumbox')
+						a=ia+1+' Dimension'
+					div(class='pcpdimensionlist')
+						-for(var ib=0; ib<pcpg[ia].length; ib++){
+							div(class='pcpcombinationmatch')
+								div(class='pcpcombinationdetail')
+									a=pcpg[ia][ib][1].split(',').length
+									-for(var ic=0; ic<pcpg[ia][ib][0].length; ic++){
+										a(onclick='callprbconlist("'+pcpg[ia][ib][1]+'")')=pcpg[ia][ib][0][ic][1].replace(/\\\\/g,"\\")
+									-}
+						-}
+				
+			-}
+		div(id='pcpcombdisplay')
+		div(id='pcpcountdisplay')

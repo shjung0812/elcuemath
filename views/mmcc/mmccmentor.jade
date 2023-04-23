@@ -1,0 +1,113 @@
+html
+	head
+		title Mentor Page
+			
+		script(src='/socket.io/socket.io.js')
+		script(type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js")
+		script.
+			var socket=io('/mmcc');
+			socket.on('connect',()=>{
+				console.log('connection is ready');
+				socket.emit('mentoridsent',{socketid:socket.id});
+			});
+
+
+			// socket element list
+			socket.on('sentelementlist',function(ma){
+				removeallele('elementlist');
+				var elementlist=document.getElementById('elementlist');
+				for(var ia=0; ia<ma.elelist.length; ia++){
+					var wdiv=document.createElement('DIV');
+					var adiv=document.createElement('DIV');
+					adiv.onclick=(function(i,j){return function(){
+						playvideo(j) 
+						socket.emit('getprblist',{prblist:i.split(',')});
+					}})(ma.elelist[ia].eleprbs,ma.elelist[ia].vidaddr)
+					var ap=document.createElement('p');
+					ap.innerHTML=ma.elelist[ia].pstage;
+					adiv.appendChild(ap);
+
+					var bdiv=document.createElement('DIV');
+					bdiv.innerHTML='Send';
+					bdiv.onclick=(function(i,j,k,l,m){return function(){ SentToMentee(i,j,k,l,m)}})(ma.crsname,ma.elelist[ia].pstage,ma.elelist[ia].eleprbs.split(','),ma.elelist[ia].vidaddr,'meenteeid');
+					wdiv.appendChild(adiv);
+					wdiv.appendChild(bdiv);
+					elementlist.appendChild(wdiv);
+					
+					//function SentToMentee(crsname,ele,prbs,vidaddr,menteeid){
+					
+				}	
+			});
+
+
+			//socket prb list
+			socket.on('sentprblist',function(ma){
+				removeallele('prblist');
+				var prblist=document.getElementById('prblist');
+				for(var ia=0; ia<ma.prblist.length; ia++){
+					var prbwrab=document.createElement('div');
+					var prbcontent=document.createElement('div');
+					var prbcontentp=document.createElement('p');
+					prbcontentp.innerHTML=ma.prblist[ia][1];
+					prbcontent.appendChild(prbcontentp);
+					prbwrab.appendChild(prbcontent);
+
+
+					prblist.appendChild(prbwrab);
+				}
+			});
+
+
+			socket.on('learningresulttomentor',function(ma){
+				var menteeresult=document.getElementById('menteeresult');
+				var menteeresultp=document.createElement('p');
+				menteeresultp.innerHTML=ma.menteeinfo.userid+'  :  '+ma.menteeinfo.prbstatepanel;
+				menteeresult.appendChild(menteeresultp);
+			});
+			socket.on('menteerequestaccepted',function(ma){
+			//socket.on('receivedfrommentee',function(ma){
+				alert('Requsted is accepted!!');
+				console.log(ma.menteeid);
+			});
+
+			function playvideo(vid){
+				removeallele('videoplay');
+				var avd=document.createElement('iframe');
+				avd.src=vid;
+				var videoplay=document.getElementById('videoplay')
+				videoplay.appendChild(avd);
+			}
+			function getelement(crsname){
+				socket.emit('getelementlist',{crsname:crsname});
+			}
+
+			function removeallele(parentid){
+				var parent=document.getElementById(parentid);
+				while(parent.firstChild){
+					parent.firstChild.remove();
+				}
+			}
+
+			function SentToMentee(crsname,ele,prbs,vidaddr,menteeid){
+				socket.emit('senttomentee',{crsname:crsname,ele:ele,prbs:prbs,vidaddr:vidaddr,menteeid:menteeid});
+			}
+			
+	
+	body
+		div
+			h1 Mentor page
+		div(id='menteeresultdiv')
+			div
+				p Mentee Result
+			div(id='menteeresult')
+				
+		div(id='crslist')
+			-for(var ia=0; ia<crslist.length; ia++){
+				div(onclick='getelement("'+crslist[ia].crsname+'")')
+					p=crslist[ia].crsname
+			-}
+		div(id='elementlist')
+		div(id='contentslist')
+		div(id='videoplay')
+		div(id='prblist')
+	

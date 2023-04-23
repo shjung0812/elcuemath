@@ -1,0 +1,104 @@
+html
+	head
+		style.
+			#formcatelist{float:left;border-style:solid;}
+			.catelists{float:left;padding:5px 5px 5px 15px;}
+			#forming{float:left;padding:5px 5px 5px 5px;}
+			#idprbcont{float:left;}
+			.catelists a {
+				display:inline-block;
+				width:400px;
+				overflow:hidden;
+				height:30px;
+				text-decoration:none;
+				color:black;
+			}
+			.catelists button {
+				height:30px;
+			}
+			.catelists .catcon {
+				margin:10px 0;
+			}
+			h1 {
+				width:100%;
+				padding:0 40%;
+				font-family:cursive;
+			}
+		script(type='text/javascript' async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML")
+			
+	body
+		script.
+			function myfunc(vid,vclist,vcinfo,vcparents){
+				document.getElementById('idcateids').value=vid;
+				document.getElementById('idcatelist').value=vclist;
+				document.getElementById('idcateinfo').value=vcinfo;
+				document.getElementById('idcateparents').value=vcparents;
+				document.getElementById('rdupdate').checked='checked';
+			}
+		div(id='bodydiv')
+			h1 Elcue Point System
+			a(href='/admin/page') Back
+			div(id='forming')
+				form(action='/admin/catemodpost',method='post')
+					a category id 
+					input(type='text',id='idcateids',name='cateids')
+					a category list  
+					input(type='text',id='idcatelist',name='catelist')
+					a category info  
+					input(type='text',id='idcateinfo',name='cateinfo')
+					input(type='hidden',id='idcateparents',name='cateparents')
+					p update mode
+					input(type='radio',id='rdcreate',name='modimode', value=0 checked)
+					| Create
+					input(type='radio',id='rdupdate',name='modimode', value=1)
+					| Update
+					input(type='radio',id='rddelete',name='modimode', value=2)
+					| Remove
+					input(type='submit', value='submit')
+			div(id='formcatelist')
+				div
+					div(class='catelists')
+						div cateids
+						-for(var i=0; i<rst.length; i++){
+							div(class='catcon') 
+								button(class='catenum', type='button', onclick="var vid='#{rst[i].cateids}' ;var vclist='#{rst[i].catelist}'; var vcinfo='#{rst[i].cateinfo}';myfunc(vid,vclist,vcinfo,0)")=rst[i].cateids	
+						-}
+				
+						
+					div(class='catelists')
+						div catelist
+						-for(var i=0; i<rst.length; i++){
+							div(class='catcon')
+								//button(class='bclist',type='button',onclick="var varia='#{rst[i].catelist}'; myfunc(varia);")=rst[i].catelist	
+								a(href='./catecreate?prblist='+rst[i].catelist+'&chkprb=1')=rst[i].catelist
+						-}
+					div(class='catelists')
+						div cateinfo
+						-for(var i=0; i<rst.length; i++){
+							div(class='catcon')
+								a(href='./catecreate?chkprb=2&cateids='+rst[i].cateids+'&catelist='+rst[i].catelist)=rst[i].cateinfo
+						-}
+				
+				div(id='idprbcont')
+					-if(typeof prbcont=='undefined'){
+						div
+							a(href='./catecreate?prblist='+recentprblist+'&chkprb=1') Recent Problem List
+							p no content
+					-}else{
+						form(action='/admin/cateform',method='get')
+							input(type='submit',value='submit')
+							ol
+								-for(var ua=0; ua<prbcont.length; ua++){
+									li=prbids[ua] 
+										input(type='checkbox',value=prbids[ua],name='chkbx')
+								
+										ul
+											li='문제 : '+prbcont[ua][0]
+											li='답 : '+prbcont[ua][1]
+											li='답 번호 : '+prbcont[ua][2]
+											li='보기 :'+prbcont[ua][3]
+											li='보기 :'+prbcont[ua][4]
+											li='보기 :'+prbcont[ua][5]
+											
+								-}
+						-}

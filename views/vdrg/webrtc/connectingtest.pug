@@ -1,0 +1,137 @@
+html
+	head
+		title webrtc Connecting test
+		script(src='/socket.io/socket.io.js')
+	body
+		div
+			button(onclick='startVideochat();') Connecting
+			//button(onclick='initiateOffer();') Connecting
+			button disConnecting
+		div
+			video(id='selfVideo' autoplay playsinline controls='false')
+		div
+			video(id='remoteVideo' autoplay playsinline controls='false')
+		script.
+			var socket = io('/mucm');
+			socket.on('connect',()=>{
+				console.log('mucm connected');
+				socket.emit('mucmsocketidregister',{user:'caller',socketid:socket.id,username:'mentor(optional)',position:2});
+
+			});
+
+
+			function startVideochat(){
+				socket.emit('mucmstartvideochat');
+			}
+
+			socket.on('mucmstartvideochatafter',function(a){
+				audioConntouser(a.iceservers);
+			});	
+			async function getConnectedDevices(type){
+				const devices = await navigator.mediaDevices.enumerateDevices();
+				return devices.filter(device => device.kind === type);
+			}
+
+
+
+			async function everythingReady(){
+				/*
+					checklist
+						getusermedia test,
+						audio input test,
+				*/
+
+				var equipChecklist=[];
+				var msglist=[];
+
+
+				const navimedia=await navigator.mediaDevices;
+				if(navimedia !== undefined){
+					equipChecklist.push(1);
+					msglist.push('navigator.mediaDevices ok')
+	
+					
+					const audios= await getConnectedDevices('audioinput');
+					if(audios && audios.length>0){
+						equipChecklist.push(1);
+						msglist.push('audio input ok')
+					}else{
+						equipChecklist.push(0);
+						msglist.push('audio input FAILED')
+					}
+					
+				}else{
+					equipChecklist.push(0);
+					const msg = 'navigator.mediaDevices is not found'
+					msglist.push(msg)
+				}
+			
+				return {equipcheck:equipChecklist, msglist:msglist}
+
+			}
+
+
+			var outoffer;
+			function initiateOffer(){
+				socket.emit('webrtccallertoserver',{offer:outoffer});
+			}
+
+
+			async function audioConntouser(iceservers){
+				const equipCheck= await everythingReady();
+				console.log(equipCheck);
+
+				if(1){
+					const constraints = {
+						'video':true,
+						//'audio':true
+						'audio':{'echoCancellation':true}
+					}
+					navigator.mediaDevices.getUserMedia(constraints).then(async stream =>{
+						const configuration = {iceServers:iceservers};
+						const peerConnection = new RTCPeerConnection(configuration);
+						stream.getTracks().forEach(track=>{
+							peerConnection.addTrack(track,stream);
+						});
+
+						const selfVideo = document.getElementById('selfVideo');
+						selfVideo.srcObject = stream;
+						const offer = await peerConnection.createOffer();
+						await peerConnection.setLocalDescription(offer);
+						socket.emit('webrtccallertoserver',{offer:offer});
+
+
+						socket.on('webrtcservertocaller', async message => {
+							if(message.answer){
+								const remoteDesc = new RTCSessionDescription(message.answer);
+								await peerConnection.setRemoteDescription(remoteDesc)
+							}
+						});	
+
+
+
+
+						peerConnection.onicecandidate = (e) => {	
+							console.log('Mentor onicecandidate - e.candidate');
+							socket.emit('webrtctoservernewicecandidate',{destination:'toresponder',newicecandidate:e.candidate});
+						}
+
+						socket.on('webrtctocallernewicecandidate',async function(a){
+							console.log('Mentor socke.on onicecandidate - e.candidate');
+							console.log(a.newicecandidate);
+							if(a.newicecandidate){
+								await peerConnection.addIceCandidate(a.newicecandidate);
+							}
+						});
+						const remoteStream = new MediaStream();
+						const remoteVideo = document.querySelector('video#remoteVideo');
+						peerConnection.addEventListener('track',async (event) => {
+							console.log('remote');
+							remoteStream.addTrack(event.track);
+							remoteVideo.srcObject = remoteStream
+						});
+					});	
+				}
+
+			}
+			//audioConntouser();

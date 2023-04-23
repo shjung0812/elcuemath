@@ -1,0 +1,59 @@
+html
+	head
+		link(rel='stylesheet' type='text/css' id='link')
+		script(id='js').
+		script.
+			if(/iPhone|Android/i.test(navigator.userAgent)){
+			//if(!(/iPhone|Android/i.test(navigator.userAgent))){
+				document.getElementById('link').href='/design/design2.0/mobile/EvaluationTemplate_css_mobile.css';
+				document.getElementById('js').src='/design/design2.0/mobile/EvaluationTemplate_js_mobile.js';
+			}else{
+				document.getElementById('link').href='/design/design2.0/web/defelelist_css.css';
+				document.getElementById('js').src='/design/design2.0/web/defelelist_js.js';
+			}
+		
+	body
+		div(id='back')
+			a(href='/admin/crshistory/login') Back
+		div(id='crscontrol')
+			form(action='./edit?displayname='+displayname method='get')
+				input(type='text' name='elenum')
+				input(type='text' name='degsnick')
+				input(type='text' name='crsname')
+				input(type='text' name='pstage')
+				input(type='text' name='elepass')
+				input(type='text' name='elenpass')
+				input(type='text' name='elevideo')
+				input(type='text' name='eleprbs')
+				input(type='text' name='ele_criteria')
+				input(type='text' name='elestatus')
+				input(type='text' name='eletime')
+				div
+					input(type='radio' name='action' value=0) 
+					span 추가
+					input(type='radio' name='action'  value=1 checked) 
+					span 수정
+					input(type='radio' name='action' value=2 ) 
+					span 삭제
+					input(type='submit' value='Submit')
+		div(id='crstable')
+				-for(var ia=0; ia<rs.length; ia++){
+					div(id='r'+ia)
+						a=rs[ia].elenum
+						a=rs[ia].degsnick
+						a=rs[ia].crsname
+						a=rs[ia].pstage
+						a=rs[ia].elepass
+						a=rs[ia].elenpass
+						a=rs[ia].elevideo
+						a=rs[ia].eleprbs
+						a=rs[ia].ele_criteria
+						a=rs[ia].elestatus
+						a=rs[ia].eletime
+						a(id='click' onclick='contentspaste('+ia+')') click
+				-}
+			
+				
+			
+				
+				

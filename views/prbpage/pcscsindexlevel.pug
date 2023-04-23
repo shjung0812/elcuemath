@@ -1,0 +1,257 @@
+html
+	head
+		style.
+			#title a{
+				font-size:2em;
+				text-decoration:none;
+				color:black;
+			}
+			#cslevelunass {
+				width:100%;
+				background-color:#dddd00;
+				padding:5% 0;
+	
+			}
+			#cslevelunass div a {
+				text-decoration:none;
+				color:black;
+				display:inline-block;
+			}
+			.unasslevel {
+				width:2%;
+			}
+			.unassinfo {
+				width:30%;
+			}
+			#cslevelboard {
+				width:60%;
+				height:100%;
+				position:fixed;
+				top:0;
+				left:40%;
+				background-color:#eeee00;
+			}
+			#cslevelcontainerdiv {
+				width:100%;
+				height:100%;
+				background-color:#bbbb00;
+				padding:5% 0;
+			}
+			#cslevelcontdivadd {
+				width:95%;
+				height:15%;
+				margin:0 2.5%;
+				background-color:#999900;
+			}
+			.rm {
+				display:inline-block;
+				padding:0 2%;
+				margin:0 1%;
+				background-color:#602000;
+			}	
+			#cslevelass{
+			}
+
+
+		script(src='/socket.io/socket.io.js')
+		script.
+			function callmanagement(e){
+			
+
+				var cslevelboard=document.createElement('DIV');
+				cslevelboard.setAttribute('id','cslevelboard');
+
+				var cslevelcontainerdiv=document.createElement('DIV');
+				cslevelcontainerdiv.setAttribute('id','cslevelcontainerdiv');
+
+				var cslevelcontdivadd=document.createElement('DIV');
+				cslevelcontdivadd.setAttribute('id','cslevelcontdivadd');
+				cslevelcontdivadd.innerHTML='Add';	
+		
+				cslevelcontainerdiv.appendChild(cslevelcontdivadd);
+				cslevelboard.appendChild(cslevelcontainerdiv);
+				var lvmanageboard=document.getElementById('lvmanageboard');
+				lvmanageboard.appendChild(cslevelboard);
+				
+				if(!e) var e=window.event;
+				e.cancelBubble=true;
+				if(e.stopPropagation) e.stopPropagation();
+			}
+			var plsstr='';
+			function updateLevel(recvnum,pcsid){
+				var socket=io('/pls');
+				socket.emit('plsupdate',{recvnum:recvnum,pcsid:pcsid});
+				socket.on('rstplsupdate',function(){
+					window.location.reload(true);
+				});
+				
+			}
+
+			function updateSameLevel(recvnum){
+				var socket=io('/pls');
+				if(plsstr==''){
+					alert('You have to choose pcp first');
+					//socket.emit('plssamelevel',{recvnum:recvnum,pcsid:plsstr});
+				}else{
+					socket.emit('plssamelevel',{recvnum:recvnum,pcsid:plsstr});
+				}
+				socket.on('rstplssamelevel',function(){
+					window.location.reload(true);
+				});
+			}
+			function bubblesort(arr){
+				var len=arr.length; 
+				var tmp;
+				for(var i=len-1; i>=0; i--){
+					for(var j=1; j<=i; j++){
+						if(arr[j-1].className.split('_')[0]>arr[j].className.split('_')[0]){
+							var tmp=arr[j-1];
+							arr[j-1]=arr[j];
+							arr[j]=tmp;
+						}
+						
+					}
+				}
+				return arr;
+			}
+			function clickpls(pcsid){
+				var socket=io('/pls');
+
+				plsstr=pcsid;
+				var plslevel=!{JSON.stringify(plslevel)};
+
+				if(plslevel[1].length!=0){
+					var vwaiting=document.getElementById('cslevelass');
+					var csleveldiv=[];
+					for(var ia=0; ia<vwaiting.childNodes.length; ia++){
+						if(vwaiting.childNodes[ia].nodeName==='DIV'){
+							csleveldiv.push(vwaiting.childNodes[ia]);
+							
+						}			
+					}
+					//var csleveldiv=bubblesort(csleveldiv);
+
+					var lv;
+					var nlv;
+					var plv;
+					for(var ib=0; ib<csleveldiv.length ; ib++){
+						lv=csleveldiv[ib].className.split('_');
+						nlv=parseInt(lv[0]);
+
+						if(ib==0){
+							plv=nlv;
+							var fdiv=document.createElement('DIV');
+							fdiv.innerHTML='fclick';
+							fdiv.onclick=function(i,j){return function(){updateLevel(i,j)}}(1,pcsid)
+							vwaiting.insertBefore(fdiv,csleveldiv[0])
+							
+							if(csleveldiv.length==1){
+								var vdiv=document.createElement('DIV');
+								vdiv.innerHTML='click'
+								vdiv.onclick=function(i,j){return function(){updateLevel(i,j)}}(nlv+1,pcsid)
+								insertAfter(vdiv,csleveldiv[ib]);
+							}
+						}else if(ib==csleveldiv.length-1){
+
+							var vdiv=document.createElement('DIV');
+							vdiv.innerHTML='click'
+							vdiv.onclick=function(i,j){return function(){updateLevel(i,j)}}(nlv+1,pcsid)
+							insertAfter(vdiv,csleveldiv[ib]);
+
+							if(nlv>plv){
+								var vdiv=document.createElement('DIV');
+								vdiv.innerHTML='click'
+								
+								vdiv.onclick=function(i,j){return function(){updateLevel(i,j)}}(nlv,pcsid)
+								console.log(nlv+1);
+								insertAfter(vdiv,csleveldiv[ib-1]);
+							}
+							/*
+							if(csleveldiv.length==2){
+								if(nlv>plv){
+									var vdiv=document.createElement('DIV');
+									vdiv.innerHTML='click'
+									vdiv.onclick=function(i,j){return function(){updateLevel(i,j)}}(nlv,pcsid)
+									insertAfter(vdiv,csleveldiv[ib-1]);
+									plv=nlv;
+								}
+							}*/
+						}else{
+							if(nlv>plv){
+								var vdiv=document.createElement('DIV');
+								vdiv.innerHTML='click'+ib
+								vdiv.onclick=function(i,j){return function(){updateLevel(i,j)}}(nlv,pcsid)
+								insertAfter(vdiv,csleveldiv[ib-1]);
+								plv=nlv;
+							}else{
+								
+							}
+						}
+
+						
+						
+						
+					}
+				}else{
+					socket.emit('plsadd',{pcsid:plsstr})
+				}
+				socket.on('rstplsadd',function(){
+					window.location.reload(true);
+				});
+
+				if(!e) var e=window.event;
+				e.cancleBubble=true;
+				if(e.stopPropagation) e.stopPropagation();
+			}
+			function lear(){
+				var socket=io('/pls');
+				socket.emit('plsclear');
+			}
+			function plsomit(caseid,cslevel,e){
+				var socket=io('/pls');
+				socket.emit('plsomit',{caseid:caseid,cslevel:cslevel})
+				socket.on('rstplsomit',function(){
+					window.location.reload(true);
+				});
+				if(!e) var e=window.event;
+				e.cancleBubble=true;
+				if(e.stopPropagation) e.stopPropagation();
+			} 
+			function insertAfter(newNode,referenceNode){
+				referenceNode.parentNode.insertBefore(newNode, referenceNode.nextSibling);
+			}
+			function awaitingpls(){
+			}	
+			function removeElementOfDiv(regbdivid){
+				var fdiv=document.getElementById(regbdivid);
+				if(fdiv){
+					while(fdiv.firstChild){
+						fdiv.removeChild(fdiv.firstChild);
+					}
+				}
+			}
+			function callrm(){
+				var crm=document.getElementsByClassName('rm');
+				for(var ia=0; ia<crm.length; ia++){
+					crm[ia].style.display='inline-block';
+				}
+			}
+	body
+		div(id='title')
+			a(href='./pcsclassify?stchk=-1') Case Level
+			//a(onclick='lear()') ;;;click
+		div(id='cslevelunass' onclick="removeElementOfDiv('lvmanageboard');callrm()")
+			-for(var ia=0; ia<plslevel[0].length; ia++){
+				div(onclick='clickpls("'+plslevel[0][ia][0]+'")')
+					a(class='unasslevel')=plslevel[0][ia][2]
+					a(class='unassinfo')=plslevel[0][ia][1]
+			-}
+		div(id='cslevelass')
+			-for(var ib=0; ib<plslevel[1].length; ib++){
+				div(class=plslevel[1][ib][2]+'_',onclick='updateSameLevel("'+plslevel[1][ib][2]+'");console.log(plslevel[1][ib][0])')
+					a(class='asslevel')=plslevel[1][ib][2]
+					a(class='assinfo')=plslevel[1][ib][1]
+					a(class='rm' onclick='plsomit("'+plslevel[1][ib][0]+'","'+plslevel[1][ib][2]+'",event)') Rm
+			-}
+		div(id='lvmanageboard')
+	

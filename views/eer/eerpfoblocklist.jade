@@ -1,0 +1,8 @@
+html
+	body
+		div
+			-for(var ib=0; ib<blocklist[1].length; ib++){
+				div
+					a(href='./eer?stchk=8&slkid='+blocklist[1][ib][0]+'&slabid='+slabid)=blocklist[1][ib][1]
+			-}
+		

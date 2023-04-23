@@ -1,0 +1,33 @@
+html
+	head
+		link(rel='stylesheet' id='link')
+		script(id='js')
+		script.
+			if(/iPhone|Android/i.test(navigator.userAgent)){
+			//if(!(/iPhone|Android/i.test(navigator.userAgent))){
+				document.getElementById('link').href='/cpt/cptlecpage_mobile.css';
+				document.getElementById('js').src='/cpt/cptlecpage_mobile.js';
+			}else{
+				document.getElementById('link').href='/cpt/cptlecpage_mobile.css';
+				document.getElementById('js').src='/cpt/cptlecpage_mobile.js';
+			}
+		script(type='text/javascript' async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML").
+	body
+		div(id='prbdisplay')
+			-for(var ia=0; ia<prbcon.length; ia++){
+				div(class='prbcontain')
+					div(class='prbnum')
+						a=prbcon[ia][0]
+					div(class='prbtext')
+						a=prbcon[ia][1]
+					div(class='prbpic')
+						-if(prbcon[ia][8]!=null){
+							img(src=prbcon[ia][8])
+						-}
+					div(class='prbans' onclick='showanswer("'+prbcon[ia][0]+'")')
+						a(id=prbcon[ia][0] class='prbansa')=prbcon[ia][2]
+			-}	
+			
+		div(id='prbpreview')
+		div(id='back')
+			a(href='./cpt?stchk=2') Back

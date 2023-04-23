@@ -1,0 +1,70 @@
+html
+	head
+		link(rel='stylesheet' href='cdct/cdcthome.css')
+		style.
+	body
+		div
+			h2 정석현의 홈페이지
+		div
+			p=sessiontest
+
+
+		div
+			a(href='/admin/cpt?stchk=1') R1Edit
+			//a(href='/admin/createcontents') Create Contents option
+		div
+			a(href='/admin/subjectanalysis2') SubjectAnalysis
+
+		div
+			a(href='/maintainsystem/sync') SYNC
+		div
+			a(href='/auth/register') Register
+		div
+			a(href='/mmcp/mmcphome') Home work Assigned MMCP
+		div
+			a(href='/log/home') Log Home
+
+		div
+			a(href='/vdrg/mmttallocation') MMTT Allocation
+
+		div
+			div
+				a(href='/vdrg/webrtctest') Video call sender
+			div
+				a(href='/vdrg/webrtctestres') Video call Respond
+			
+		div
+			div
+				a(href='/sies/sharescreen/mentor') Share Screen Mentor
+			div
+				a(href='/sies/sharescreen/mentee') Share Screen Mentee
+		div
+			a(href='/uploadfile') File Upload to Public Folder
+		div
+			a(href='/test/copycanvas') Copy Canvas Test
+
+		div
+			a(href='/sies/home') SIES 
+		div
+			a(href='/mmcc/home') Mento Mentee Communication
+		div
+			a(href='/audiocall/choicepage') Audiocall
+		div
+			a(href='/chattest') ChatTest
+		div
+			a(href='/mucm') Multi User Communication 
+
+		div
+			a(href='/admin/filter') Filter
+		div
+			a(href='/vdrg/home') Vdrg Home
+
+		div
+			a(href='/nusd/screenimage') Screen Image
+		-if(user){
+			div
+				a(href='/logout') Logout
+		-}
+		div
+			a(href='/login') Login
+

@@ -1,0 +1,179 @@
+html
+	head
+		script(src='/socket.io/socket.io.js')
+		script(type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML")
+		title userhistory
+		style.
+			#head {
+				width:100%;
+				height:10%;
+				background-color:#aaaaaa;
+			}
+			#head div {
+				float:right;
+				margin:0 2%;
+			
+			}
+			#next, #prv {
+				cursor:pointer;
+			}
+			#r2listdiv {
+				width:100%;
+				overflow:auto;
+				background-color:#cccccc;
+			}
+			.r2list {
+				float:left;
+			}
+			.r2listinfodiv {
+				width:90%;
+				border:solid 1px black;
+				background-color:#61EA36;
+				text-align:center;
+				padding:3% 5%;
+				display:table;
+			}
+			.r2listinfodiv a {
+				font-size:1em;
+				display:table-cell;
+				vertical-align:middle;
+			}
+			.r1containerdiv {
+				width:100%;
+			}
+			
+			.r1div {
+				font-size:.8em;
+				width:90%;
+				padding:0 5%;
+				margin:5% 0;
+			}
+	body
+		div(id='head')
+
+			div(id='next' onclick='callNextr1()') Next
+			div(id='prv' onclick='callPrvr1()') Prv
+			div(id='divisiondisplay' onclick='divisionVariation()') 10
+			div(id='rounddisplay') 0
+
+		div(id='r2listdiv')
+			
+		script.
+			var socket = io('/vdrg');
+			var r2list=!{JSON.stringify(r2list)}
+
+			function divisionVariation(){
+				var divnumel = document.getElementById('divisiondisplay')
+				var cirnum=[2, 3, 6, 10, 15, 25]
+
+
+				var nnum=0;
+				for(var ia=0; ia<cirnum.length; ia++){
+					if(Number(divnumel.innerHTML)==cirnum[ia]){
+						nnum=cirnum[ia];
+						break;
+					}
+				}
+
+				divnumel.innerHTML=cirnum[(ia+1)%cirnum.length];
+			}
+
+			function callPrvr1(){
+				removeallele('r2listdiv');
+				var rounddisplay = Number(document.getElementById('rounddisplay').innerHTML);
+				var divisiondisplay= Number(document.getElementById('divisiondisplay').innerHTML);
+
+				callr1listofRound(rounddisplay-1,divisiondisplay);
+				//document.getElementById('rounddisplay').innerHTML=(rounddisplay-1)%(Math.floor(r2list.length/divisiondisplay)+1)
+
+			}
+
+
+			function callNextr1(){
+				removeallele('r2listdiv');
+				var rounddisplay = Number(document.getElementById('rounddisplay').innerHTML);
+				var divisiondisplay= Number(document.getElementById('divisiondisplay').innerHTML);
+
+				callr1listofRound(rounddisplay+1,divisiondisplay);
+
+			}
+
+			function removeallele(parentid){
+				var parent=document.getElementById(parentid);
+				while(parent.firstChild){
+					parent.firstChild.remove();
+				}
+			}
+
+
+			
+			callr1listofRound(0,10);
+			function callr1listofRound(trround,div){
+				// div is integer, trround is integer
+
+				var r2leng = Math.floor(r2list.length/div)+1;
+				if(trround==-1){
+					var round=r2leng-1;
+				}else{
+					var round=trround%r2leng;
+				}
+				document.getElementById('rounddisplay').innerHTML=round;
+
+				var r2listdiv=document.getElementById('r2listdiv');
+				for(var ia=round*div; ia<round*div+div; ia++){
+					if(ia<r2list.length){
+						var fdiv=document.createElement('div');
+
+						fdiv.style.width=(98/div)+'%';
+						fdiv.className='r2list';
+
+						var listinfodiv=document.createElement('div');
+						listinfodiv.className='r2listinfodiv';
+						listinfodiva=document.createElement('a');
+						listinfodiva.innerHTML=r2list[ia].r2listinfo;
+						listinfodiv.appendChild(listinfodiva);
+						fdiv.appendChild(listinfodiv);
+
+						var r1containerdiv=document.createElement('div');
+						r1containerdiv.className='r1containerdiv';
+
+						for(var ib=0; ib<r2list[ia].r1list.length; ib++){
+							var r1div=document.createElement('div');
+							r1div.className='r1div';
+							var r1diva=document.createElement('a');
+							r1diva.innerHTML=r2list[ia].r1list[ib][1];
+							r1div.appendChild(r1diva);
+							r1containerdiv.appendChild(r1div);
+						}
+
+						fdiv.appendChild(r1containerdiv);
+			
+		
+						r2listdiv.appendChild(fdiv);
+					}
+				}
+				setEvenheight('r2listinfodiv');
+
+				if(typeof MathJax !== 'undefined'){
+					MathJax.Hub.Queue(["Typeset",MathJax.Hub,r2listdiv]);
+				}
+
+
+				//MathJax.Hub.Queue(["Typeset",MathJax.Hub,r2listdiv])	
+				
+			}
+			function setEvenheight(csname){
+				var maxv=0;
+				var cs=document.getElementsByClassName(csname);
+				for(var ia=0; ia<cs.length; ia++){
+					if(maxv < cs[ia].clientHeight){
+						maxv=cs[ia].clientHeight;
+					}
+				}
+
+				for(var ia=0; ia<cs.length; ia++){
+					cs[ia].style.height=maxv+'px';
+				}
+
+
+			}

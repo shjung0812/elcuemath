@@ -1,0 +1,821 @@
+html
+
+	head
+		script(src='/socket.io/socket.io.js')
+		script(src='/whalse/whalselib/infoinput.js')
+		style.
+			#papertitlebar {
+				width:100%;
+				height:10%;
+			}	
+
+			#containerdiv {
+				width:100%;
+				//background-color:yellow;
+				height:90%;
+			}
+
+			#invoicenumdiv {
+				float:left;
+				height:100%;
+				width:5%;
+				//background-color:purple;
+			}
+
+
+			#showdata {
+				//background-color:yellow;
+				width:95%;
+				height:100%;
+				float:left;
+				overflow:auto;
+			}
+			#titlebar {
+				background-color:green;
+				
+				width:100%;
+				overflow:auto;
+			}
+			#titlebar div {
+				width:12%;
+				display:inline-block;
+				border:1px solid;
+				overflow:auto;
+			}
+			.rowcontent {
+				width:100%;
+				margin:1% 0;
+				//border:2px black;
+			}
+			.rowcontent div {
+				width:12%;
+				display:inline-block;
+				border:1px solid;
+			}
+			#papertitlebar div{
+				display:inline-block;
+				margin:0 5%;
+			}
+
+			.arrnumdiv:hover {
+				background-color:purple;
+			}	
+			.statuspic {
+				width:100%;
+			}
+			.statuspic img {
+				width:100%;
+			}
+			.statusdiv, .arrdiv {
+				width:100%;
+				display:block;
+			}
+			.statusdiv div {
+				width:100%;
+			}
+
+			.arrdiv div {
+				width:100%;
+			}
+
+			.officestatusdiv {
+				width:100%;
+				display:block;
+			}
+			.officestatusdiv div {
+				width:100%;
+			}
+		
+	body
+
+		div(id='papertitlebar')
+			div
+				h1 Whalse Output
+			//div
+				//input(type='text', placeholder='Insert Invoicenum to search...', id='invoicenuminput')
+				//button(onclick='searchbyInvoicenum()') Search
+
+		div(id='containerdiv')
+			div(id='invoicenumdiv')
+				div(id='filediv')
+					//form(action='/whalse_uploadinvoice' enctype='multipart/form-data' method='post' target='hidden-iframe')
+						//input(type='file' name='whalse_data' id='invoicefile')
+
+					iframe(name='hidden-iframe' style='display:none')
+				div(id='filecontent')
+					
+
+			
+			div(id='showdata')
+	script.
+		var socket = io('/whalse',{
+			transports:['websocket'],
+			upgrade:false
+		});
+
+		var selectpclist=!{JSON.stringify(selectpclist)};
+		console.log(selectpclist);
+
+
+		function removeallele(parent){
+			//var parent=document.getElementById(parentid);
+			while(parent.firstChild){
+				parent.firstChild.remove();
+			}
+		}
+
+
+		/*
+		var invoicefile=document.getElementById('invoicefile');
+		invoicefile.addEventListener('input',(e)=>{
+			var f=e.target.files[0];
+			console.log(e.target.files[0]);
+			var reader = new FileReader();
+			reader.onload=function(k){
+				fdata=k.target.result;
+				vdata=fdata.split(',');
+				var contentdiv=document.getElementById('filecontent');
+				for(var ia=0; ia<vdata.length; ia++){
+					var fdiv=document.createElement('div');
+					fdiv.innerHTML=vdata[ia];
+					contentdiv.appendChild(fdiv);
+				}
+				invoicefile.value='';
+			};
+			reader.readAsText(f,'euc-kr');
+		});
+		function searchbyInvoicenum(){
+			var inv=document.getElementById('invoicenuminput');
+			var searchedinv=document.querySelectorAll('[class$="'+'inv'+inv.value+'"]')
+
+
+			var fdiv=document.getElementsByClassName('rowcontent');
+			for(var ia=0; ia<fdiv.length; ia++){
+				fdiv[ia].style.border='';
+			}
+
+			var sdata=document.getElementById('showdata');
+			for(var ia=0; ia<searchedinv.length; ia++){
+				sdata.insertBefore(searchedinv[ia],document.getElementById('titlebar').nextSibling)
+				searchedinv[ia].style.border='2px dashed red'
+			}
+
+		}*/
+
+		socket.on('whalseinvoiceafter',function(a){
+			console.log(a);
+		});
+
+
+		var fieldstring=!{JSON.stringify(fieldstring)};
+		console.log(fieldstring);
+		if(fieldstring != null){
+			var orderlist = fieldstring.split(',');
+		}else{
+			var orderlist=['statuscode','arrival0num','arrival1num','arrival2num','arrival3num','status0text','status1text','status2text','status3text','status0pic','status1pic','status2pic','status3pic','imageaddr','countnum','optiondetail','productname','barcodenum','orderdate','departureoption','timedeparture','invoicenum','invoicenummatch','chinesesize','chineseoption','chineseproduct','optioncode','product','documentnum','ordernum2','compnum','ordernum','numid']
+			//var orderlist=['timedeparture','invoicenum','invoicenummatch','chinesesize','chineseoption','chineseproduct','optioncode','product','documentnum','ordernum2','compnum','ordernum','numid']
+		}
+		socket.emit('whalsegetdata',{selectpclist:selectpclist});
+		socket.on('whalsegetdataafter',function(a){
+			console.log(a);
+			var sdata=document.getElementById('showdata');
+			var titlebar=document.createElement('div');
+			titlebar.id='titlebar';
+			
+			for(let s of orderlist){
+			
+			//for(var s in a.data[0]){
+				if(s == 'numid'||s=='status1text'||s=='status2text'||s=='status3text'||s=='status0pic'||s=='status1pic'||s=='status3pic'||s=='arrival1num'||s=='arrival2num'||s=='arrival3num'){
+				}else if(s=='arrival0num'){
+					var titlecontent=document.createElement('div');
+					titlecontent.innerHTML='arrivalNum';
+					titlecontent.className='arrivalNum';
+					titlebar.appendChild(titlecontent);
+
+				}else if(s=='status0text'){
+					var titlecontent=document.createElement('div');
+					titlecontent.innerHTML='statustext';
+					titlecontent.className='statustext';
+					titlebar.appendChild(titlecontent);
+
+				}else if(s=='status2pic'){
+					var titlecontent=document.createElement('div');
+					titlecontent.innerHTML='statusPic';
+					titlecontent.className='statusPic';
+					titlebar.appendChild(titlecontent);
+
+				}else{
+					var titlecontent=document.createElement('div');
+					titlecontent.innerHTML=s;
+					titlecontent.className=s;
+					titlebar.appendChild(titlecontent);
+				}
+			//}
+			}
+			sdata.appendChild(titlebar);
+
+
+			var spclist=selectpclist.split(',');
+			console.log(spclist);
+			
+
+			var seperatecolorset=['green','blue','yellow','red']
+			for(var is=0; is<spclist.length; is++){
+
+				var chkk=0;
+				for(var ia=0; ia<a.data.length; ia++){
+					if(a.data[ia].parcel_code==spclist[is]){
+						chkk=1;
+
+						var fdiv=document.createElement('div');
+						fdiv.className='rowcontent '+'inv'+a.data[ia].parcel_code;
+
+						
+						fdiv.style.border='2px '+seperatecolorset[is%seperatecolorset.length]+' solid';
+						/*
+						if(is%3==0){
+							fdiv.style.border='5px green solid';
+						}else if(is%3==1){
+							fdiv.style.border='5px blue solid';
+						}else{
+							fdiv.style.border='5px yellow solid';
+						}*/
+							
+
+						for(let v of orderlist){
+							var sdiv=document.createElement('div');
+
+							if(v=='img_url'){
+								var imgel=document.createElement('img');
+								imgel.src=a.data[ia][v];
+								sdiv.appendChild(imgel);
+								fdiv.appendChild(sdiv);
+							}else if(v=='numid'){
+							}else if(v=='status0text'||v=='status1text' || v=='status2text' || v=='status3text'||v=='status0pic'||v=='status1pic'||v=='status2pic'||v=='status3pic'||v=='arrival0num'||v=='arrival1num'||v=='arrival2num'||v=='arrival3num'){
+
+								if(v=='status'+a.data[ia].statuscode+'text'){
+									if(a.data[ia][v]!=null){
+								
+										sdiv.innerHTML=a.data[ia][v];
+									}else{
+										sdiv.innerHTML='TEXT EMPTY';
+									}
+
+									sdiv.id='status'+a.data[ia].numid+'text';
+
+
+									fdiv.appendChild(sdiv);
+									sdiv.onclick=function(i,k){
+										return function(){
+											editFunc([i,findCurrentScode(i),'text',k],50,20,20)
+										}
+									}(a.data[ia].numid,a.data[ia][v]);
+								}
+
+								if(v=='status'+a.data[ia].statuscode+'pic'){
+									if(a.data[ia][v]!=null){
+										var sdivel=document.createElement('img');
+										sdivel.src='/whalse/whalsephoto/'+a.data[ia][v];
+										sdiv.appendChild(sdivel);
+									}else{
+										sdiv.innerHTML='PIC EMPTY';
+									}
+									sdiv.id='status'+a.data[ia].numid+'pic';
+
+									sdiv.className='statuspic';
+									fdiv.appendChild(sdiv);
+									sdiv.onclick=function(i){
+										return function(){
+											PicContainer(40,10,10,i,findCurrentScode(i))
+					
+										}
+									}(a.data[ia].numid);
+
+								}
+								if(v=='arrival'+a.data[ia].statuscode+'num'){
+									sdiv.id='arrival'+a.data[ia].numid+'num';
+									var arrsub0div=document.createElement('div');
+									//var arrsub1div=document.createElement('div');
+									//var arrsub2div=document.createElement('div');
+			
+									arrsub0div.className='arrsubdiv';
+									//arrsub1div.className='arrsubdiv';
+									//arrsub2div.className='arrsubdiv';
+
+									sdiv.className='arrdiv';
+
+									if(a.data[ia][v]!=null){
+
+										if(a.data[ia].statuscode==0){
+											arrsub0div.innerHTML=a.data[ia].order_quantity;
+											arrsub0div.onclick=function(i){
+												return function(){
+													//NumContainer(30,20,20,i,findCurrentScode(i))
+												}
+											}(a.data[ia].numid);
+
+
+										}else{
+											arrsub0div.innerHTML=a.data[ia][v];
+											arrsub0div.onclick=function(i){
+												return function(){
+													NumContainer(30,20,20,i,findCurrentScode(i))
+												}
+											}(a.data[ia].numid);
+
+										}
+
+										/*
+										if(a.data[ia].statuscode==0){
+											arrsub0div.innerHTML=a.data[ia].order_quantity;
+											arrsub0div.onclick=function(i){
+												return function(){
+													//NumContainer(30,20,20,i,findCurrentScode(i))
+												}
+											}(a.data[ia].numid);
+
+											arrsub1div.innerHTML='none';
+											arrsub2div.innerHTML='none';
+
+										}else if(a.data[ia].statuscode==1){
+											arrsub0div.innerHTML='none';
+											arrsub1div.innerHTML=a.data[ia][v];
+											arrsub1div.onclick=function(i){
+												return function(){
+													NumContainer(30,20,20,i,findCurrentScode(i))
+												}
+											}(a.data[ia].numid);
+											arrsub2div.innerHTML='none';
+
+
+										}else{
+											arrsub0div.innerHTML='none';
+											arrsub1div.innerHTML='none';
+											arrsub2div.innerHTML=a.data[ia][v];
+											arrsub2div.onclick=function(i){
+												return function(){
+													NumContainer(30,20,20,i,findCurrentScode(i))
+												}
+											}(a.data[ia].numid);
+
+										}*/
+										sdiv.appendChild(arrsub0div);
+										//sdiv.appendChild(arrsub1div);
+										//sdiv.appendChild(arrsub2div);
+									}else{
+										if(a.data[ia].statuscode==0){
+											sdiv.innerHTML=a.data[ia].order_quantity;
+											sdiv.onclick=function(i){
+												return function(){
+													//NumContainer(30,20,20,i,findCurrentScode(i))
+												}
+											}(a.data[ia].numid);
+
+										}else{
+											sdiv.innerHTML='NUM EMPTY';
+											sdiv.onclick=function(i){
+												return function(){
+													NumContainer(30,20,20,i,findCurrentScode(i))
+												}
+											}(a.data[ia].numid);
+
+										}
+
+
+									}
+
+									fdiv.appendChild(sdiv);
+
+								}
+
+								
+							}else if(v=='parcelnumbering'){
+								/*
+								var officebranchlist=['seoul','tokyo','london','newyork']
+								sdiv.className='officestatusdiv';
+								for(var ik=0; ik < officebranchlist.length; ik++){
+									var officestatusdiv=document.createElement('div');
+									officestatusdiv.className='officestatussubdiv';
+									var officestatusa=document.createElement('a');
+									officestatusa.innerHTML=officebranchlist[ik];
+									var officestatus=document.createElement('input');
+									officestatusdiv.appendChild(officestatus);
+									officestatusdiv.appendChild(officestatusa);
+
+
+									officestatus.className='officestatus'+a.data[ia].numid+'input';
+									officestatus.type='radio';
+									officestatus.name='officestatusc'+ia;
+									if(a.data[ia].parcelnumbering==ik){
+										officestatus.checked='true';
+									}
+									officestatus.onclick=function(i,j){
+										return function(){
+											statusCheckedSend(i,j,'branchstatus');
+										}
+									}(a.data[ia].numid,ik)
+
+									sdiv.appendChild(officestatusdiv)
+								}
+								fdiv.appendChild(sdiv);*/
+
+
+								sdiv.className='officestatusdiv';
+								var officestatusdiv=document.createElement('div');
+								officestatusdiv.className='officestatussubdiv';
+								var officestatusa=document.createElement('a');
+								officestatusa.innerHTML='('+(is+1)+') '+spclist[is];
+
+								officestatusdiv.appendChild(officestatusa);
+								sdiv.appendChild(officestatusdiv);
+								fdiv.appendChild(sdiv);
+
+
+
+							}else if(v=='statuscode'){
+								sdiv.className='statusdiv';
+								var status0div=document.createElement('div');
+								status0div.className='statussubdiv';
+								var status0a=document.createElement('a');
+								status0a.innerHTML='정상';
+								var status0=document.createElement('input');
+								status0div.appendChild(status0);
+								status0div.appendChild(status0a);
+
+
+
+								var status1div=document.createElement('div');
+								status1div.className='statussubdiv';
+								var status1a=document.createElement('a');
+								status1a.innerHTML='미입고'
+								var status1=document.createElement('input');
+								status1div.appendChild(status1);
+								status1div.appendChild(status1a);
+
+
+
+
+								var status2div=document.createElement('div');
+								status2div.className='statussubdiv';
+								var status2a=document.createElement('a');
+								status2a.innerHTML='오입고';
+								var status2=document.createElement('input');
+								status2div.appendChild(status2);
+								status2div.appendChild(status2a);
+
+
+								status0.className='status'+a.data[ia].numid+'input';
+								status1.className='status'+a.data[ia].numid+'input';
+								status2.className='status'+a.data[ia].numid+'input';
+
+								status0.type='radio';
+								status1.type='radio';
+								status2.type='radio';
+
+								status0.name='statusc'+ia;
+								status1.name='statusc'+ia;
+								status2.name='statusc'+ia;
+
+								if(a.data[ia].statuscode==0){
+									status0.checked='true';
+								}else if(a.data[ia].statuscode==1){
+									status1.checked='true';
+								}else if(a.data[ia].statuscode==2){
+									status2.checked='true';
+								}
+								status0.onclick=function(i,j){
+									return function(){
+										statusCheckedSend(i,j,'inboundstatus');
+										updateStatusShown(i,j);
+									}
+								}(a.data[ia].numid,0);
+
+								status1.onclick=function(i,j){
+									return function(){
+										statusCheckedSend(i,j,'inboundstatus');
+										updateStatusShown(i,j);
+									}
+								}(a.data[ia].numid,1);
+								status2.onclick=function(i,j){
+									return function(){
+										statusCheckedSend(i,j,'inboundstatus');
+										updateStatusShown(i,j);
+									}
+								}(a.data[ia].numid,2);
+
+								sdiv.appendChild(status0div);
+								//sdiv.appendChild(status0a);
+								sdiv.appendChild(status1div);
+								//sdiv.appendChild(status1a);
+								sdiv.appendChild(status2div);
+								//sdiv.appendChild(status2a);
+
+								fdiv.appendChild(sdiv);
+							}else{
+							
+								//sdiv.innerHTML=a.data[ia][v];
+								sdiv.id=a.data[ia].numid+v;
+								sdiv.setAttribute('data-item',v);
+								sdiv.setAttribute('data-numid',a.data[ia].numid);
+								var sdiva=document.createElement('a');	
+								sdiva.innerHTML=a.data[ia][v];
+								sdiva.onclick=function(i,j,k,l){
+									return function(){
+										editDetailItem(l,i,j,k);
+									}
+								}(v,a.data[ia][v],sdiv,a.data[ia].numid)
+
+								sdiv.appendChild(sdiva);
+								fdiv.appendChild(sdiv);
+							}
+						}
+						sdata.appendChild(fdiv);
+					}else{
+
+					}
+
+				}
+				if(chkk==0){
+					var fdiv=document.createElement('div');
+					fdiv.className='rowcontent '+'inv'+spclist[is];
+					for(let v of orderlist){
+						var sdiv=document.createElement('div');
+						if(v=='parcelnumbering'){
+							sdiv.className='officestatusdiv';
+							var officestatusdiv=document.createElement('div');
+							officestatusdiv.className='officestatussubdiv';
+							var officestatusa=document.createElement('a');
+							officestatusa.innerHTML='('+(is+1)+') '+spclist[is];
+
+							officestatusdiv.appendChild(officestatusa);
+							sdiv.appendChild(officestatusdiv);
+							fdiv.appendChild(sdiv);
+
+
+						}else if(v=='status1text' || v=='status2text' || v=='status3text'||v=='status1pic'||v=='status2pic'||v=='status3pic'||v=='arrival1num'||v=='arrival2num'||v=='arrival3num'||v=='numid'){
+						}else{
+							var sdiva=document.createElement('a');	
+							sdiva.innerHTML='empty';
+							sdiv.appendChild(sdiva);
+							fdiv.appendChild(sdiv);
+
+
+						}
+					}
+					fdiv.style.border='2px '+seperatecolorset[is%seperatecolorset.length]+' solid';
+					fdiv.style.backgroundColor='purple';
+					//fdiv.style.border='5px red solid';
+					sdata.appendChild(fdiv);
+
+				}
+			}
+		});
+
+
+		var editellowed=[];
+		function editDetailItem(numid,item, detailcontent,t){
+
+			while(t.firstChild){
+				t.firstChild.remove();
+			}
+
+
+			var cediv=document.getElementsByClassName('ediv');
+			while(cediv.length!=0){
+				var fa=document.createElement('a');
+				fa.innerHTML=cediv[0].firstChild.value;
+				fa.onclick=function(i,j,k,l){
+					return function(){	
+						editDetailItem(l,i,j,k)
+					}
+				}(cediv[0].parentNode.getAttribute('data-item'),cediv[0].firstChild.value,cediv[0].parentNode,cediv[0].parentNode.getAttribute('data-numid'));
+				cediv[0].parentNode.appendChild(fa);
+
+				cediv[0].remove();
+			}
+
+
+			var ediv=document.createElement('div');	
+			ediv.className='ediv';
+
+			var finput=document.createElement('input');
+			finput.type='text';
+			finput.value=detailcontent;
+			finput.id=numid+item+'text';
+			
+			var fbutton=document.createElement('button');
+			fbutton.innerHTML='click';
+			fbutton.onclick=function(i,j){
+				return function(){
+					contentChange(i,j);
+				};
+			}(numid,item);
+
+			ediv.appendChild(finput);
+			ediv.appendChild(fbutton);
+			t.appendChild(ediv);
+		}
+
+
+		function contentChange(numid,item){
+			var content=document.getElementById(numid+item+'text').value
+			socket.emit('contentchange',{numid:numid, content:content,item:item});
+		}
+
+		socket.on('contentchangeafter',function(a){
+			var fdiv=document.getElementById(a.a.numid+a.a.item);
+			while(fdiv.firstChild){
+				fdiv.firstChild.remove();
+			}
+			var fdiva=document.createElement('a');
+			fdiva.innerHTML=a.a.content;
+			fdiv.appendChild(fdiva);
+		});
+
+
+
+		function statusCheckedSend(numid, scode,option){
+			console.log(option);
+			socket.emit('statuscodechange',{numid:numid, scode:scode,option:option})
+		}
+
+		function updateStatusShown(numid, scode){
+			socket.emit('statusupdateshown',{numid:numid, scode:scode})
+		}
+		function findCurrentScode(numid){
+			var fdiv=document.getElementsByClassName('status'+numid+'input');
+			for(var ia=0; ia<fdiv.length; ia++){
+				if(fdiv[ia].checked==true){
+					break;
+				}
+			}
+			return ia;
+		}
+		socket.on('statusupdateshownafter',function(a){
+			console.log(a);
+			var fdiv=document.getElementById('status'+a.b[0].numid+'text');
+			if(a.b[0].statustext!=null){
+				fdiv.innerHTML=a.b[0].statustext;
+			}else{
+				fdiv.innerHTML='TEXT EMPTY';
+			}
+
+			var sdiv=document.getElementById('status'+a.b[0].numid+'pic');
+			removeallele(sdiv);
+			if(a.b[0].statuspic!=null){
+				var sdivel=document.createElement('img');
+				sdivel.src='/whalse/whalsephoto/'+a.b[0].statuspic;
+				sdiv.appendChild(sdivel);
+				sdiv.onclick=function(i){
+					return function(){
+						PicContainer(40,10,10,i,findCurrentScode(i))
+					}
+				}(a.b[0].numid);
+
+			}else{
+				sdiv.innerHTML='PIC EMPTY';
+			}
+
+			var kdiv=document.getElementById('arrival'+a.b[0].numid+'num');
+			removeallele(kdiv);
+			kdiv.onclick='';
+			if(a.b[0].arrivalnum!=null){
+
+				var arrsub0div=document.createElement('div');
+
+				arrsub0div.className='arrsubdiv';
+
+				kdiv.className='arrdiv';
+
+
+
+				if(a.b[0].statuscode=='0'||a.b[0].statuscode==0){
+					arrsub0div.innerHTML=a.b[0].order_quntity;
+					arrsub0div.onclick=function(i){
+						return function(){
+							//NumContainer(30,20,20,i,findCurrentScode(i))
+						}
+					}(a.b[0].numid);
+
+
+				}else{
+					arrsub0div.innerHTML=a.b[0].arrivalnum;
+					arrsub0div.onclick=function(i){
+						return function(){
+							NumContainer(30,20,20,i,findCurrentScode(i))
+						}
+					}(a.b[0].numid);
+				}
+				kdiv.appendChild(arrsub0div);
+
+
+				/*
+				var arrsub0div=document.createElement('div');
+				var arrsub1div=document.createElement('div');
+				var arrsub2div=document.createElement('div');
+
+				arrsub0div.className='arrsubdiv';
+				arrsub1div.className='arrsubdiv';
+				arrsub2div.className='arrsubdiv';
+
+				kdiv.className='arrdiv';
+
+
+
+				if(a.b[0].statuscode=='0'||a.b[0].statuscode==0){
+					arrsub0div.innerHTML=a.b[0].order_quntity;
+					arrsub0div.onclick=function(i){
+						return function(){
+							//NumContainer(30,20,20,i,findCurrentScode(i))
+						}
+					}(a.b[0].numid);
+
+					arrsub1div.innerHTML='none';
+					arrsub2div.innerHTML='none';
+
+
+				}else if(a.b[0].statuscode=='1'||a.b[0].statuscode==1){
+					arrsub0div.innerHTML='none';
+					arrsub1div.innerHTML=a.b[0].arrivalnum;
+					arrsub1div.onclick=function(i){
+						return function(){
+							NumContainer(30,20,20,i,findCurrentScode(i))
+						}
+					}(a.b[0].numid);
+					arrsub2div.innerHTML='none';
+
+				}else{
+					arrsub0div.innerHTML='none';
+					arrsub1div.innerHTML='none';
+					arrsub2div.innerHTML=a.b[0].arrivalnum;
+					arrsub2div.onclick=function(i){
+						return function(){
+							NumContainer(30,20,20,i,findCurrentScode(i))
+						}
+					}(a.b[0].numid);
+				}
+				kdiv.appendChild(arrsub0div);
+				kdiv.appendChild(arrsub1div);
+				kdiv.appendChild(arrsub2div);*/
+
+			}else{
+				if(a.b[0].statuscode=='0' ||  a.b[0].statuscode==0){
+					kdiv.innerHTML=a.b[0].order_quantity;
+
+
+				}else{
+					kdiv.innerHTML='Arrival Num Empty';
+					kdiv.onclick=function(i){
+						return function(){
+							NumContainer(30,20,20,i,findCurrentScode(i))
+						}
+					}(a.b[0].numid);
+
+				}
+
+			}
+
+
+		});
+		qprbsocket.on('statuseditafter',function(a){
+	
+			if(a.b.option=='text'){
+
+				var sdiv=document.getElementById('status'+a.b.numid+'text');
+				sdiv.innerHTML=a.b.prbtext;
+
+				sdiv.onclick=function(i,k){
+					return function(){
+						editFunc([i,findCurrentScode(i),'text',i],50,20,20)
+					}
+				}(a.b.numid,a.b.prbtext);
+			}
+
+			if(a.b.option=='pic'||a.b.option=='refresh'){
+				var sdiv=document.getElementById('status'+a.b.numid+'pic');
+				removeallele(sdiv);
+				var sdivel=document.createElement('img');
+				sdivel.src='/whalse/whalsephoto/'+a.b.prbtext;
+				sdiv.appendChild(sdivel);
+				sdiv.onclick=function(i){
+					return function(){
+						PicContainer(40,10,10,i,findCurrentScode(i))
+					}
+				}(a.b.numid);
+			}
+
+			if(a.b.option=='arrivalnum'){
+
+				var sdiv=document.getElementById('arrival'+a.b.numid+'num');
+				sdiv.innerHTML=a.b.prbtext;
+
+				sdiv.onclick=function(i){
+					return function(){
+						NumContainer(30,20,20,i,findCurrentScode(i))
+					}
+				}(a.b.numid);
+			}
+
+
+
+		});

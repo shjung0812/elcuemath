@@ -1,0 +1,434 @@
+html
+	head
+
+		title cpt r3 create
+		script(src='/socket.io/socket.io.js')
+
+
+		style.
+			#r3list {
+				border:solid;
+			}
+			#r2list {
+				border:solid;
+			}
+			.btndiv {
+				display:inline-block;
+			}
+			.r3divadiv {
+				display:inline-block;
+			}
+
+	body
+
+		div
+			div(onclick='createR3Ready()')
+
+				h2 cpt r3 create
+			div(id='r3input')
+				div
+					input(type='text' id='r3listinfo')
+				div(id='readydiv')
+
+
+		div(id='r3list')
+		div(id='r2list')
+		div(id='freer2list')
+		script.
+			var socket = io('/cpt');
+
+			var stat={chosencolor:'orange', fontcolor:'white'}
+			var chosenlist=[];
+
+			socket.on('modifyr3toaddr2after',function(a){
+				chosenlist=a.chosenlist;
+				chosenRepresent();
+				var r3div=document.getElementById(a.r3id);
+				r3div.onclick=function(i,j){return function(){funckeyAdd(i);addkeyReady(j)}}(r3div,a.chosenlist);
+				//r2div.onclick=function(i,j){return function(){funckeyAdd(i);addkeyReady(j)}}(r2div,a.chosenlist.split(','));
+			});
+
+
+
+			function removeItemFromExist(liststr,item){
+				var liststrl=liststr;
+
+				var nlist=[];
+				for(var ia=0; ia<liststrl.length; ia++){
+					if(liststrl[ia][0]==item){
+					}else{
+						nlist.push(liststrl[ia]);
+					}
+				}
+				return nlist;	
+			}
+
+
+
+			var swap=function(array,i,j){
+				var temp=array[i];
+				array[i]=array[j];
+				array[j]=temp;
+			}
+	
+			var sortind=function(array){
+				for(var i=0; i<array.length; i++){
+					for(var j=1;j<array.length; j++){
+						if(array[j-1][1]>array[j][1]){
+							swap(array,j-1,j);
+						}
+					}
+				}
+				return array;
+			}
+
+
+			function selectTop(arr){
+				var t=0;
+				for(var ia=0; ia<arr.length; ia++){	
+					if(arr[ia][1]>t){
+						t=arr[ia][1];
+					}
+				}
+				return t;
+			}
+
+
+
+
+
+			function checkItemExist(liststr,item){
+				var liststrl=liststr;
+
+				var chk=0;
+				for(var ia=0; ia<liststrl.length; ia++){
+					if(liststrl[ia][0]==item){
+						chk=1;
+						break;
+					}
+				}
+
+				return chk;
+			}
+
+
+
+			function clickToChosen(item){
+				var chk=checkItemExist(chosenlist,item);
+				if(chk==0){//no exist
+					chosenlist.push([item,selectTop(chosenlist)+1]);
+					/*
+					if(chosenlist.length!=0){
+						chosenlist.push([item,0]);
+					}else {
+						chosenlist=[[item,0]];
+					}*/
+				}else{
+					chosenlist=removeItemFromExist(chosenlist,item);
+				}
+				chosenlist=sortind(chosenlist);
+
+				chosenRepresent();
+
+			}	
+
+
+
+
+			socket.on('listinfoeditforr3after',function(a){
+				var r3ida=document.getElementById(a.r3id+'a');
+				r3ida.innerHTML=a.listinfo;
+			});
+
+			function listinfoEdit(r3id){
+				var val=document.getElementById('r3listinfo');
+				socket.emit('listinfoeditforr3',{listinfo:val.value,r3id:r3id})
+			}
+
+
+			function listinfoEditReady(r3id){
+				removeall('readydiv')
+				var listinfoa=document.createElement('A');
+				listinfoa.innerHTML='listinfoEdit';
+
+				var listinfoadiv=document.createElement('div');
+				listinfoadiv.appendChild(listinfoa);
+				listinfoadiv.id='listinfoadiv';
+	
+				var readydiv=document.getElementById('readydiv')
+				readydiv.appendChild(listinfoadiv);
+
+				var listinfobtn=document.createElement('button');
+				listinfobtn.innerHTML='submit';
+				listinfobtn.onclick=function(i){return function(){
+					listinfoEdit(i);
+				}}(r3id);
+				
+				var listinfobtndiv=document.createElement('div');
+				listinfobtndiv.id='listinfobtndiv';
+				listinfobtndiv.appendChild(listinfobtn);
+				readydiv.appendChild(listinfobtndiv);
+
+				document.getElementById('r3listinfo').focus();
+		
+				var preval=document.getElementById(r3id+'a').innerHTML;
+				document.getElementById('r3listinfo').value=preval;
+
+
+				
+			}
+
+
+
+
+			function chosenRepresent(){
+				removeAllRepresent('r2list');
+				if(chosenlist.length!=0){
+					var chosenlistl=chosenlist;
+					for(var ia=0; ia<chosenlistl.length; ia++){
+						//if(chosenlistl[ia]!=''){
+							var rpdiv=document.getElementById(chosenlistl[ia][0]);
+							rpdiv.style.backgroundColor=stat.chosencolor;
+							rpdiv.style.color=stat.fontcolor;
+						//}
+					}
+				}
+		
+			}
+
+
+			function removeAllRepresent(cname){
+				var rdiv=document.getElementsByClassName(cname);
+				for(var ia=0; ia<rdiv.length; ia++){
+					rdiv[ia].style.backgroundColor='';
+					rdiv[ia].style.color='';
+				}
+			}
+
+
+
+			function addkeyReady(addedlistL){
+				console.log(r2info);
+				chosenlist=[];
+				var r2list=document.getElementById('r2list');
+				removeall('r2list')
+				for(var ia=0; ia<addedlistL.length; ia++){
+					if(addedlistL[ia]!=''){
+						for(var ib=0; ib<r2info.a.length; ib++){
+							if(addedlistL[ia][0]==r2info.a[ib].r2id){	
+								var fdiv=document.createElement('div');
+								fdiv.id=r2info.a[ib].r2id;
+								fdiv.className='r2list';
+								fdiv.innerHTML=r2info.a[ib].r2listinfo;
+								fdiv.onclick=function(i){return function(){clickToChosen(i);}}(r2info.a[ib].r2id);
+								r2list.appendChild(fdiv);
+								chosenlist.push(addedlistL[ia]);
+								break;
+							}
+						}
+					}
+				}
+				chosenRepresent();
+			}
+
+
+
+
+			function removeFunckey(){
+				var btndivl=document.getElementsByClassName('btndiv');
+				if(btndivl.length!=0){
+					for(var ia=0; ia<btndivl.length; ia++){
+						btndivl[ia].remove();
+					}
+				}
+				
+			}
+
+
+
+			function funckeyAdd(e){ //Modify button
+				removeFunckey();	
+				var btndiv=document.createElement('div');
+				btndiv.onclick=function(){}();
+				btndiv.className='btndiv';
+				btndiv.onclick=function(){
+					socket.emit('modifyr3toaddr2',{chosenlist:chosenlist,r3id:e.id})
+				}		
+				var rbtn=document.createElement('button');
+				rbtn.innerHTML='Modify';
+				btndiv.appendChild(rbtn);
+				e.appendChild(btndiv);
+						
+			}
+
+
+			var r32set=[];
+			socket.on('callr3listafter',function(a){
+				console.log(a);
+				var indlist=[];
+				for(var ia=0; ia<a.b.length; ia++){
+					var chk=0;
+					for(var ib=0; ib<indlist.length; ib++){
+						if(indlist[ib][0]==a.b[ia].r3id){
+							chk=1;
+							break;
+						}
+					}
+					if(chk==0){
+						indlist.push([a.b[ia].r3id,a.b[ia].listinfo]);
+					}
+				}
+
+
+				for(var ia=0; ia<indlist.length; ia++){
+					r32set[ia]={r3id:indlist[ia][0],r2id:[],listinfo:indlist[ia][1]};
+				}
+
+				for(var ia=0; ia<r32set.length; ia++){
+					for(var ib=0; ib<a.b.length; ib++){
+						if(a.b[ib].r3id==r32set[ia].r3id){
+
+							var chk=0;
+							for(var ic=0; ic<a.a.length; ic++){
+								if(a.a[ic].r3id==r32set[ia].r3id){
+									chk=1;
+									r32set[ia].r2id.push([a.a[ic].childcol,a.a[ic].rkorder]);
+								}
+							}
+							if(chk==0){
+								r32set[ia].r2id.push('');
+							}
+						}
+					}
+				}
+
+
+				var r3listdiv=document.getElementById('r3list');
+				for(var ia=0; ia<r32set.length ; ia++){
+					var r3div=document.createElement('div');
+					r3div.id=r32set[ia].r3id;
+					r3div.className='r3list';
+					r3div.onclick=function(i,j){return function(){funckeyAdd(i);addkeyReady(j); listinfoEditReady(i.id);}}(r3div,r32set[ia].r2id);
+					//funckeyAdd:modify button  addkeyReady: chosenlist edit
+					var r3diva=document.createElement('a');
+					r3diva.innerHTML=r32set[ia].listinfo
+					r3diva.id=r3div.id+'a';
+					r3div.appendChild(r3diva);
+					r3listdiv.appendChild(r3div);
+				}
+				callR2list();
+
+			});
+
+
+			function callR3list(){
+				socket.emit('callr3list')
+			}
+
+			callR3list();
+
+
+			function removeall(elename){
+				var ele=document.getElementById(elename)
+				while(ele.firstChild){
+					ele.removeChild(ele.firstChild);
+				}
+			}
+
+			function createR3(){
+				var listinfo=document.getElementById('r3listinfo').value;
+	
+				if(listinfo!=''){
+			
+					socket.emit('creater3',{listinfo:listinfo});
+					listinfo='';
+				}else{
+					alert('no value');
+				}
+			}
+
+
+			socket.on('creater3after',function(a){
+				var r3listdiv=document.getElementById('r3list');
+				var r3div=document.createElement('div');
+				r3div.id=a.r3id;
+				r3div.className='r3list';
+				
+				var r3diva=document.createElement('A');
+				r3diva.innerHTML=a.listinfo;
+				r3diva.id=r3div.id+'a';
+				var r3divadiv=document.createElement('A');
+				r3divadiv.appendChild(r3diva);
+				r3divadiv.className='r3divadiv';
+				
+				r3div.appendChild(r3divadiv);
+				r3div.onclick=function(i){return function(){funckeyAdd(i);addkeyReady([''])}}(r3div);
+				r3listdiv.appendChild(r3div);
+			});
+
+
+
+			function createR3Ready(){
+				removeall('readydiv')
+				var createR3a=document.createElement('A');
+				createR3a.innerHTML='CreateR3';
+
+				var createR3adiv=document.createElement('div');
+				createR3adiv.appendChild(createR3a);
+				createR3adiv.id='createR3adiv';
+	
+				var readydiv=document.getElementById('readydiv')
+				readydiv.appendChild(createR3adiv);
+
+				var createR3btn=document.createElement('button');
+				createR3btn.innerHTML='submit';
+				createR3btn.onclick=function(){createR3();};
+
+				var createR3btndiv=document.createElement('div');
+				createR3btndiv.id='createR3btndiv';
+				createR3btndiv.appendChild(createR3btn);
+				readydiv.appendChild(createR3btndiv);
+
+				document.getElementById('r3listinfo').focus();
+				document.getElementById('r3listinfo').value='';
+
+			}
+
+
+			function callR2list(){
+				socket.emit('callr2listforr3');
+			}
+
+
+			var r2info;
+			socket.on('callr2listforr3after',function(a){
+				r2info=a;
+				console.log(r32set,'ss');
+				var r2listdiv=document.getElementById('freer2list');
+				for(var ia=0; ia<a.a.length; ia++){
+					var chk0=0;
+					for(var ib=0; ib<r32set.length; ib++){
+						var chk1=0;
+						for(var ic=0; ic<r32set[ib].r2id.length; ic++){
+							if(r32set[ib].r2id[ic][0]==a.a[ia].r2id){
+								chk1=1;
+								break;
+							}
+						}
+						if(chk1==1){
+							chk0=1;
+							break;
+						}
+					}
+					if(chk0==0){
+						var r2div=document.createElement('div');
+						r2div.id=a.a[ia].r2id;
+						r2div.className='r2list';
+						var r2diva=document.createElement('A');
+						r2diva.innerHTML=a.a[ia].r2listinfo;
+						r2div.appendChild(r2diva);
+						r2div.onclick=function(i){return function(){clickToChosen(i);}}(a.a[ia].r2id);
+						r2listdiv.appendChild(r2div);
+					}
+				}	
+			});

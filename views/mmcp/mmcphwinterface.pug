@@ -1,0 +1,79 @@
+html
+	head 
+		title='HW front Page'
+		script(type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML")
+		script(src='/socket.io/socket.io.js')
+		script(async src="https://www.googletagmanager.com/gtag/js?id=G-MPRPDZ50KW")
+		script.
+			window.dataLayer = window.dataLayer || [];
+			function gtag(){dataLayer.push(arguments);}
+			gtag('js', new Date());
+			gtag('config', 'G-MPRPDZ50KW');
+
+		style.
+			#mmcpconlist {
+				margin:0 0 5% 0 ;
+			}
+			.conlistdiv a {
+				margin:0 1.5%;
+			}
+
+	body
+		div
+			h2=dsname+ ' 서술형숙제'
+		div
+			div(id='mmcpconlist')
+			div(id='mmcpprblist')
+				
+
+		script.
+
+			var socket = io('/mmcp');
+			var userid='#{userid}';
+			gtag('event',"HW front page",{"event_label":userid});
+			socket.on('connect',()=>{
+				console.log('mmcp connection ready');
+				var pagename='page0 writing homework'
+				
+				socket.emit('mmcplog',{username:userid, pagename:pagename})
+			});
+
+
+
+			socket.on('callmmcphwconlistforinterfaceafter',function(a){
+				var mmcpconlist=document.getElementById('mmcpconlist');
+				for(var ia=0; ia<a.a.length; ia++){
+					var conlistdiv=document.createElement('DIV');
+					conlistdiv.className='conlistdiv';
+
+					if(userid=='singasong' || userid=='bob'|| userid == 'alexgm' || userid=='songarim1029' || userid=='woobeen'){
+						var printa=document.createElement('a');
+						printa.innerHTML='PrintHW';
+						printa.href='./prbprint?prblist='+a.a[ia].prblist
+						conlistdiv.appendChild(printa);
+					}
+
+
+					var conlistdiva=document.createElement('A');
+					conlistdiva.innerHTML=a.a[ia].listinfo+' : '+a.a[ia].numprb+' 개의 문제';
+					conlistdiva.href='./mmcphwhomework?mmcpprblist='+a.a[ia].prblist+'&mmcpconid='+a.a[ia].mmcpconid;
+					conlistdiv.appendChild(conlistdiva);
+
+					mmcpconlist.appendChild(conlistdiv);
+				}
+
+			});
+
+			callMmcphwconlist();
+			function callMmcphwconlist(){
+				socket.emit('callmmcphwconlistforinterface',{userid:userid});
+			}
+
+			socket.on('connect_timeout',(timeout)=>{
+				console.log('socket.io is timeoust')
+			})
+			socket.on('reconnect',(attemptNumber)=>{
+				console.log('socket.io is reconnected , attempt number is : '+attemptNumber)
+				socket.emit('mmcplog',{username:userid, pagename:'take to the Elcue frontpage'})
+				window.location.href='https://ai.elcue.org';
+			})

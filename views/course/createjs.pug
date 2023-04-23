@@ -1,0 +1,41 @@
+html
+ head
+  style.
+   .mytxt{ width:400px; height:400px;}
+   
+  script(type='text/javascript' async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML")
+  title test
+
+ body
+   
+  h1 
+   a(href='/admin/page') JavaScript Creation Page!
+  div
+   h2=rstcode
+  div 
+   p Open contents of javascript file 
+   form(action='/admin/createform', method='get')
+    input(type='text', name='fid')
+    input(type='submit', value='submit')
+  p=output
+  form(action='/admin/createjs',method='post')
+   p title 
+   input(type='text', name='title',value=fid)
+   p description
+   textarea(name='description', id='content', rows='22', style='width:800px;')=jscont
+   p
+   input(type='radio', name='jmode', value=0, checked) 
+   | Create
+   input(type='radio', name='jmode', value=1) 
+   | Overwrite
+   p
+   input(type='submit', value='submit') 
+  //script(type="text/javascript", src="/jsmodule/neweditor/js/HuskyEZCreator.js", charset="utf-8")
+   script(type="text/javascript").
+   var oEditors = [];
+   nhn.husky.EZCreator.createInIFrame({
+   oAppRef: oEditors,
+   elPlaceHolder:'content',
+   sSkinURI:'http://www.elcue.net/jsmodule/neweditor/SmartEditor2Skin.html',
+   fCreator: 'createSEditor2'
+   });

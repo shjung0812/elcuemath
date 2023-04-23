@@ -1,0 +1,30 @@
+html
+	head
+		style.
+			a{	
+				text-decoration:none;
+				display:block;
+			}
+			#spamElement a{
+				text-decoration:none;
+				margin:10px 0 ;
+				color:black;
+				font-size:1.6em;
+			}
+			
+			#contrst a{
+				color:grey;
+	
+			}
+	body
+		a(href='/admin/page')  Create Mysql page
+		div(id='spamElement')
+			a(href='./createmysqlpg?stchk=0') problem element
+			a(href='./createmysqlpg?stchk=1') survey element
+			a(href='./createmysqlpg?stchk=2') redirect element
+		div(id='contrst')
+			-for(var ia=prblist.length-1; ia>=0; ia--){
+				a(href='./createmysqlpg?stchk=3&prbid='+prblist[ia])=prblist[ia]
+			-}
+		div
+			

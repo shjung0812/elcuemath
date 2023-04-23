@@ -1,0 +1,75 @@
+html
+	style.
+		#gdiv{float:left;border-style:solid;}
+		.glist{float:left; padding:5px 5px 5px 5px;}
+		#gform{float:left;}
+	body
+		script.
+			function myfunc(vgprb, vprblist,vgstatus){
+				document.getElementById('idgprb').value=vgprb;
+
+				var plcont=document.getElementById('idprblist').value;
+				if(plcont){
+					document.getElementById('idprblist').value=plcont+','+vprblist
+					console.log('2');
+				}else{
+					document.getElementById('idprblist').value=vprblist
+					console.log('1');
+
+				}
+				document.getElementById('idgstatus').value=vgstatus;
+
+				console.log(plcont);
+			}
+		div
+			a(href='/admin/catecreate') Go back to categorizing page
+			div(id='gdiv')
+				div(class='glist')
+					p gprb
+					-for(var i=0; i<rst.length; i++){
+						p
+							button(class='gbutton',type='button',onclick="var vgprb='#{rst[i].gprb}'; var vprblist='#{rst[i].prblist}'; var vgstatus='#{rst[i].gstatus}';myfunc(vgprb, vprblist,vgstatus)")=rst[i].gprb
+					-}
+				div(class='glist')
+					p prblist
+					-for(var i=0; i<rst.length; i++){
+						p
+							a(href='/admin/cateform?gprb='+rst[i].gprb)=rst[i].prblist
+					-}
+				div(class='glist')
+					p gstatus
+					-for(var i=0; i<rst.length; i++){
+						p=rst[i].gstatus
+					-}
+				-if(typeof gprbcont!='undefined'){
+				div(class='glist')
+					p='문제 '+ gprbcont[0]
+					p='정답' + gprbcont[1]
+					p='답번호' + gprbcont[2]
+					p='보기' + gprbcont[3]
+					p='보기' + gprbcont[4]
+					p='보기' + gprbcont[5]
+				-}
+			div(id='gform')
+				form(action='/admin/gprbform',method='post')
+					p gprb
+					input(type='text',id='idgprb',name='ngprb')
+					-if(typeof chkid!='undefined'){
+						p prblist
+						input(type='text',id='idprblist',name='nprblist',value=chkid)
+					-}else{
+						p prblist
+						input(type='text',id='idprblist',name='nprblist')
+					-}
+					p gstatus
+					input(type='text',id='idgstatus',name='ngstatus')
+					p Update mode
+					input(type='radio',id='gcreate',value=0, name='gmode',checked)
+					| Create
+					input(type='radio',id='gupdate',value=1, name='gmode')
+					| Update
+					input(type='radio',id='gupdate',value=2, name='gmode')
+					| Delete
+					input(type='submit',value='submit')
+				
+			

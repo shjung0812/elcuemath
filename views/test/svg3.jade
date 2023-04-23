@@ -1,0 +1,34 @@
+div(id='svg-container')
+	script(xlink:href="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML")
+	svg(xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' xml:space='preserve' width='850' height='440')
+		//rect(width='40' height='50' style='fill:blue')
+		//g(class='subplot xy')
+			//rect(x='78' y='78' width='694' height='285' style='stroke-width: 0px; fill:#ffffff; fill-opacity:1;')
+
+
+		polygon( points='5,5 195,10 185,185 10,195')
+		text(x='0', y='15' fill='red') I love SVG \(\alpha \)
+			//foreignObject(x='20' y='20' width='160' height='160')
+				//div(xmlns='http://www.w3.org/1999/xhtml') \(\frac{2}{3}+\beta+\alpha\)
+
+canvas(id='canvas' width='800' height='400')
+div(id='png-container')
+//script(type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML")
+//script(src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=default")
+script.
+	var svgc=document.getElementById('svg-container');
+	var svgString = new XMLSerializer().serializeToString(document.querySelector('svg'));
+	var canvas=document.getElementById('canvas');
+	var ctx = canvas.getContext('2d');
+	var DOMURL=self.URL || self.webkitURL || self;
+	var img=new Image();
+	var svg= new Blob([svgString],{type:'image/svg+xml;charset=utf-8'});
+	var url=DOMURL.createObjectURL(svg);
+	img.onload = function(){
+		ctx.drawImage(img,0,0);
+		var png=canvas.toDataURL('image/png');
+		document.querySelector('#png-container').innerHTML='<img src="'+png+'"/>';
+		DOMURL.revokeObjectURL(png);
+	};
+	img.src=url;
+

@@ -1,0 +1,15 @@
+html
+	head
+		style.
+			a{
+				display:block;
+				text-decoration:none;
+				color:black;
+				font-size:2em;
+			}
+	body
+		div
+			-for(var ia=0; ia<rs.length; ia++){
+				a(href='./userchat?stchk=1&userid='+rs[ia].username)=rs[ia].DisplayName
+			-}
+	

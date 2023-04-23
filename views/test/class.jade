@@ -1,0 +1,66 @@
+html
+	head
+		title Class test
+
+		script.
+			class ClassWithStaticField {
+				static baseStaticField = 'base field';
+			}
+
+			class SubClassWithStaticField extends ClassWithStaticField{
+				static subStaticField = 'sub class field';
+			}
+			console.log(SubClassWithStaticField.subStaticField);
+			console.log(SubClassWithStaticField.baseStaticField);
+
+
+
+			class ClassWithInstanceField {
+				instanceField = 'instance field';
+			}
+
+			const instance = new ClassWithInstanceField();
+			console.log(instance.instanceField);
+
+			const person = {};
+
+			function Person(first, last, age, gender, interests){
+				this.name = {
+					'first':first,
+					'last':last
+				};
+				this.age = age;
+				this.gender = gender;
+				this.interests=interests
+			}
+
+			const person1 = new Person('bob','smith',32,'male',['music','skiing']);
+			Person.prototype.greeting=function(){alert('hi! Im ' + this.name.first+'.')}
+			const person2 = new Person('shjung','jung',36,'male',['soccer','fffunck']);
+
+			function Teacher(first,last,age,gender,interests,subject){
+				Person.call(this,first,last,age,gender,interests)
+				this.subject = subject;
+			}
+			Teacher.prototype=Object.create(Person.prototype);	
+			Object.defineProperty(Teacher.prototype,'constructor',{
+				value : Teacher,
+				enumerable: false,
+				writable:true
+			});
+
+			Teacher.prototype.greeting = function(){
+				var prefix;
+				if(this.gender === 'male' || this.gender === 'Male' || this.gender === 'm' || this.gender === 'M'){
+					prefix = 'Mr.';
+				}else if(this.gender === 'female' || this.gender === 'Female' || this.gender === 'f' || this.gender === 'F'){
+					prefix = 'Mrs.';
+				} else{
+					prefix = 'Mx.';
+				}
+				alert('Hello. My name is ' + prefix + ' ' + this.name.last + ', and I teach' + this.subject + '.');
+			}				
+	
+
+	body
+		h2 Class Test

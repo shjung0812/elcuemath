@@ -1,0 +1,101 @@
+html
+	
+		
+	body
+		ol(id='roomids')
+		canvas(id='canvas' width='800' height='400' style='border:2px solid #000000')
+		button(onclick="socket.emit('roomsid',socket.id)") Request! 
+		button(onclick="socket.emit('joinroom',{roomid:socket.id})") Join Room 
+		script(src='/socket.io/socket.io.js')
+		script(type='text/javascript' src='http://code.jquery.com/jquery-1.8.1.js')
+		script(type='text/javascript').
+			var socket=io('/draw');
+			var ptag=document.getElementById('roomids')
+		
+			socket.on('roomac',function(rmkey){
+				var addli=document.createElement('li');
+				var addtxt=document.createTextNode(rmkey);
+				var addlink=document.createElement('a');
+	
+				addlink.appendChild(addtxt);
+				addlink.setAttribute('href','drawingfield?roomid='+rmkey);
+				addli.appendChild(addlink);
+				ptag.appendChild(addli);
+				document.body.appendChild(ptag);
+				
+			});
+			context=document.getElementById("canvas").getContext('2d');
+			context=canvas.getContext('2d');
+			socket.on('canvpos',function(canvaspo){
+				if('#{roomid}'){
+					rid='#{roomid}';
+				}else{
+					rid=socket.id;
+				}
+				//context.clearRect(0,0,context.canvas.width, context.canvas.height);
+				context.strokeStyle='#000000';
+				context.lineJoin='round';
+				context.lineWidth=5;
+				for(var i=0; i<canvaspo.data[0].length;i++){
+					context.beginPath();
+					if(canvaspo.data[2][i] && i){
+						context.moveTo(canvaspo.data[0][i-1],canvaspo.data[1][i-1]);
+					}else{
+						context.moveTo(canvaspo.data[0][i],canvaspo.data[1][i]);
+					}
+					context.lineTo(canvaspo.data[0][i],canvaspo.data[1][i]);
+					context.closePath();
+					context.stroke();
+				}
+			});
+
+			$('#canvas').mousedown(function(e){
+				var mouseX=e.pageX - this.offsetLeft;
+				var mouseY=e.pageY - this.offsetTop;
+				paint=true;
+				addClick(e.pageX-this.offsetLeft, e.pageY-this.offsetTop);
+				redraw();
+			});
+			$('#canvas').mousemove(function(e){
+				if(paint){
+					addClick(e.pageX-this.offsetLeft, e.pageY-this.offsetTop, true);
+					redraw();
+				}
+			});
+			$('#canvas').mouseup(function(e){
+				paint=false;
+			});
+			$('#canvas').mouseleave(function(e){
+				paint=false;
+			});
+			var clickX = new Array();
+			var clickY = new Array();
+			var clickDrag= new Array();
+			var paint;
+			var canvpos=[clickX,clickY,clickDrag];
+			function addClick(x, y, dragging){
+				clickX.push(x);
+				clickY.push(y);
+				clickDrag.push(dragging);
+				socket.emit('canvpos',{data:canvpos,roomid:socket.id});
+			}
+                    
+
+			function redraw(){
+				context.clearRect(0,0, context.canvas.width, context.canvas.height);
+				context.strokeStyle='#000000';
+				context.lineJoin='round';
+				context.lineWidth=5;
+				for(var i=0; i<clickX.length; i++){
+				context.beginPath();
+				if(clickDrag[i] && i){
+					context.moveTo(clickX[i-1], clickY[i-1]);
+					}else{
+					context.moveTo(clickX[i]-1,clickY[i]);
+					}
+					context.lineTo(clickX[i],clickY[i]);
+					context.closePath();
+					context.stroke();
+				}
+			}
+

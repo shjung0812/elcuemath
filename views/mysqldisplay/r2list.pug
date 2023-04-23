@@ -1,0 +1,62 @@
+html
+	head
+		script(src='/socket.io/socket.io.js')
+		style.
+			.tablerow {
+				width:100%;
+				background-color:#CBE73C;
+				overflow:auto;
+			}
+			.tablerow div {
+				float:left;	
+				width:15%;
+				margin:0 2%;
+			}
+			
+	body
+		div(id='table')
+
+		script.
+
+
+			var socket = io('/vdrg');
+
+			var mtdisplay=!{JSON.stringify(a)};
+			console.log(mtdisplay);
+
+			var tablediv=document.getElementById('table');
+
+
+			var fdiv=document.createElement('div');
+			fdiv.className='tablerow';
+			for(let k in mtdisplay[0]){
+
+				var sdiv=document.createElement('div');
+				sdiv.innerHTML=k;
+				fdiv.appendChild(sdiv);
+				
+
+			}		
+
+			tablediv.appendChild(fdiv);
+
+
+			for(var ia=0; ia<mtdisplay.length; ia++){
+				var fdiv=document.createElement('div');
+				fdiv.className='tablerow';
+				
+				//mtdisplay[ia].forEach(function(a,b){	
+				for(let k in mtdisplay[ia]){
+					var sdiv=document.createElement('div');
+					if(mtdisplay[ia][k]==null){
+						sdiv.innerHTML='null'
+					}else{
+						sdiv.innerHTML=mtdisplay[ia][k];
+					}
+					//sdiv.innerHTML=mtdisplay[ia][k];
+					fdiv.appendChild(sdiv);
+				};
+				tablediv.appendChild(fdiv);
+			}
+
+

@@ -1,0 +1,442 @@
+html
+	head
+		title homework monitoring
+		script(type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML")
+		script(src='/socket.io/socket.io.js')
+		script(src='/util/psre/psreshown.js')
+		script(async src="https://www.googletagmanager.com/gtag/js?id=G-MPRPDZ50KW")
+		script.
+			window.dataLayer = window.dataLayer || [];
+			function gtag(){dataLayer.push(arguments);}
+			gtag('js', new Date());
+			gtag('config', 'G-MPRPDZ50KW');
+
+		style.
+			#listdiv {
+				background-color:red;
+				width:100%;
+				height:100%;
+			}
+			#hwlist {
+				background-color:#aaaaaa;
+				float:left;
+				width:20%;
+				height:100%;
+				overflow:auto;
+			}
+			#prblist {
+				background-color:#cccccc;
+				float:left;
+				width:20%;
+				height:100%;
+				overflow:auto;
+
+			}
+			#imglist {
+				background-color:#dddddd;
+				float:left;
+				width:60%;
+				height:100%;
+				overflow:auto;
+			}
+
+			.imgdiv {
+				width:60%;
+				margin:5% auto;
+			}
+			.imgdiv img {
+				width:100%;
+			}
+			.evaltext {
+				margin:0 5%;
+				cursor:pointer;
+			}
+
+			.mmcpdiv {
+				width:90%;
+				padding:0 5%;	
+				margin:5% 0;
+			}
+			.prbpicdiv img {
+				width:100%;
+			}
+			.mmcpctspicdiv {
+				width:100%;
+			}
+			.mmcpctspicdiv img {
+				width:100%;
+			}
+			#evalresultdiv {
+				width:100%;
+				margin:2% 0;
+			}
+			#evalresultdiv div {
+				width:19%;
+				display:inline-block;
+				text-align:center;
+				font-size:.7em;	
+			}
+			#evalpanel {
+				width:100%;
+				text-align:center;
+			}
+			#evalpanel div {
+				font-size:3em;
+			}
+
+
+	body
+		div(id='listdiv')
+			div(id='hwlist')
+			div(id='prblist')
+			div(id='imglist')
+		script.
+			var socket = io('/mmcp');
+			var socket2 = io('/vdrg');
+			socket.on('connect',()=>{
+				console.log('mmcp connection ready');
+			});
+			var username='#{username}';
+			//var userinfo=!{JSON.stringify(userinfo)};
+			socket.emit('briefmmcphomeworkcall',{username:username});
+
+			function callvdrgUsers(userfile,prbid){
+				socket2.emit('getcurrentvdrgusers',{userfile:userfile,prbid:prbid});
+			}
+
+			function sendRecord(chosenusername,prbid,cptid){
+				var msglist=['coversta','instructprb','sharehomeworkresult'];
+				socket2.emit('vdrgwriterecord',{username:chosenusername,hisopt:msglist[2],prbid:prbid,cptid:cptid});
+			}
+
+
+
+			socket2.on('getcurrentvdrgusersafter',function(a){
+
+				var userbox=document.createElement('div');
+				var color=['white','blue']
+				var duration=5000;
+				userbox.setAttribute("style","position:fixed;z-index:20;top:10%;left:35%;background-color:"+color[0]+";padding:5% 10%;color:"+color[1]+";");
+
+				var mentoridlist=[];
+				var menteeidlist=[];
+
+				for(var ia=0; ia<a.users.length; ia++){
+					if(a.users[ia].connectionstate==1){
+						mentoridlist.push([a.users[ia].mentorid,a.users[ia].mentorsocketid,a.users[ia].menteelist]);
+					}
+				}
+				for(var ia=0; ia<mentoridlist.length; ia++){
+					var userdiv=document.createElement('div');
+					userdiv.innerHTML=mentoridlist[ia][0];
+					userdiv.onclick=function(ma,mb,mc,md){
+						return function(){
+							var userboxi=document.createElement('div');
+							var color=['black','white']
+							var duration=5000;
+							userboxi.setAttribute("style","position:fixed;z-index:20;top:10%;left:35%;background-color:"+color[0]+";padding:5% 10%;color:"+color[1]+";");
+							for(var ib=0; ib<mb.length; ib++){
+				
+								if(mb[ib].connectionstate==1){
+									var tdiv=document.createElement('div');
+									tdiv.innerHTML=mb[ib].username;
+									tdiv.onclick=function(k,l,m,n,v){
+										return function(){
+											socket2.emit('vdrgsharehomework',{menteesocketid:k,mentorsocketid:l,userfile:m,auxaddr:'/mmcphomework/',prbid:v});
+											sendRecord(n,m,'')
+										}
+									}(mb[ib].menteesocketid,ma,mc,mb[ib].username,md);
+									userboxi.appendChild(tdiv);
+								}
+							}
+							document.body.appendChild(userboxi);
+							setTimeout(function(){
+								userboxi.parentNode.removeChild(userboxi);
+							},duration);
+							
+						}
+					}(mentoridlist[ia][1],mentoridlist[ia][2],a.userfile,a.prbid);
+					userbox.appendChild(userdiv);
+					
+				}
+				setTimeout(function(){
+					userbox.parentNode.removeChild(userbox);
+				},duration);
+				document.body.appendChild(userbox);
+
+
+
+			});
+
+
+
+
+
+			socket.on('briefmmcphomeworkcallafter',function(a){
+				console.log(a);
+				var mmcpind=[];
+				for(var ia=0; ia<a.a.length; ia++){
+					var chk=0;
+					for(var ib=0; ib<mmcpind.length; ib++){
+						if(mmcpind[ib][0]==a.a[ia].mmcpconid){
+							chk=1;
+							break;
+						}
+					}
+					if(chk==0){
+						mmcpind.push([a.a[ia].mmcpconid, a.a[ia].listinfo,a.a[ia].mmcpprblist]);
+					}
+				}
+				var mmcppic=[];
+				for(var ia=0; ia<mmcpind.length; ia++){
+					mmcppic[ia]=[mmcpind[ia][0], mmcpind[ia][1],[],mmcpind[ia][2],[]]
+					for(var ib=0; ib<a.a.length; ib++){
+						if(mmcpind[ia][0]==a.a[ib].mmcpconid){
+							mmcppic[ia][2].push([a.a[ib].mpicid,a.a[ib].mmcpprb,a.a[ib].timeallocated, a.a[ib].timepassed,a.a[ib].createdate,a.a[ib].prbid,a.a[ib].ratingdetail]);
+
+							var chk=0;
+							for(var ic=0; ic<mmcppic[ia][4].length; ic++){
+								if(mmcppic[ia][4][ic]==a.a[ib].prbid){
+									chk=1;
+									break;
+								}
+							}
+							if(chk==0){
+								mmcppic[ia][4].push(a.a[ib].prbid)
+							}
+	
+						}
+					}
+
+					
+				}
+				var hwlistdiv=document.getElementById('hwlist');
+				for(var ia=0; ia<mmcppic.length; ia++){
+					var fdiv=document.createElement('div');
+					fdiv.className='usercolorset';
+					fdiv.id='chosen'+mmcppic[ia][0];
+					var fdiva=document.createElement('a');
+					var hwruntime=0;
+					for(var ib=0; ib<mmcppic[ia][2].length; ib++){
+						hwruntime=hwruntime+mmcppic[ia][2][ib][3];
+					}
+					fdiva.innerHTML='['+Math.round(hwruntime/60)+']  '+mmcppic[ia][1]+' SRatio : '+mmcppic[ia][4].length+'/'+(mmcppic[ia][3].split(',').length);
+
+					fdiv.appendChild(fdiva);
+					fdiv.onclick=function(i,j,k,l){
+						return function(){
+							mmcpprbCall(k,l);
+							prbpicDisplay(i);
+							userColorset(j)
+						}
+					}(mmcppic[ia][2],mmcppic[ia][0],mmcppic[ia][3],mmcppic[ia][4]);
+					hwlistdiv.appendChild(fdiv);
+				}
+
+					
+				for(var ia=0; ia<a.b.length; ia++){
+					var chk=0;
+					for(var ib=0; ib<hwlistdiv.childNodes.length; ib++){
+						if(hwlistdiv.childNodes[ib].id=='chosen'+a.b[ia].mmcpconid){
+							chk=1;
+							break;
+						}
+					}
+			
+					//function mmcpprbCall(chosenlist,solvedprb){
+					if(chk==0){
+						var fdiv=document.createElement('div');
+						fdiv.className='usercolorset';
+						var fdiva=document.createElement('a');
+						fdiva.innerHTML=a.b[ia].mmcplistinfo;
+						fdiva.style.color='yellow';
+						fdiv.appendChild(fdiva);
+						fdiv.onclick=function(i){
+							return function(){
+								mmcpprbCall(i,[]);
+							}
+						}(a.b[ia].mmcpprblist);
+						hwlistdiv.appendChild(fdiv);
+					}
+				
+				}
+
+			});
+
+
+
+
+
+			function moveimgnodeTop(i){
+				var imgnode=document.getElementsByClassName('imglist'+i);
+				var imglist = document.getElementById('imglist');
+				var imgdiv=document.getElementsByClassName('imgdiv');
+				for(var ia=0; ia<imgdiv.length; ia++){
+		
+					imgdiv[ia].style.border='';
+				}
+
+				for(var ia=0; ia<imgnode.length; ia++){
+					imgnode[ia].style.border = 'thick dotted red';
+
+					var evalpanel=document.getElementById('evalpanel');
+					if(evalpanel==null){
+						imglist.insertBefore(imgnode[ia],imglist.firstChild);
+					}else{
+						imglist.insertBefore(imgnode[ia],imglist.childNodes[1]);
+					}
+				}
+				document.getElementById('imglist').scrollTo({top:0,behavior:'smooth'});
+			}
+			socket.on('prbcallfrommcpidafter',function(a){
+			
+				var mmcpdisplay=document.getElementById('prblist');
+				removeallele('prblist');		
+				for(var ib=0; ib<a.b.length; ib++){
+					for(var ia=0; ia<a.a.length; ia++){
+						if(a.a[ia].prbid==a.b[ib]){
+							break;
+						}
+			
+					}	
+					var mmcpdiv=document.createElement('div');
+					mmcpdiv.className='mmcpdiv';
+					mmcpdiv.id='prb'+a.a[ia].prbid;
+
+					var chk=0;
+					for(var ic=0; ic<a.solvedprb.length; ic++){
+						if(a.solvedprb[ic]==a.a[ia].prbid){
+							chk=1;
+							break;
+						}
+					}
+					if(chk==1){
+						mmcpdiv.style.border='thick dotted blue';
+					}
+
+					//imgdiv.className='imgdiv';
+					//imgdiv.id='imglist'+piclist[ia][5];
+
+					//function checkPrbregisterofuser(prbid){
+					//if(checkPrbregisterofuser(a.a[ia].prbid)){
+						//mmcpdiv.style.border='thick dotted red';
+					//}
+					if(a.a[ia].prbpickor!=null){
+						var mmcpctspicdiv=document.createElement('div');
+						var mmcpctspic=document.createElement('img');
+						mmcpctspic.src=a.a[ia].prbpickor;
+						mmcpctspicdiv.className='mmcpctspicdiv';
+						mmcpctspicdiv.appendChild(mmcpctspic);
+						mmcpdiv.appendChild(mmcpctspicdiv);
+					}
+					var mmcpctsdiv=document.createElement('DIV');
+					mmcpdiv.onclick=function(i){
+						return function(){
+							moveimgnodeTop(i);
+						}
+					}(a.a[ia].prbid);
+
+
+					mmcpctsdiv.className='mmcplist';
+					mmcpctsdiv.id=a.a[ia].prbid;
+					var mmcpdiva=document.createElement('A');
+					mmcpdiva.innerHTML=a.a[ia].prbkorean.replace(/`/g,'');
+					mmcpctsdiv.appendChild(mmcpdiva);
+
+					//mmcpctsdiv.onclick=function(i){return function(){clickToChosen(i)}}(a.a[ia].prbid);
+					mmcpdiv.appendChild(mmcpctsdiv);
+					//var mmcpontop=document.createElement('div');
+					//var mmcpontopa=document.createElement('a');
+					//mmcpontopa.innerHTML='Prb Send';
+					//mmcpontop.appendChild(mmcpontopa);
+					/*
+					mmcpontop.onclick=function(i){
+						return function(){
+							socket2.emit('vdrgsharehomework',{menteeid:username,mentorid:userinfo.username,mode:'shareprb_ind',auxaddr:'/mmcphomework/',prbid:i});
+						}
+					}(a.a[ia].prbid);*/
+					//mmcpdiv.appendChild(mmcpontop);
+					mmcpdisplay.appendChild(mmcpdiv);
+				}
+				MathJax.Hub.Queue(["Typeset",MathJax.Hub,mmcpdisplay]);
+ 
+
+	
+			});
+
+			function mmcpprbCall(chosenlist,solvedprb){
+				socket.emit('prbcallfrommcpid',{mcpid:chosenlist,solvedprb:solvedprb})
+			}
+			function prbpicDisplay(piclist){
+				removeallele('imglist');
+				var imglist=document.getElementById('imglist');
+
+				
+				//evaluation statistics
+				var evalpanel=document.createElement('div');
+				evalpanel.id='evalpanel';
+				imglist.appendChild(evalpanel);
+
+
+				var solveobj=[];
+				for(var ia=piclist.length-1; ia>=0; ia--){
+
+					var imgdiv=document.createElement('div');
+					var prbdotted=document.getElementById('prb'+piclist[ia][5]);
+					if(prbdotted){
+						prbdotted.style.border='thick dotted blue'
+					}
+
+					solveobj.push({prbid:piclist[ia][5],solvepic:piclist[ia][0],evalresult:piclist[ia][6]})
+					imgdiv.className='imgdiv imglist'+piclist[ia][5] ;
+					imgdiv.id='img'+piclist[ia][0];
+
+					var imgeldiv=document.createElement('div');
+
+					var imgel=document.createElement('img');
+					imgel.src='/usernote/mmcphomework/'+piclist[ia][0];
+
+					imgel.onclick=function(i,j){
+						return function(){
+							//callvdrgUsers(i,j);
+						}
+					}(piclist[ia][0],piclist[ia][5]);
+
+					imgeldiv.appendChild(imgel);	
+					imgdiv.appendChild(imgeldiv);
+
+
+					
+					var imginfo=document.createElement('div');
+					var imginfoa=document.createElement('a');
+					imginfoa.innerHTML='  time passed : '+piclist[ia][3]+'/'+piclist[ia][2]+'   createdate:'+piclist[ia][4]+'  Answer: '+piclist[ia][1][2];
+					imginfo.appendChild(imginfoa);
+					imgdiv.appendChild(imginfo);
+
+
+					//imgdiv.appendChild(mentorcomment);
+
+					imglist.appendChild(imgdiv);
+				}
+
+				shownFunc(solveobj,'img',1,username,'evalpanel')
+				MathJax.Hub.Queue(["Typeset",MathJax.Hub,imglist]);
+
+			}
+			function removeallele(elename){
+				var ele=document.getElementById(elename)
+				while(ele.firstChild){
+					ele.removeChild(ele.firstChild);
+				}
+			}
+			function userColorset(username){
+				var colordiv=document.getElementsByClassName('usercolorset');
+				for(var ia=0; ia<colordiv.length; ia++){
+					colordiv[ia].style.backgroundColor='';
+					colordiv[ia].style.color='';
+				}
+				document.getElementById('chosen'+username).style.backgroundColor='blue';
+				document.getElementById('chosen'+username).style.color='white';
+				
+			}
+

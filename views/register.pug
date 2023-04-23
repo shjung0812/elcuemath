@@ -1,0 +1,194 @@
+html
+	head
+		style.
+			body{
+				background-image:url('/longjourney.jpeg') ;
+				margin 0;
+				padding 0;
+			}
+			div{margin:0 auto; font-size:2em; width:500; }
+			#tempalertdiv {
+			}
+			#backtologindiv a {
+				text-decoration:none;
+				color:black;
+				cusor:pointer;
+			}
+			#formself div {
+				width:100%;
+			}		
+			.drawer {
+				width:80%;
+				height:5%;
+				margin:5% 0 0 0;
+				padding:0 0 0 5%;
+				
+			}
+			.drawerreplace {
+				width:80%;
+				height:5%;
+				margin:5% 0 0 0;
+				padding:0 0 0 5%;
+				font-size:.3em;
+				
+			}
+
+		script(src='/socket.io/socket.io.js')
+		script.
+			var registercode='#{registercode}';
+			if(registercode==''){
+				}else if(registercode=='0'){
+					alert('아이디는 대소문의 영문과 숫자만 가능합니다');
+				}else if(registercode=='1'){
+					alert('패스워드가 일치하지 않습니다.');
+			}
+		body
+			div
+				h1 Register Page!
+			div
+				form(action='/auth/register' method='post' id='formself')
+					div
+						input(type='text' name='username' placeholder='username' id='username' class='drawer' autocomplete='off')
+					div(onclick='checkUsername(0)')
+						input(type='password' name='password' placeholder='password' id='password0' class='drawer' autocomplete='off')
+					div
+						input(type='password' name='passwordagain' placeholder='password again' id='password1' class='drawer' autocomplete='off')
+					div
+						input(type='text' name='phoneNumber' placeholder='phone Number' onclick='checkUsername(1)' id='phonenumber' class='drawer' autocomplete='off')
+					div
+						input(type='text' name='displayName' placeholder='이름을적어주세요' id='displayname' class='drawer' autocomplete='off')
+					div
+						input(type='text' name='affiliation' placeholder='소속을적어주세요' onclick='clickTosubmit()' class='drawer' autocomplete='off')
+			div(id='backtologindiv')
+				//a(href='/') BackToLogin
+				a(href='https://sites.google.com/view/elcue-shortterm/') BackToLogin
+			script.
+				var socket=io('/regi');
+				socket.on('connect',()=>{
+					console.log('connection ready');
+				});
+
+				tempAlert(' 모든 빈 칸을 채워주세요 ',3000,['blue','white'])
+
+				function tempAlert(msg,duration,color){
+					var el = document.createElement("div");
+					el.id='tempalertdiv';
+					el.setAttribute("style",";position:absolute;z-index:20;top:10%;left:25%;background-color:"+color[0]+";padding:5% 10%;color:"+color[1]+";");
+					el.innerHTML = msg;
+					setTimeout(function(){
+						el.parentNode.removeChild(el);
+					},duration);
+					document.body.appendChild(el);
+				}
+
+
+
+
+
+				function clickTosubmit(){
+					if(document.getElementById('username').value!='' && document.getElementById('password0').value!='' && document.getElementById('password1').value!='' && document.getElementById('phonenumber').value!='' && document.getElementById('displayname').value!='' ){
+						if(!document.getElementById('ipt')){
+							var drawerlist=document.getElementsByClassName('drawer');
+							for(var ia=0; ia<drawerlist.length-1; ia++){
+								var cc=document.createElement('div');
+								cc.className='drawerreplace';
+								if(ia==1 || ia==2){
+									var starpassword='';
+									for(var ib=0; ib<drawerlist[ia].value.length; ib++){
+										starpassword=starpassword+'*';
+									}
+									cc.innerHTML=drawerlist[ia].name+' : '+starpassword;
+								}else{
+									cc.innerHTML=drawerlist[ia].name+' : '+drawerlist[ia].value;
+								}
+								var parentnode=drawerlist[ia].parentNode;
+								parentnode.insertBefore(cc,drawerlist[ia]);
+								drawerlist[ia].style.display='none';
+								//drawerlist[ia].replaceChild(cc,drawerlist[ia]);	
+							}
+							var formself=document.getElementById('formself');
+							var ipt=document.createElement('input');
+							ipt.className='drawer';
+							ipt.id='ipt';
+							ipt.setAttribute('type','submit');
+							formself.appendChild(ipt);		
+
+						}
+					}else{
+						alert('fill the all blank');
+					}
+				}
+
+				function CheckString(chk,opt){
+					if(!opt || opt==0){
+						var chkcode=0;
+						var achk;
+						var possible='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+						for(var ia=0; ia<chk.length; ia++){
+							achk=0;
+							for(var ib=0; ib<possible.length; ib++){
+								if(chk[ia]==possible[ib]){	
+									achk=1;
+									break;
+								}
+							}
+							if(achk==0){
+								chkcode=1;
+								break;
+							}
+							
+						}
+						return chkcode;
+					}
+				}
+
+				socket.on('checkusernameduplicateafter',function(a){
+					if(a.chk==1){
+						alert('The Name is already exists')
+						document.getElementById('username').value='';
+					}
+				});
+				function checkUsername(opt){
+					if(opt==0){
+						var username=document.getElementById('username');
+						if(username.value!=''){
+							if(!CheckString(username.value,0)){
+								if(username.value.length>30){
+									alert('the Username is too long. The allowed limit is below or equal 30');
+									document.getElementById('username').value='';
+								}else{
+									socket.emit('checkusernameduplicate',{username:username.value});
+								}
+							}else{
+								alert('The username contain inaapropriate character. Plz only use alphabet and natural number');
+								document.getElementById('username').value='';
+							}
+						}else{
+							alert('Insert Username First');
+						}
+
+
+
+					}else if(opt==1){
+						var pass0=document.getElementById('password0').value;
+						var pass1=document.getElementById('password1').value;
+						if(pass0=='' || pass1==''){
+							alert('Please Insert Password');
+						}else{
+							if(pass0.length>20){
+								alert('the length of password is too long. The allowed limit is bellow or equal to 20');
+
+								document.getElementById('password0').value='';
+								document.getElementById('password1').value='';
+							}else{
+		
+								if(pass0!=pass1){
+									alert('The password is not matched');
+
+									document.getElementById('password0').value='';
+									document.getElementById('password1').value='';
+								}
+							}
+						}
+					}
+				}

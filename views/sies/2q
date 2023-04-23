@@ -1,0 +1,255 @@
+html
+	head
+		script(src='/socket.io/socket.io.js')
+		script(src="https://cdn.jsdelivr.net/npm/peerjs@0.3.20/dist/peer.min.js")
+		script.
+			var peer = new Peer();
+			var socket=io('/sies');
+			var Call;
+			socket.on('connect',()=>{
+				console.log('connection ready');
+				socket.emit('siessendsocketid',{socketid:socket.id,userkind:0});
+
+				callcoursematerial();
+				
+			});
+
+
+
+
+				
+
+			peer.on('close',function(){
+				console.log('Peer connection destroyed');
+			});
+
+
+			function Calldisconnected(){
+				Call.close();
+				console.log('call disconnected')
+				removeallele('idsentusers');
+
+				var myvideo=document.getElementById('callervideo');
+				let tracks=myvideo.srcObject.getTracks()
+				tracks.forEach(function(track){
+					track.stop();
+				});
+				myvideo.srcObject = null;
+
+
+				var ansvideo=document.getElementById('ansvideo');
+				let tracksobj=ansvideo.srcObject;
+				if(tracksobj){
+					let tracks1=tracksobj.getTracks();
+					tracks1.forEach(function(track){
+						track.stop();
+					});
+					ansvideo.srcObject = null;
+				}
+				socket.emit('siescallterminatebymentor');
+			
+			}
+
+		
+			function mentorStreamon(peerid){
+
+				var constraints = {
+				video:{ width:{ideal:4086},height:{ideal:2106}},audio:true
+				};
+				constraints={audio:true}
+	
+				navigator.mediaDevices.getUserMedia(constraints).then(function(stream){
+					var myvideo=document.getElementById('callervideo');
+					myvideo.srcObject = stream;
+					myvideo.onloadedmetadata = function(e){
+						myvideo.play();		
+					}
+			
+					Stream=stream;
+					Call=peer.call(peerid, stream);
+					Call.on('stream',function(remoteStream){
+						var ansvideo=document.getElementById('ansvideo');
+						ansvideo.srcObject = remoteStream;
+						ansvideo.onloadedmetadata = function(e){
+							ansvideo.play();		
+						}
+					});
+
+				
+				});
+
+
+				var resdivout=document.getElementById('idsentusers');
+				removeallele('idsentusers');
+
+				var terminatediv=document.createElement('DIV');
+				var terminatebutton=document.createElement('button');
+				terminatebutton.innerHTML='Disconnect inquiery';
+				terminatediv.appendChild(terminatebutton);
+				terminatediv.onclick=function(){Calldisconnected();}
+
+				resdivout.appendChild(terminatediv);
+				
+
+
+
+			}
+
+
+
+			socket.on('siesmenteerequesttomentor',function(ma){
+				//	socket.on('mucmresidsent',function(rpeer){
+				var resdivout=document.getElementById('idsentusers');
+				removeallele('idsentusers');
+					/*	
+						if(rpeer.csts.length==0){
+							var resdiv=document.createElement('div');
+							var pdiv=document.createElement('p');
+							pdiv.innerHTML= 'No Responds';
+							resdivout.appendChild(pdiv);
+						}else{
+							for(var ia=0; ia<rpeer.csts.length; ia++){
+								var resdiv=document.createElement('div');
+								var resbutton=document.createElement('button');
+								resbutton.innerHTML=rpeer.csts[ia][0];
+								resbutton.onclick=(function(i){return function(){chooseres(i,sendstream);};})(rpeer.csts[ia][1]);
+							
+								resdiv.appendChild(resbutton)
+								resdivout.appendChild(resdiv);
+							
+							}
+						}
+					*/
+				var resdiv=document.createElement('div');
+				var resbutton=document.createElement('button');
+				//resbutton.innerHTML=rpeer.csts[ia][0];
+				resbutton.innerHTML='Menteeconnected'
+				//resbutton.onclick=(function(i){return function(){chooseres(i,sendstream);};})(rpeer.csts[ia][1]);
+				resbutton.onclick=(function(i){return function(){mentorStreamon(i);}})(ma.peerid);
+				resdiv.appendChild(resbutton)
+				resdivout.appendChild(resdiv);
+
+							
+					
+				//	});
+
+
+			});
+
+
+			socket.on('coursematerialsend',function(ma){
+				var coursematerialdiv=document.getElementById('coursematerial');
+				for(var ia=0; ia<ma.crslist.length; ia++){
+					var crsdiv=document.createElement('DIV');
+					var crsdivp=document.createElement('P');
+					crsdivp.innerHTML=ma.crslist[ia].crsname;
+					crsdiv.onclick=(function(i){return function(){requestElementOfCrs(i)}})(ma.crslist[ia].crsname);
+					crsdiv.appendChild(crsdivp);
+					coursematerialdiv.appendChild(crsdiv);
+				}
+			});
+
+
+			socket.on('sentelementlist',function(ma){
+				console.log('elementlist and problem list is called');
+				var elementlist=document.getElementById('elementlist');
+				for(var ia=0; ia<ma.elelist.length; ia++){
+					var wdiv=document.createElement('DIV');
+					var adiv=document.createElement('DIV');
+					adiv.onclick=(function(i,j){return function(){
+						playlecture(j) ;
+						requestPrblist(i);
+					}})(ma.elelist[ia].eleprbs,ma.elelist[ia].vidaddr)
+					var ap=document.createElement('p');
+					ap.innerHTML=ma.elelist[ia].pstage;
+					adiv.appendChild(ap);
+					var bdiv=document.createElement('DIV');
+					bdiv.innerHTML='Send';
+					bdiv.onclick=(function(i,j,k,l,m){return function(){ SentToMentee(i,j,k,l,m)}})(ma.crsname,ma.elelist[ia].pstage,ma.elelist[ia].eleprbs.split(','),ma.elelist[ia].vidaddr,'meenteeid');
+					wdiv.appendChild(adiv);
+					wdiv.appendChild(bdiv);
+					elementlist.appendChild(wdiv);
+					
+				}	
+			
+			});
+
+
+			socket.on('sentprblist',function(ma){
+				removeallele('prblist');
+				var prblist=document.getElementById('prblist');
+				for(var ia=0; ia<ma.prblist.length; ia++){
+					var prbwrab=document.createElement('div');
+					var prbcontent=document.createElement('div');
+					var prbcontentp=document.createElement('p');
+					prbcontentp.innerHTML=ma.prblist[ia][1];
+					prbcontent.appendChild(prbcontentp);
+					prbwrab.appendChild(prbcontent);
+					prblist.appendChild(prbwrab);
+				}
+				console.log('problem list is called');
+
+			});
+
+			socket.on('menteerequestaccepted',function(ma){
+				alert('Requsted is accepted!!');
+				console.log(ma.menteeid);
+			});
+
+			socket.on('learningresulttomentor',function(ma){
+				var menteeresult=document.getElementById('menteeresult');
+				var menteeresultp=document.createElement('p');
+				menteeresultp.innerHTML=ma.menteeinfo.userid+'  :  '+ma.menteeinfo.prbstatepanel;
+				menteeresult.appendChild(menteeresultp);
+			});
+
+
+			function SentToMentee(crsname,ele,prbs,vidaddr,menteeid){
+				socket.emit('sentlearningmaterialtomentee',{crsname:crsname,ele:ele,prbs:prbs,vidaddr:vidaddr,menteeid:menteeid});
+			}
+			
+
+
+			function requestPrblist(i){
+				socket.emit('callprblist',{prblist:i.split(',')});
+			}
+			function callcoursematerial(){
+				socket.emit('coursematerialcall');
+				console.log('all course are called');
+			}
+
+			function requestElementOfCrs(crs){
+				socket.emit('crselementcall',{crs:crs})
+				console.log('course Element is called');
+			}
+
+			function playlecture(vid){
+				removeallele('videoplay');
+				var avd=document.createElement('iframe');
+				avd.src=vid;
+				var videoplay=document.getElementById('videoplay')
+				videoplay.appendChild(avd);
+			}
+
+			function removeallele(parentid){
+				var parent=document.getElementById(parentid);
+				while(parent.firstChild){
+					parent.firstChild.remove();
+				}
+			}
+
+
+	body
+		div
+			h2 sies mentor page
+		div(id='idsentusers')
+		div(id='menteeresult')
+		div(id='coursematerial')
+		div(id='elementlist')
+		div(id='videoplay')
+		div(id='prblist')
+		div
+			div(id='callervideodiv')
+				video(id='callervideo')
+			div(id='ansvideodiv')
+				video(id='ansvideo')

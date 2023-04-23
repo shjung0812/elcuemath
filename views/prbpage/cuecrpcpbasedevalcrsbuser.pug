@@ -1,0 +1,353 @@
+html
+	head
+		style.
+			#displayeval {
+				width:100%;
+				background-color:#aaaa00;
+			}
+			#displayboard {
+				width:100%;
+				background-color:#bbbb00;
+			}
+			#displaydiv {
+				width:100%;
+				height:100%;
+				background-color:#dddd00;
+			}
+			.caseiddiv {
+				width:100%;
+				margin:1% 0;
+				background-color:#dd7700;
+			}
+			.caseidtitle {
+				width:100%;
+				background-color:#ff6600;
+			}
+			.crpcpgboard{
+				width:100%;
+				background-color:#99ff00;
+			}
+			.crpcpgdiv {
+				width:94%;
+				margin:0 3%;
+			}
+			.crpcptitle {
+				display:inline-block;
+				margin:0 1%;
+		
+			}
+			.pcpgboard {
+				position:relative;
+				width:100%;
+				overflow:auto;
+			}
+			.tooltip {
+				position:absolute;
+				visibility:hidden;
+				z-index:1;
+
+				background-color:black;
+				left:13%;
+				width:26%;
+				opacity:0.9;
+			}
+
+			.tooltiptext{
+				display:inline-block;
+				color:white;
+				margin:0 5%;
+			
+			}
+			.pcpgboard:hover .tooltip {
+				visibility:visible;
+			}
+			.pcpgrst {
+				width:10%;
+				float:left;
+				text-align:right;
+			}
+			.pcpgdiv {
+				width:86%;
+				float:left;
+				margin:0 0 0 2%; 
+			}
+			.pcpname {
+				display:inline-block;
+				margin:0 2%;
+			}
+			#prblistboard {
+				width:40%;
+				position:fixed;
+				top:0;
+				left:60%;
+				height:100%;
+				background-color:#d0a000;
+			}
+			#prblistdiv {
+				width:100%;
+				height:100%;
+				background-color:#d05000;
+			}
+			.prbdiv {
+				width:100%;
+				height:5%;
+				background-color:#c06000;
+				margin:2% 0;
+			}
+			.prblistele {
+				display:inline-block;
+				margin:0 5%;
+			}
+			#prbconboard {
+				width:100%;
+				background-color:#775500;
+			}
+			.prbcondiv {
+				width:92%;
+				background-color:#bb5500;
+				margin:4%;
+			}
+			.prbconinfo a {
+				display:inline-block;
+				margin:0 5%;
+			}
+			#back a {
+				text-decoration:none;
+				font-size:2em;
+				color:black;
+			}
+	
+		script(type='text/javascript' async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML")
+		script(src='/socket.io/socket.io.js')
+		script.
+			Element.prototype.remove=function(){
+				this.parentElement.removeChild(this);
+			}
+			NodeList.prototype.remove = HTMLCollection.prototype.remove = function(){
+				for(var i=this.length -1; i>=0; i--){
+					if(this[i]&& this[i].parentElement){
+						this[i].parentElement.removeChild(this[i]);
+					}
+				}
+			}
+			function removeElementOfDiv(regbdivid){
+				var fdiv=document.getElementById(regbdivid);
+				if(fdiv){
+					while(fdiv.firstChild){
+						fdiv.removeChild(fdiv.firstChild);
+					}
+				}
+			}
+			function callprbcon(prblist){
+				var prblistdiv=document.getElementById('prblistdiv');
+				prblistdiv.remove();
+				var prbconboard=document.getElementById('prbconboard');
+				removeElementOfDiv('prbconboard');
+				var plist=[];
+				for(var ia=0; ia<prblist.length; ia++){
+					plist.push(prblist[ia][0])
+				}
+				var socket=io('/cue');
+				socket.emit('cuecallprblist',{plist:plist});
+				socket.on('rstcuecallprblist',function(pcon){
+					for(var ia=0; ia<pcon.pcon.length; ia++){
+						var prbcondiv=document.createElement('DIV');
+						prbcondiv.setAttribute('class','prbcondiv');
+
+						var prbconinfo=document.createElement('DIV');
+						prbconinfo.setAttribute('class','prbconinfo');
+	
+						for(var ic=0; ic<prblist[ia].length; ic++){
+							var vb0=document.createElement('A');
+							vb0.innerHTML=prblist[ia][ic];
+							prbconinfo.appendChild(vb0);
+						}	
+
+						var prbcondetail=document.createElement('DIV');
+						prbcondetail.setAttribute('class','prbcondetail');
+
+
+						var va0=document.createElement('A');
+						va0.innerHTML=pcon.pcon[ia][0];
+
+						var va1=document.createElement('A');
+						va1.innerHTML=pcon.pcon[ia][1];
+				
+						var va2=document.createElement('A');
+						va2.innerHTML=pcon.pcon[ia][2];
+
+						prbcondetail.appendChild(va0);
+						prbcondetail.appendChild(va1);
+						prbcondetail.appendChild(va2);
+
+						prbcondiv.appendChild(prbconinfo);
+						prbcondiv.appendChild(prbcondetail);
+						prbconboard.appendChild(prbcondiv);
+				
+					}
+					MathJax.Hub.Queue(["Typeset",MathJax.Hub,prbconboard]);
+				});
+				
+								
+			}
+			function callprblist(prblist,e){
+				removeElementOfDiv('displayprblist');
+				var displayprblist=document.getElementById('displayprblist');
+				var prblistboard=document.createElement('DIV');
+				prblistboard.setAttribute('id','prblistboard');
+				var prblistdiv=document.createElement('DIV');
+				prblistdiv.setAttribute('id','prblistdiv');
+				prblistdiv.onclick=function(i){return function(){callprbcon(i)}}(prblist)
+	
+				
+				var prbconboard=document.createElement('DIV');
+				prbconboard.setAttribute('id','prbconboard');
+
+				prblistboard.appendChild(prbconboard);
+
+
+			
+				for(var ia=0; ia<prblist.length; ia++){
+					var prbdiv=document.createElement('DIV');
+					prbdiv.setAttribute('class','prbdiv');
+					for(var ib=0; ib<prblist[ia].length; ib++){
+						var prblistele=document.createElement('A');
+						prblistele.setAttribute('class','prblistele');
+						prblistele.innerHTML=prblist[ia][ib];
+						prbdiv.appendChild(prblistele);
+					}
+	
+					prblistdiv.appendChild(prbdiv);
+				}
+				prblistboard.appendChild(prblistdiv);
+				displayprblist.appendChild(prblistboard);
+			
+				if(!e) var e=window.event;
+				e.cancleBubble=true;
+				if(e.stopPropagation) e.stopPropagation();
+			}
+			function callfunc(crsname,userid,qmode,daybefore){
+				removeElementOfDiv('displayprblist');
+				removeElementOfDiv('displayeval');
+				var socket=io('/cue');
+				socket.emit('cuecalleval',{crsname:crsname,userid:userid,qmode:qmode,daybefore:daybefore});
+
+				var displayeval=document.getElementById('displayeval');
+
+				var displayboard=document.createElement('DIV');
+				displayboard.setAttribute('id','displayboard');
+
+
+				var displaydiv=document.createElement('DIV');	
+				displaydiv.setAttribute('id','displaydiv');
+				displaydiv.onclick=function(){return function(){removeElementOfDiv('displayprblist');}}()
+
+
+			
+	
+
+				socket.on('rstcuecalleval',function(rs){
+					console.log('[totalprbnum,independentprbnum,indprbnum,exprbnum,exprblist]');
+					console.log(rs.pstat);
+					for(var ia=0; ia<rs.rs.length; ia++){
+						var caseiddiv=document.createElement('DIV');
+						caseiddiv.setAttribute('class','caseiddiv');
+
+						var caseidtitle=document.createElement('DIV');
+						caseidtitle.setAttribute('class','caseidtitle');
+						var va0=document.createElement('A');
+						va0.innerHTML=rs.rs[ia][1];
+						caseidtitle.appendChild(va0);
+						caseiddiv.appendChild(caseidtitle);
+						
+						for(var ib=0; ib<rs.rs[ia][3].length; ib++){
+							var crpcpgboard=document.createElement('DIV');
+							crpcpgboard.setAttribute('class','crpcpgboard');
+
+							var crpcpgdiv=document.createElement('DIV');
+							crpcpgdiv.setAttribute('class','crpcpgdiv');
+			
+							for(var ie=0; ie<rs.rs[ia][3][ib][0].length; ie++){
+								var crpcptitle=document.createElement('A');
+								crpcptitle.setAttribute('class','crpcptitle');
+								crpcptitle.innerHTML=rs.rs[ia][3][ib][0][ie][1].replace(/\\\\/g,"\\");
+								crpcpgdiv.appendChild(crpcptitle);
+							}
+			
+							
+							crpcpgboard.appendChild(crpcpgdiv);
+			
+							for(var ic=0; ic<rs.rs[ia][3][ib][1].length; ic++){
+								var pcpgboard=document.createElement('DIV');
+								pcpgboard.setAttribute('class','pcpgboard');
+						
+
+			
+								var pcpgdiv=document.createElement('pcpgdiv');				
+								pcpgdiv.setAttribute('class','pcpgdiv');
+
+								for(var id=0; id<rs.rs[ia][3][ib][1][ic][0].length; id++){
+									var pcpname=document.createElement('A');
+									pcpname.setAttribute('class','pcpname');
+
+									pcpname.innerHTML=rs.rs[ia][3][ib][1][ic][0][id][1].replace(/\\\\/g,"\\");
+									
+									pcpgdiv.appendChild(pcpname);
+								}
+
+								var pcpgrst=document.createElement('DIV');
+								pcpgrst.setAttribute('class','pcpgrst');
+
+								var pcpeval=document.createElement('A');	
+								pcpeval.setAttribute('class','pcpeval');
+								pcpeval.innerHTML=rs.rs[ia][3][ib][1][ic][1][0];
+
+								pcpgrst.appendChild(pcpeval);
+
+								var tooltip=document.createElement('DIV');
+								tooltip.setAttribute('class','tooltip');	
+
+								for(var ih=0; ih<5; ih++){
+									var tooltiptext=document.createElement('A');
+									tooltiptext.innerHTML=rs.rs[ia][3][ib][1][ic][1][ih];
+									tooltiptext.setAttribute('class','tooltiptext');
+									tooltip.appendChild(tooltiptext);
+								}
+
+								pcpgboard.onclick=function(i){return function(){callprblist(i,event)}}(rs.rs[ia][3][ib][1][ic][2])
+								pcpgboard.appendChild(tooltip);
+
+
+								pcpgboard.appendChild(pcpgrst);
+								pcpgboard.appendChild(pcpgdiv);
+					
+
+								crpcpgboard.appendChild(pcpgboard);
+							}
+										
+
+
+
+							caseiddiv.appendChild(crpcpgboard);
+						}
+
+
+						displaydiv.appendChild(caseiddiv);
+						
+					}
+					MathJax.Hub.Queue(["Typeset",MathJax.Hub,displaydiv]);
+					displayboard.appendChild(displaydiv);
+					displayeval.appendChild(displayboard);
+				});
+
+			}
+	body
+		div(id='back')
+			a(href='./pcsclassify?stchk=11') Back
+		div
+			div(onclick='callfunc("'+crslist+'","'+userid+'","'+qmode+'","'+daybefore+'")')
+				-for(var ia=0; ia<crslist.length; ia++){
+					a=crslist[ia]
+				-}
+		div(id='displayeval')
+		div(id='displayprblist')

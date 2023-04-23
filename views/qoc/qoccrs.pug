@@ -1,0 +1,56 @@
+html
+	
+	head
+		script.
+			window.onload=function(){
+				var date=new Date();
+				var vyear=date.getFullYear();
+				var vmonth=date.getMonth()+1;
+				if(vmonth<10){
+					vmonth='0'+vmonth.toString();
+				}
+				var vday=date.getDate();
+				if(vday<10){
+					vday='0'+vday.toString();
+				}
+				var fulldate=vyear.toString()[2]+vyear.toString()[3]+vmonth+vday;
+				document.getElementById('titledate').innerHTML=	fulldate;
+			}
+		style.
+			#list a {
+				text-decoration:none;
+				font-size:2em;
+				color:black;
+			}
+			#back {	
+				text-decoration:none;
+				font-size:3em;
+				color:black;
+			}
+			#titlebox a {
+				text-decoration:none;
+				font-size:1.5em;
+				color:#888888;
+			}
+			#submitinput {
+				display:inline-box;
+				width:20%;
+				background-color:#666666;	
+			}
+	body
+		a(href='./page' id='back') Quick Organizing Course List
+		div(id='courselist')
+			div(id='MakingNewCourse')
+				div(id='titlebox')
+					a(id='titleprefix') GG
+					a(id='titledate')
+				div(id='titleinput')
+					form(action='./qoctitle' method='get')
+						input(type='text' name='crsname' )
+						input(type='submit' value='Create New Course' id='submitinput')
+			-for(var ia=0; ia<rs.length; ia++){
+				div(id='list')
+					a(href='./qoc?stchk=1&crs='+rs[ia].crsname)=rs[ia].crsname
+			-}
+				
+		

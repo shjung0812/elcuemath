@@ -1,0 +1,342 @@
+html
+	head
+		style.
+			body {
+				background-color:#dddddd;
+			}
+			#title a {
+				text-decoration:none;
+				color:black;
+				font-size:2em;
+			}
+			#caselist div a:first-child{
+				display:inline-block;
+				width:1%;
+			}
+			#caselist div a:nth-child(1){
+				display:inline-block;
+				width:5%;
+			}
+			#displaypocboard {
+				width:100%;
+				padding:2% 10%;
+			}
+			#displaypocdiv {
+				width:80%;
+			}	
+			.prbpcpbox {
+				width:100%;
+				margin:2% 0;
+				padding:2% 0;
+				//height:20%;
+				border-style:solid;
+				border-color:#009900;
+				overflow:auto;
+			}
+			.pcpbox {
+				width:40%;
+				float:left;
+			}
+			.prbbox {
+				width:60%;
+				float:left;
+			}
+			.prbunitbox {
+				width:100%;
+			}
+			.prbunitbox img {
+				width:100%;
+			}
+		script(type='text/javascript' async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML").
+		script(src='/socket.io/socket.io.js')
+		script.
+			window.onload=function(){
+				displayfreepcp();
+			}
+			Element.prototype.remove=function(){
+				this.parentElement.removeChild(this);
+			}
+			NodeList.prototype.remove = HTMLCollection.prototype.remove = function(){
+				for(var i=this.length -1; i>=0; i--){
+					if(this[i]&& this[i].parentElement){
+						this[i].parentElement.removeChild(this[i]);
+					}
+				}	
+			}
+			function removeElementOfDiv(regbdivid){
+				var fdiv=document.getElementById(regbdivid);
+				if(fdiv){
+					while(fdiv.firstChild){
+						fdiv.removeChild(fdiv.firstChild);
+					}
+				}
+			}
+			function displaycrpcplist(caseid){
+				removeElementOfDiv('displaycrpcplist');
+				var crpcp=!{JSON.stringify(crpcp)};
+				
+				var crpcplist;
+				for(var ia=0; ia<crpcp.length ;ia++){
+					if(crpcp[ia][0][0]==caseid){
+						crpcplist=crpcp[ia][1];
+					}
+				}
+				var crpcpboard=document.createElement('DIV');
+				crpcpboard.style.width='100%';
+				crpcpboard.style.backgroundColor='#336633';
+				crpcpboard.style.overflow='auto';
+				crpcpboard.setAttribute('id','crpcpboard');
+
+				var crpcplistdiv=document.createElement('DIV');
+				crpcplistdiv.style.width='50%';
+				crpcplistdiv.style.cssFloat='left';
+				crpcplistdiv.style.backgroundColor='#447744';
+
+				
+				if(crpcplist.length==0){
+					var vdiv=document.createElement('DIV');
+					var va=document.createElement('A');
+					va.innerHTML='No crPCP Here';
+					vdiv.appendChild(va);
+					crpcplistdiv.appendChild(vdiv);
+				}else{
+					for(var ib=0; ib<crpcplist.length; ib++){
+						var vdiv=document.createElement('DIV');
+						var va=document.createElement('A');
+						va.innerHTML=crpcplist[ib][1].replace(/\\\\/g,"\\");;
+						vdiv.onclick=function(i){return function(){crpcpoption(i);};}(crpcplist[ib][0]);	
+						vdiv.appendChild(va);
+						crpcplistdiv.appendChild(vdiv);
+					}
+				}
+
+				crpcpboard.appendChild(crpcplistdiv);
+				MathJax.Hub.Queue(["Typeset",MathJax.Hub,crpcpboard]);
+				document.getElementById('displaycrpcplist').appendChild(crpcpboard);
+
+				
+				
+			}
+			function crpcpedit(pcpid,pcpinfo){
+				var option2input=document.getElementById('option2input');
+				var newinput=option2input.value;
+				var socket=io('/pls');
+				socket.emit('plspcpupdate',{pcpid:pcpid,newinput:newinput});
+				socket.on('rstplspcpupdate',function(){
+					window.location.reload(true);
+				});
+
+			}
+			function crpcpoption(pcpid){
+				removeElementOfDiv('optionboarddiv');
+				
+				var fdiv=document.getElementById('optionboarddiv');
+				if(fdiv){
+					fdiv.remove();
+				}
+		
+				var optionboarddiv=document.createElement('DIV');
+				optionboarddiv.style.width='50%';
+				optionboarddiv.style.cssFloat='left';
+				optionboarddiv.style.backgroundColor='#55cc55';
+				optionboarddiv.style.overflow='auto';
+				optionboarddiv.setAttribute('id','optionboarddiv');
+
+				var socket=io('/poc');
+				socket.emit('poccalllist',{pcpid:pcpid});
+				socket.on('rstpoccalllist',function(rs){
+					for(var ia=0; ia<rs.rs.length; ia++){
+						var option1=document.createElement('DIV');
+						option1.style.width='100%';
+						option1.style.height='5%';
+						option1.style.backgroundColor='#447744';
+						option1.onclick=function(i,j){return function(){DisplayRelatedPrb(i,j)}}(rs.rs[ia][3],rs.rs[ia][4]);
+						option1.innerHTML=rs.rs[ia][1]+'   '+rs.rs[ia][3].length;
+						optionboarddiv.appendChild(option1);
+					}
+					document.getElementById('crpcpboard').appendChild(optionboarddiv);
+				});
+			}
+			function DisplayRelatedPrb(pcp,prblist){
+				removeElementOfDiv('displaypocboard');
+				var displaypocboard=document.getElementById('displaypocboard');
+				var displaypocdiv=document.createElement('DIV');
+				displaypocdiv.setAttribute('id','displaypocdiv');
+
+				var socket=io('/poc');
+				socket.emit('poccallprb',{prblist:prblist});
+				socket.on('rstpoccallprb',function(ps){
+					for(var ia=0; ia<pcp.length ; ia++){
+						var prbpcpbox=document.createElement('DIV');
+						prbpcpbox.setAttribute('class','prbpcpbox');
+						
+						var pcpbox=document.createElement('DIV');
+						pcpbox.setAttribute('class','pcpbox');
+
+						for(var ib=0; ib<pcp[ia][1].length; ib++){
+							var pcpunitbox=document.createElement('DIV');
+							pcpunitbox.setAttribute('class','pcpunitbox');
+							var va=document.createElement('A');
+							va.innerHTML=pcp[ia][1][ib][1].replace(/\\\\/g,"\\");
+							pcpunitbox.appendChild(va);
+							pcpbox.appendChild(pcpunitbox);
+						}
+
+						var prbbox=document.createElement('DIV');
+						prbbox.setAttribute('class','prbbox');
+						for(var ic=0; ic<7; ic++){
+							var prbunitbox=document.createElement('DIV');
+							prbunitbox.setAttribute('class','prbunitbox');
+					
+							var va=document.createElement('A');
+							va.innerHTML=ps.ps[ia][ic];
+			
+							prbunitbox.appendChild(va);
+							prbbox.appendChild(prbunitbox);
+						
+						}
+						if(ps.ps[ia][8]!=null){
+							var prbunitbox=document.createElement('DIV');
+							prbunitbox.setAttribute('class','prbunitbox');
+	
+							var vimg=document.createElement('img');
+							vimg.src=ps.ps[ia][8];
+	
+							prbunitbox.appendChild(vimg);
+							prbbox.appendChild(prbunitbox);
+							
+						}
+						prbpcpbox.appendChild(pcpbox);
+						prbpcpbox.appendChild(prbbox);
+						
+
+						displaypocdiv.appendChild(prbpcpbox);						
+						MathJax.Hub.Queue(["Typeset",MathJax.Hub,displaypocdiv]);
+
+						displaypocboard.appendChild(displaypocdiv);
+					}
+				});
+			}
+			function removecrpcp(pcpid,caseid){
+				var socket=io('/pls');
+				socket.emit('removecrpcp',{caseid:caseid,pcpid:pcpid});
+				socket.on('rstremovecrpcp',function(){
+					window.location.reload(true);
+				});
+			}
+			function displayfreepcp(){
+				var crpcp=!{JSON.stringify(crpcp)};
+				var pcplist=!{JSON.stringify(pcplist)};
+				var caselist=!{JSON.stringify(caselist)};
+
+				var vpcplist=[];
+				var achk;
+				for(var ie=0; ie<pcplist.length; ie++){
+					achk=0;
+					for(var ic=0; ic<crpcp.length; ic++){
+						for(var id=0; id<crpcp[ic][1].length; id++){
+							if(crpcp[ic][1][id][0]==pcplist[ie][0]){
+								achk=1;
+								break;
+							}
+						}
+						if(achk==1){
+							break;
+						}
+					}
+					if(achk==0){
+						vpcplist.push(pcplist[ie])
+					}
+				}
+
+				
+				var pcplistboard=document.createElement('DIV');
+				pcplistboard.style.width='100%';
+				pcplistboard.style.overflow='auto';
+				pcplistboard.style.backgroundColor='#aa00aa';
+				pcplistboard.setAttribute('id','pcplistboard');
+
+				var pcplistcontdiv=document.createElement('DIV');	
+				pcplistcontdiv.style.width='50%';
+				pcplistcontdiv.style.cssFloat='left';
+				pcplistcontdiv.style.backgroundColor='#dd66dd';
+				pcplistcontdiv.setAttribute('id','pcplistcontdiv');
+				
+				for(var ig=0; ig<vpcplist.length; ig++){
+					var vdiv=document.createElement('DIV');	
+					var va=document.createElement('A');
+					va.innerHTML=vpcplist[ig][1].replace(/\\\\/g,"\\");
+					vdiv.setAttribute('id',vpcplist[ig][0])
+					vdiv.appendChild(va);
+					vdiv.onclick=function(i){return function(){expandcaselist(i);}}(vpcplist[ig][0]);
+					pcplistcontdiv.appendChild(vdiv);
+				}
+				MathJax.Hub.Queue(["Typeset",MathJax.Hub,pcplistcontdiv]);
+
+	
+
+				pcplistboard.appendChild(pcplistcontdiv);
+				document.getElementById('displaypcplist').appendChild(pcplistboard);
+			}
+
+			function focuscaselist(pcsid){
+				var fc=document.getElementById('pcplistcontdiv');
+				for(var ia=0; ia<fc.childNodes.length; ia++){
+					fc.childNodes[ia].style.backgroundColor='';
+				}
+
+				document.getElementById(pcsid).style.backgroundColor='#dd22dd';
+				
+			}
+			function expandcaselist(pcpid){
+		
+				var cse=document.getElementById('caselistcontdiv');
+				if(cse){
+					cse.remove();
+				}
+
+				var caselistcontdiv=document.createElement('DIV');
+				caselistcontdiv.style.width='50%';
+				caselistcontdiv.style.cssFloat='left';
+				caselistcontdiv.style.backgroundColor='#dd22dd';
+				caselistcontdiv.setAttribute('id','caselistcontdiv');
+
+				var socket=io('/poc');
+				socket.emit('poccalllist',{pcpid:pcpid});
+				socket.on('rstpoccalllist',function(rs){
+					for(var ia=0; ia<rs.rs.length; ia++){
+						var option1=document.createElement('DIV');
+						option1.style.width='100%';
+						option1.style.height='5%';
+						option1.style.backgroundColor='#aa33aa';
+						option1.onclick=function(i,j){return function(){DisplayRelatedPrb(i,j)}}(rs.rs[ia][3],rs.rs[ia][4]);
+						option1.innerHTML=rs.rs[ia][1]+'   '+rs.rs[ia][3].length;
+						caselistcontdiv.appendChild(option1);
+					}
+					var pcplistboard=document.getElementById('pcplistboard');
+					pcplistboard.appendChild(caselistcontdiv);
+				});
+				
+			}
+
+			function registercrpcp(caseid,pcpid){
+				var socket=io('/pls');
+				socket.emit('plsregistercrpcp',{caseid:caseid,pcpid:pcpid});
+				socket.on('rstplsregistercrpcp',function(){
+					alert('pcp is registered to case');
+					window.location.reload(true);
+				})
+			}
+
+	body
+		div(id='title')
+			a(href='./pcsclassify?stchk=-1') PCP Outer Call
+		div(id='caselist')
+			-for(var ia=0; ia<caselist.length; ia++){
+				div(onclick='displaycrpcplist("'+caselist[ia][0]+'")')
+					a=caselist[ia][2]
+					a=caselist[ia][1]
+			-}
+		div(id='displaycrpcplist')
+		div(id='displaypcplist')
+		div(id='displaypocboard')

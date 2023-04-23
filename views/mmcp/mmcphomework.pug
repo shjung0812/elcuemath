@@ -1,0 +1,779 @@
+html
+	head
+		script(type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML")
+		title Homework (MMCP)
+		script(src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.5.0-beta4/html2canvas.js" type="text/javascript" xml="space")
+		script(src='/socket.io/socket.io.js')
+		script(async src="https://www.googletagmanager.com/gtag/js?id=G-MPRPDZ50KW")
+		script.
+			window.dataLayer = window.dataLayer || [];
+			function gtag(){dataLayer.push(arguments);}
+			gtag('js', new Date());
+			gtag('config', 'G-MPRPDZ50KW');
+
+		style.
+			body {
+				padding:0;
+				margin:0;
+			}
+			canvas {
+				cursor:url('/cursor/Dot.cur'), default;
+			}
+
+			#prbnavigationbody{
+				position:absolute;
+				top:0;
+				left:0;
+				z-index:10;
+				width:100%;
+				height:100%;
+				background-color:blue;
+				//background-color:#7BBCE7;
+			}
+			#prbnavigationdiv {
+				width:100%;
+				height:100%;
+				background-color:#7BBCE7;
+				text-align:center;
+				overflow:auto;
+			}
+
+			#waitingmsg {
+				display:inline-block;
+				margin:10% 0 0 0;
+				font-size:2em;
+			}
+			.prbdiv {
+				border:1px solid black;
+				cursor:pointer;
+			}
+	
+
+			#solvebody {
+				width:100%;
+				height:100%;
+			}
+
+			#solvecanvas {
+				width:90%;
+				height:100%;
+				float:left;
+				background-color:black;
+			}
+			#optionbody {
+				width:10%;
+				height:100%;
+				float:left;
+			}
+
+			#myPics {
+				position:absolute;
+				z-index:3;
+			}
+	
+			#layerpic {
+				z-index:1;
+			}
+			#shareinputdiv {
+				position:absolute;
+				z-index:2;
+			}
+			#msgdiv{
+				position:relative;
+				width:80%;
+				word-break:break-all;
+				top:3%;
+				left:3%;
+			}
+
+			#anszone {
+				border: 4px solid red;
+				width:40%;
+				height:10%;
+				position:absolute;
+				top:80%;
+				left:55%;
+
+			}
+			#savepicbox {
+				display:none;
+				width:100%;
+				height:100%;
+				position:absolute;
+				z-index:3;
+				top:0;
+				left:0;
+				background-color:yellow;
+			}
+			#savepicbox div{
+				width:100%;
+				height:100%;
+			}
+
+			#timezone {
+				width:100%;
+				height:25%;
+				text-align:center;
+			}
+			#timezone a {
+				display:inline-block;
+				font-size:3em;
+				margin:15% 0;
+			}
+			#savepicdiv {
+				width:100%;
+				height:100%;
+				overflow:auto;
+			}
+			#completeself {
+				width:100%;
+				height:35%;
+				margin:2% 0%;
+			}
+			#completeself button {
+				cursor:pointer;
+				width:100%;
+				height:100%;
+				font-size:1.5em;
+			}
+			#newscreen {
+				width:100%;
+				height:5%;
+				margin:2% 0%;
+			}
+			#newscreen button {
+				width:100%;
+				height:100%;
+			}
+			#penoption {
+				width:100%;
+				height:10%;
+				margin:10% 0;
+			}
+			#penchoice {
+				width:50%;
+				float:left;
+				background-color:#aaaaaa;
+				text-align:center;	
+				cursor:pointer;
+				padding:20% 0;
+				
+			}
+			#eraserchoice {
+				padding:20% 0;
+				width:50%;
+				float:left;
+				background-color:#FFC100;
+				text-align:center;	
+				cursor:pointer;
+			}
+			#leavediv {
+				width:100%;
+				height:10%;
+				margin:20% 0;
+				text-align:center;
+			}
+
+	body
+		div(id='prbnavigationbody')
+			div(id='prbnavigationdiv') 
+				//div(id='waitingmsg') 
+			
+		div(id='solvebody')
+			div(id='solvecanvas')
+				div(id='canvascontainer')
+					canvas(id='myPics')
+					div(id='shareinputdiv')
+					canvas(id='layerpic')
+			div(id='optionbody')
+				div(id='timezone')
+					a(id='timep')
+			
+				div(id='completeself')
+					button(onclick='completeSolve();') Complete
+				div(id='penoption')
+					div(id='penchoice' onclick='changeWriting("pen")')
+						a pen
+					div(id='eraserchoice' onclick='changeWriting("eraser");')
+						a Eraser
+
+				div(id='newscreen')
+					button(onclick='callNewscreen()') 모두 지우기
+				//div(id='foldingdiv')
+					//button(onclick='foldingSave();') Folding 
+				div(id='leavediv')
+					button(onclick='leavePrbspace();') 문제 풀지않고  나가기
+		div(id='savepicbox')
+			div(id='savepicdiv')
+					
+		script.
+			var socket = io('/mmcp');
+			//commander center
+			var mmcp=!{JSON.stringify(mmcp)};
+			var username=!{JSON.stringify(username)};
+			socket.on('connect',()=>{
+				console.log('mmcp connection ready');
+				var pagename='page1, mmcp In solve space'
+				socket.emit('mmcplog',{username:username, pagename:pagename})
+			});
+			var piclist=[];
+			var picnum=0;
+
+
+			function indicateSolvedprb(){
+				//prbboxdiv.className='prbboxdiv';
+				var prbclass= document.getElementsByClassName('prbdiv');
+				if(prbclass){
+					for(var ia=0; ia<prbclass.length; ia++){
+						prbclass[ia].style.border='';
+					}
+				}
+				for(var ia=0; ia<solvedprb.length; ia++){
+					var prbdiv=document.getElementById(solvedprb[ia]);
+					if(prbdiv){
+						prbdiv.style.border='7px solid red';
+					}
+				}
+			}
+
+			var solvedprb=[];
+
+
+			function initialDisplay(){
+				var prbnavigationdiv = document.getElementById('prbnavigationdiv');
+			
+				for(var ia=mmcp.length-1; ia >= 0; ia--){
+					var prbdiv=document.createElement('div');
+					prbdiv.className='prbdiv';
+					prbdiv.onclick=function(i,j){
+						return function(){
+							gotoPrb(i);
+							solvedprb.push(j);
+							indicateSolvedprb();
+						}
+					}(ia,mmcp[ia].prb[0]);		
+					prbdiv.id=mmcp[ia].prb[0];
+					var prbreadingdiv=document.createElement('div');
+					var prbreadingdiva=document.createElement('a');
+					prbreadingdiva.innerHTML=ia+1+'th Prb :  '+mmcp[ia].prb[1];
+					prbreadingdiv.appendChild(prbreadingdiva);
+					prbdiv.appendChild(prbreadingdiv);
+					prbnavigationdiv.appendChild(prbdiv);
+				}
+				//MathJax.Hub.Queue(["Typeset",MathJax.Hub,prbnavigationdiv]);
+
+
+			}
+			window.onload=function(){
+			}
+
+			document.onkeydown = function(e){
+				if(e.shiftKey && e.which==70 && !e.ctrlKey){
+					foldingSave();
+				}else if(e.shiftKey && e.which==32){//first pen
+					//clearLcon();
+					stat.color=environdefine.firstpen[0];
+					stat.size=environdefine.firstpen[1];
+					stat.code=environdefine.firstpen[2];
+				}else if(e.shiftKey && e.which==81){//eraser;
+					stat.color=environdefine.eraser[0];
+					stat.size=environdefine.eraser[1];
+					stat.code=environdefine.eraser[2];
+				}
+
+			}
+
+
+
+			var foldingnum=0;
+			function foldingSave(){
+				if(foldingnum==0){
+					//document.getElementById('savepicbox').style.width='100%';
+					document.getElementById('savepicbox').style.display='block';
+					foldingnum=1;
+				}else if(foldingnum==1){
+					//document.getElementById('savepicbox').style.width='0%';
+					document.getElementById('savepicbox').style.display='none';
+					foldingnum=0;
+				}
+			}
+
+
+
+			function waitingScreenoff(){
+				var waitingbody=document.getElementById('prbnavigationbody');
+				waitingbody.style.display='none';
+				callSolvespace();
+			}
+
+			var myint;
+			var timepassed;
+			function callSolvespace(){
+				var timeal=mmcp[roundnum].solutiontime;
+				var timp=document.getElementById('timep');
+				timepassed=0;
+				function solveTimer(){
+					if(timeal==0){
+						completeSolve();
+						timep.innerHTML='';
+						clearInterval(myint);
+					}else{
+						timep.innerHTML=timeal;
+						timeal-=1;
+						timepassed+=1;
+					}
+
+				}
+				myint=setInterval(solveTimer,1000);
+			}
+
+			function leavePrbspace(){
+				timep.innerHTML='';
+				clearInterval(myint);
+				waitingScreenon();
+				removeallele('savepicdiv')
+				piclist=[];
+				picnum=0;
+
+			}
+
+
+
+			function waitingScreenon(){
+				var waitingbody=document.getElementById('prbnavigationbody');
+				waitingbody.style.display='block';
+
+				
+				askTocommander();
+
+			}
+
+			function removeallele(parentid){
+				var parent=document.getElementById(parentid);
+				while(parent.firstChild){
+					parent.firstChild.remove();
+				}
+			}
+			function clearLcon(){
+				lcon.clearRect(0,0,layerpic.width, layerpic.height)
+				lcon.fillStyle=environdefine.background[0];
+				lcon.fillRect(0,0,layerpic.width, layerpic.height);
+			}
+
+			function clearCanvas(){
+				//screenSaveToServer(function(){
+				context.clearRect(0,0,myPics.width, myPics.height)
+				//});
+			}
+		
+			var picnum=0;
+			function callNewscreen(){
+				/*
+				var savepic={};
+				savepic.mmcpconid=mmcp[roundnum].mmcpconid;
+				savepic.mmcpid=mmcp[roundnum].mmcpid;
+				savepic.prbid=mmcp[roundnum].prb[0];
+				savepic.username=username;
+				savepic.picnum=picnum;
+				savepic.savekind=0;
+				savepic.timepassed=timepassed;
+				savepic.solutiontime=mmcp[roundnum].solutiontime;
+				
+				screenSaveToServer(savepic,function(a,b){
+					clearCanvas();
+					picnum+=1;
+				});*/
+
+				clearCanvas();
+
+			}
+
+			function screenSaveToServer(fsobj,callback){
+				var sharediv=document.getElementById('shareinputdiv');
+				var can3=document.createElement('canvas');
+				var ctx3=can3.getContext('2d');
+				can3.width=canvaswidth
+				can3.height=canvasheight
+				can3.style.width=canvaswidth+'px';
+				can3.style.height=canvasheight+'px';
+
+				html2canvas(sharediv).then(function(sharei){
+					
+					ctx3.drawImage(layerpic,0,0);
+					ctx3.drawImage(sharei,0,0);
+					ctx3.drawImage(myPics,0,0);
+
+					var b64Image=can3.toDataURL('image/png');
+					var blob = dataURItoBlob(b64Image);
+					//callback(blob, b64Image);	
+	
+					var formData = new FormData();
+
+					var fname=fsobj.username+'_'+Date.now()+'.png';
+					piclist.unshift(fname);
+					formData.append('file',blob,fname);
+					formData.append('mmcpconid',fsobj.mmcpconid);
+					formData.append('mmcpid',fsobj.mmcpid);
+					formData.append('prbid',fsobj.prbid);
+					formData.append('username',fsobj.username);
+					formData.append('picnum',fsobj.picnum);
+					formData.append('savekind',fsobj.savekind);
+					formData.append('timepassed',fsobj.timepassed);
+					formData.append('operationid',operationid);
+					formData.append('roundnum',roundnum);
+					formData.append('timeallocated',fsobj.solutiontime);
+
+							
+					function sendFinish(){
+						//socket.emit('reloadusernote',{username:'bob'});
+
+						if(fsobj.savekind==0){
+							removeallele('savepicdiv')
+							var savepicdiv=document.getElementById('savepicdiv');
+							for(var ia=0; ia<piclist.length; ia++){
+								var picimgdiv=document.createElement('div');
+								var savepicimg=document.createElement('img');
+								savepicimg.src=window.location.protocol + '//' + window.location.hostname + ':' + window.location.port+'/usernote/mmcphomework/'+piclist[ia];
+								picimgdiv.appendChild(savepicimg);
+								savepicdiv.appendChild(picimgdiv);
+							}
+						}
+						
+					}
+				
+					var xhr = new XMLHttpRequest();
+
+					xhr.addEventListener('load',sendFinish);
+
+
+
+					xhr.open('post','/mmcphomework',true);
+					xhr.send(formData);
+
+					callback();	
+
+				});
+				function dataURItoBlob(dataURI){
+					var byteString = atob(dataURI.split(',')[1]);
+					var mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0]
+
+					var ab = new ArrayBuffer(byteString.length);
+					var ia = new Uint8Array(ab);
+					for(var i=0; i<byteString.length; i++){
+						ia[i] = byteString.charCodeAt(i);
+					}
+					var bb = new Blob([ab],{'type':mimeString});
+					return bb;
+				}	
+			}
+
+	
+
+
+			function completeSolve(){
+				timep.innerHTML='';
+				var savepic={};
+				savepic.mmcpconid=mmcp[roundnum].mmcpconid;
+				savepic.mmcpid=mmcp[roundnum].mmcpid;
+				savepic.prbid=mmcp[roundnum].prb[0];
+				savepic.username=username;
+				savepic.picnum=picnum;
+				savepic.savekind=1;
+				savepic.timepassed=timepassed;
+				savepic.solutiontime=mmcp[roundnum].solutiontime;
+
+				screenSaveToServer(savepic,function(a,b){
+					socket.emit('callcompletesingleprb')
+				});
+				clearInterval(myint);
+			}
+
+			socket.on('callcompletesingleprbafter',function(){
+				//roundnum++;
+				waitingScreenon();
+				removeallele('savepicdiv')
+				piclist=[];
+				picnum=0;
+					
+			});
+
+			var roundnum=0;
+
+			var resultrecord=[];
+
+
+			function gotoPrb(rnum){
+				roundnum=rnum;
+				waitingScreenoff();
+
+				removeallele('shareinputdiv');
+				var shareinputdiv=document.getElementById('shareinputdiv');
+
+				var msgdiv=document.createElement('div');	
+				msgdiv.id='msgdiv';
+				var msga=document.createElement('A');
+				//savepic.mmcpconid=mmcp[roundnum].mmcpconid;
+				//savepic.mmcpid=mmcp[roundnum].mmcpid;
+				//savepic.prbid=mmcp[roundnum].prb[0];
+	
+				msga.innerHTML=mmcp[roundnum].prb[1];
+				msga.style.color='white';
+				msga.style.fontSize='1.5vw';
+				msga.style.wordBreak='break-all';
+				msgdiv.appendChild(msga);
+				shareinputdiv.appendChild(msgdiv);
+
+				if(mmcp[roundnum].prb[8]!=null){
+					var picdiv=document.createElement('DIV');
+					picdiv.id='picdiv';
+					var picsrc=document.createElement('img');
+					picsrc.src=mmcp[roundnum].prb[8];
+					picdiv.appendChild(picsrc);
+					shareinputdiv.appendChild(picdiv);
+
+
+	
+					msgdiv.style.width='60%';
+					picdiv.style.width='40%';
+					picsrc.style.width='100%';
+					msgdiv.style.cssFloat='left';
+					picdiv.style.cssFloat='left';
+
+				
+				}
+				var anszone=document.createElement('div');
+				anszone.id='anszone';
+				shareinputdiv.appendChild(anszone);
+				MathJax.Hub.Queue(["Typeset",MathJax.Hub,shareinputdiv]);
+
+
+				removeallele('savepicdiv');
+
+				clearLcon();
+				clearCanvas();
+
+
+			}	
+
+			//Self Drawing 
+			let isDrawing = false;
+			let x = 0;
+			let y = 0;
+		
+
+			var environdefine={background:['#11a527',32,'background'],firstpen:['white',2,'firstpen'],secondpen:['red',2,'secondpen'],eraser:['',32,'eraser'],layer:{color:'blue',size:1.5,code:'layer'} };
+			var stat={color:environdefine.firstpen[0], size:environdefine.firstpen[1],code:environdefine.firstpen[2]};
+	
+
+			function changeWriting(kind){
+				if(kind=='pen'){
+					stat.color=environdefine.firstpen[0];
+					stat.size=environdefine.firstpen[1];
+					stat.code=environdefine.firstpen[2];
+				}else if(kind=='eraser'){
+					stat.color=environdefine.eraser[0];
+					stat.size=environdefine.eraser[1];
+					stat.code=environdefine.eraser[2];
+
+				}
+			}	
+
+
+			var canvaswidth=window.innerWidth*.8;
+			var canvasheight=window.innerHeight;
+
+
+			//shareinputdiv
+			var shareinputdiv = document.getElementById('shareinputdiv');
+			shareinputdiv.style.width=canvaswidth + 'px';
+			shareinputdiv.style.height=canvasheight+'px';
+
+
+	
+			const myPics = document.getElementById('myPics');
+
+
+
+			// Not style, Canvas should be changed. 	
+			myPics.width=canvaswidth
+			myPics.height=canvasheight;
+			myPics.style.width=canvaswidth+'px';
+			myPics.style.height=canvasheight+'px';
+
+
+			const context = myPics.getContext('2d');
+
+			//The x and y offset of the canvas from the edge of the page
+			const rect = myPics.getBoundingClientRect();
+
+
+			//layerpic
+			const layerpic=document.getElementById('layerpic');
+
+			layerpic.width=canvaswidth;
+			layerpic.height=canvasheight;
+			layerpic.style.width=canvaswidth+'px';
+			layerpic.style.height=canvasheight+'px';
+
+			const lcon=layerpic.getContext('2d')
+
+			lcon.fillStyle=environdefine.background[0];
+			lcon.fillRect(0,0,myPics.width, myPics.height);
+
+
+			//Add the event listeners for mousedown, mousemove, and mouseup
+			myPics.addEventListener('mousedown',e=>{
+				x = e.clientX-rect.left;
+				y = e.clientY-rect.top;
+				isDrawing = true;
+			});
+
+			myPics.addEventListener('mousemove',e=>{
+				if(isDrawing===true){
+					drawLine(context,x,y,e.clientX-rect.left, e.clientY-rect.top,stat,0);
+					x = e.clientX - rect.left;
+					y = e.clientY - rect.top;
+				}
+			});
+
+			window.addEventListener('mouseup',e => {
+				if(isDrawing === true){
+					drawLine(context, x, y, e.clientX - rect.left, e.clientY - rect.top,stat,0);
+					x = 0;
+					y = 0;
+					isDrawing = false;
+				}
+			});
+
+			function drawLine(context,x1, y1, x2, y2,vstat,mode){
+				if(mode==0){//user
+					if(stat.code=='layer'){
+						lcon.beginPath();
+						lcon.strokeStyle = stat.color;
+						lcon.lineWidth = stat.size;
+						lcon.lineCap = 'round';
+						lcon.lineJoin='round';
+						lcon.moveTo(x1, y1);
+						lcon.lineTo(x2, y2);
+						lcon.stroke();
+						lcon.closePath();
+					}else if(stat.code=='eraser'){ 
+						context.beginPath();
+						context.globalCompositeOperation='destination-out';
+						context.lineWidth=stat.size;
+						context.moveTo(x1, y1);
+						context.lineTo(x2, y2);
+						context.lineJoin='round';
+						context.lineCap='round';
+						context.stroke();
+						context.closePath();
+
+
+					}else{ 
+						context.beginPath();
+						context.globalCompositeOperation='source-over';
+						context.strokeStyle = stat.color;
+						context.lineWidth = stat.size;
+						context.lineCap = 'round';
+						context.lineJoin='round';
+						context.moveTo(x1, y1);
+						context.lineTo(x2, y2);
+						context.stroke();
+						context.closePath();
+					}
+				}else if(mode==1){//tuser
+					if(vstat.code=='eraser'){
+						context.beginPath();
+						context.globalCompositeOperation='destination-out';	
+						context.lineWidth=vstat.size;
+						context.lineCap='round';
+						context.moveTo(x1,y1);
+						context.lineTo(x2,y2);
+						context.stroke();
+						context.closePath();
+					}else{
+						context.beginPath();
+						context.globalCompositeOperation='source-over';
+						context.strokeStyle = environdefine[vstat.code][0];
+						context.lineWidth = vstat.size;
+						context.lineCap = 'round';
+						context.lineJoin='round';
+						context.moveTo(x1, y1);
+						context.lineTo(x2, y2);
+						context.stroke();
+						context.closePath();
+					}
+				}
+				
+			}
+
+			var touchX, touchY;
+			function getTouchPos(e) {
+				if (!e)var e = event;
+				if(e.touches) {
+					if (e.touches.length == 1) { // Only deal with one finger
+						var touch = e.touches[0]; // Get the information for finger #1
+						touchX=touch.pageX-touch.target.offsetLeft;
+						touchY=touch.pageY-touch.target.offsetTop;
+					}
+				}
+			}
+
+
+			function sketchpad_touchStart(){
+				getTouchPos();
+				x=touchX;
+				y=touchY;
+				drawLine(context, x, y, touchX, touchY,stat,0);
+				event.preventDefault();	
+			}
+
+			function sketchpad_touchMove(e){
+				getTouchPos(e);
+				
+				drawLine(context, x, y, touchX, touchY,stat,0);
+
+				x=touchX;
+				y=touchY;
+				event.preventDefault();	
+			}
+
+			
+			myPics.addEventListener('touchstart',sketchpad_touchStart, false);
+			myPics.addEventListener('touchmove',sketchpad_touchMove,false);
+
+			function askTocommander(){
+				if(roundnum<mmcp.length){
+					//currentRoundready();
+					//setTimeout(waitingScreenoff,3000);
+				}else{
+					document.getElementById('waitingmsg').innerHTML='Finished.. Click to Back';
+					document.getElementById('waitingmsg').href='/mmcp/interface';
+				}
+			}
+
+
+			function RandomString(length,opt){
+				if(!opt || opt==0){
+					var text='';
+					var possible='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-';
+					for(var ia=0; ia<length; ia++){
+						text+=possible.charAt(Math.floor(Math.random()*possible.length));
+					}
+					return text;
+				}
+			}
+
+
+
+			var operationid;
+			function checkMathjax(){
+				if(typeof MathJax !== 'undefined'){
+					initialDisplay();
+					askTocommander();
+					clearInterval(int)
+					operationid=RandomString(10,0);
+				}
+		
+			}
+			var int = setInterval(checkMathjax,100);

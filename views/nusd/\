@@ -1,0 +1,857 @@
+doctype html
+html
+	head
+		script(src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.5.0-beta4/html2canvas.js" type="text/javascript" xml="space")
+		title GoSpace
+		style.
+			canvas {
+				border: 1px solid black;
+				width: 1120px;
+				height: 720px;
+			}
+
+			body {
+				padding:0;
+				margin:0;
+			}
+
+			#panel {
+				width:100%;
+				height:100%;
+				background-color:#dddddd;
+			}
+			#numberdisplaydiv {
+				width:70%;	
+				height:100%;
+				float:left;
+				//background-color:#dddddd;
+			}
+			#optionpanel {
+				width:30%;
+				height:100%;
+				float:left;
+				background-color:#dddddd;
+			}
+			#booktitlebox {
+				height:10%;
+				width:100%;
+			}
+			#logoutbox {
+				height:10%;
+			}
+			#sharepaperonbox {
+				width:100%;
+				background-color:#dddd22;	
+				cursor:pointer;
+				height:10%;
+			}
+			#chatbox {
+				width:100%;
+				height:70%;
+			}
+			#chathistory {
+				width:100%;
+				height:90%;
+				background-color:#8beded;
+			}
+			#chathistory div {
+				width:90%;
+				margin:0 5%;
+			}
+			#inputbox {
+				width:100%;
+				height:10%;
+			}
+			#chatmsg {
+				width:80%;
+				height:100%;
+			}
+			#sendbutton {
+				width:20%;
+				height:100%;
+			}
+			#sharepaperondiv {
+				display:none;
+				position:absolute;	
+				top:0;
+				left:0;
+				width:100%;
+				height:100%;
+				background-color:#222222;
+			}
+			#sharepaperbox {
+				width:80%;
+				height:100%;
+				float:left;
+			}
+			#sharepaperoptionbox {
+				width:10%;
+				height:100%;
+				overflow:hidden;
+			}
+			
+			#sharepaperoffbox {	
+				width:100%;
+				height:10%;
+				background-color:#1677EC;
+				cursor:pointer;
+			}
+			#sharecanvasbox {
+				width:60%;
+				height:55%;
+				//margin:2% 5% 0 7%;
+			}
+			#sharecanvasoptionbox {
+				width:100%;
+				height:5%;
+			}
+			#myPics {	
+				position:absolute;
+				z-index:2;
+			}
+			#layerpic {
+			}
+			#screensave {
+				background-color:#3688a3;
+				height:5%;
+				text-align:center;
+				border: 2px solid black;
+				cursor:pointer;
+			}
+			#screensavetoserver {
+				background-color:#3688a3;
+				height:5%;
+				text-align:center;
+				border: 2px solid black;
+				cursor:pointer;
+			}
+
+			#screensavetoserver a {
+				font-size:.5em;
+				text-decoration:none;
+				color:black;
+				width:100%;
+				height:100%;
+			}
+			#screensave a {
+				font-size:.5em;
+				text-decoration:none;
+				color:black;
+				
+				width:100%;
+				height:100%;
+			}
+			#useroptionbox {
+				width:10%;
+				height:100%;
+				float:left;
+			}
+			#personaloptionbox {
+				width:100%;
+			}
+			#notepic {
+			}
+	
+			#personaloptiondiv {
+				z-index:3;
+				position:absolute;
+				background-color:rgba(10,10,200,.2);
+				bottom:1%;
+				left:3%;
+				
+			}
+			#savemynotediv {
+				background-color:#2222bb;
+				font-color:whitie;
+				cursor:pointer;
+			}
+			#sharedinputdiv {
+				position:absolute;
+				z-index:1.5;
+			}
+			#sharedinputdiv div {
+				position:relative;
+				width:80%;
+				word-break:break-all;
+				top:10%;
+				left:10%;
+			}
+			#screensavea,#screensavetoservera {
+				display:block;
+				width:100%;
+				height:100%;
+			}
+		script(src='/socket.io/socket.io.js')
+		script(type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML")
+
+	body
+		div(id='panel')
+			div(id='numberdisplaydiv')
+				div(id='nusdlist')
+					
+			div(id='optionpanel')
+				div(id='logoutbox')
+					a(href='./') Back
+				div(id='booktitlebox')
+					a book title here
+				div(id='sharepaperonbox' onclick='onSharepaper(1);')
+					a Share Paper on
+				div(id='chatbox')
+					div(id='chathistory')
+					div(id='inputbox')
+						input(type='text' id='chatmsg')
+						button(onclick='sendMenteemsg()' id='sendbutton') send
+		div(id='sharepaperondiv')
+			div(id='useroptionbox')
+				div(id='personaloptionbox')
+					div(id='personaloptionlist')
+						div(id='savemynotediv')
+							a(id='notea' onclick='mynoteSave(this.id,"notepic")') Save Note
+						div(id='clearcanvas')
+							button(onclick='clearNote()') Clear Note
+
+					div(id='personaloptiondiv')
+
+			div(id='sharepaperbox')
+				div(id='sharecanvasbox')
+					canvas(id='myPics')
+					div(id='sharedinputdiv')
+					canvas(id='layerpic')
+				div(id='sharecanvasoptionbox')
+			
+			div(id='sharepaperoptionbox')
+				div(id='sharepaperoffbox' onclick='onSharepaper(0)')
+					p Share paper off
+				div(id='optionbutton')
+					div(id='screensave')
+						a(id='screensavea' onclick='screenSave("screensavea","myPics")' )화면 내컴퓨터에 저장하기
+					div(id='screensavetoserver')
+						a(id='screensavetoservera' onclick='screenSaveToServer()')화면 서버에 저장하기
+						
+		script.
+			var socket=io('/nusd');
+			var userinfo=!{JSON.stringify(userinfo)};
+			socket.on('connect',()=>{
+				console.log('connection ready');
+				socket.emit('nusdsocketidregister',{socketid:socket.id,username:userinfo.username,position:0});
+
+			});
+			onSharepaper(1);
+			
+			socket.on('tomenteenusd',function(a){
+				if(a.opt==0){
+					var rnumber=a.nusdlist.split(',');
+					var nusdlist=document.getElementById('nusdlist');
+					for(var ia=0; ia<rnumber.length; ia++){
+						var numdiv=document.createElement('div');
+						numdiv.innerHTML=rnumber[ia];
+						nusdlist.appendChild(numdiv);
+					}
+				}else if(a.opt==1){
+				
+						
+					removeall('sharedinputdiv');
+					var msgdiv=document.createElement('div');	
+					var msga=document.createElement('A');
+					msga.innerHTML=a.prbobj.prb;
+					msga.style.fontSize='1.5vw';
+					msgdiv.appendChild(msga);
+					sharedinputdiv.appendChild(msgdiv);
+
+					if(a.prbobj.sendoption==0){
+					}else if(a.prbobj.sendoption==1){
+					}
+
+					MathJax.Hub.Queue(["Typeset",MathJax.Hub,"sharedinputdiv"])	
+
+
+	
+				}
+					
+			});
+
+
+
+			var gratio=.61804;
+			var canvaswidth=window.innerWidth*.77;
+
+			var notevstat=1;
+	
+			function noteVisibility(){
+				var notediv=document.getElementById('personaloptionbox')
+				//var notediv=document.getElementById('personaloptiondiv')
+				if(notevstat==1){
+					notediv.style.display='none';
+					notevstat=0;
+				}else if(notevstat==0){
+					notediv.style.display='block';
+					notevstat=1;
+				}
+			}
+			//notepic
+			var personaloptiondiv=document.getElementById('personaloptiondiv');
+
+			//var notepic=document.getElementById('notepic');
+			var notepic=document.createElement('canvas');
+			notepic.id='notepic';
+			personaloptiondiv.appendChild(notepic);
+			var notecon=notepic.getContext('2d');
+			var sm=0.6;
+			notepic.width=window.innerWidth*.95;
+			notepic.height=gratio*canvaswidth*sm;
+			notepic.style.width=personaloptiondiv.style.width=window.innerWidth*.95+'px';
+			notepic.style.height=personaloptiondiv.style.height=canvaswidth*gratio*sm+'px';
+
+			function clearNote(){
+				notecon.clearRect(0,0,notepic.width, notepic.height);	
+			}
+			var notestat={size:2, color:'black'}
+
+			let noteisDrawing=false;
+			let nx=0;
+			let ny=0;
+
+			//The x and y offset of the canvas from the edge of the page
+			const nrect = notepic.getBoundingClientRect();
+
+			noteVisibility();
+
+		
+			//Add the event listeners for mousedown, mousemove, and mouseup
+			notepic.addEventListener('mousedown',e=>{	
+				nx = e.clientX-nrect.left;
+				ny = e.clientY-nrect.top;
+				noteisDrawing = true;
+			});
+
+			notepic.addEventListener('mousemove',e=>{
+				if(noteisDrawing===true){
+					drawLine(notecon,nx,ny,e.clientX-nrect.left, e.clientY-nrect.top,stat,2);
+					nx = e.clientX - nrect.left;
+					ny = e.clientY - nrect.top;
+					
+				}
+			});
+
+			window.addEventListener('mouseup',e => {
+				if(noteisDrawing === true){
+					drawLine(notecon, nx, ny, e.clientX - nrect.left, e.clientY - nrect.top,stat,2);
+					nx = 0;
+					ny = 0;
+					noteisDrawing = false;
+				}
+			});
+
+
+
+
+			//touchCanvas
+			var ntouchX, ntouchY;
+			function ngetTouchPos(e) {
+				if (!e)var e = event;
+				if(e.touches) {
+					if (e.touches.length == 1) { // Only deal with one finger
+						var touch = e.touches[0]; // Get the information for finger #1
+						ntouchX=touch.pageX-nrect.left;
+						//ntouchX=touch.pageX-touch.target.offsetLeft;
+						ntouchY=touch.pageY-nrect.top;
+						//ntouchY=touch.pageY-touch.target.offsetTop;
+					}
+				}
+			}
+
+			function nsketchpad_touchStart(){
+				ngetTouchPos();
+				nx=ntouchX;
+				ny=ntouchY;
+				drawLine(notecon, nx, ny, ntouchX, ntouchY,stat,2);
+				event.preventDefault();	
+			}
+
+			function nsketchpad_touchMove(e){
+				ngetTouchPos(e);
+				drawLine(notecon, nx, ny, ntouchX, ntouchY,stat,2);
+				nx=ntouchX;
+				ny=ntouchY;
+				event.preventDefault();	
+			}
+
+			
+			notepic.addEventListener('touchstart',nsketchpad_touchStart, false);
+			notepic.addEventListener('touchmove',nsketchpad_touchMove,false);
+
+
+
+
+
+			//shsaredinputdiv
+			var sharedinputdiv=document.getElementById('sharedinputdiv');
+			sharedinputdiv.style.width=canvaswidth+'px';
+			sharedinputdiv.style.height=canvaswidth*gratio+'px';
+			//sharedinputdiv.style.backgroundColor=environdefine.background[0];
+
+
+
+			//layerpic
+			const layerpic=document.getElementById('layerpic');
+			var tm=1;
+			layerpic.width=canvaswidth*tm;
+			layerpic.height=gratio*canvaswidth*tm;
+			layerpic.style.width=canvaswidth*tm+'px';
+			layerpic.style.height=gratio*canvaswidth*tm+'px';				
+			const lcon=layerpic.getContext('2d');
+
+
+
+
+			//self
+			let isDrawing = false;
+			let x = 0;
+			let y = 0;
+
+			var environdefine={background:['#336633',32,'background'],firstpen:['white',2,'firstpen'],secondpen:['red',2,'secondpen'],eraser:{size:32,code:'eraser'},layer:{color:'blue',size:3,code:'layer'} };
+			//var environdefine={background:['black',32,'background'],firstpen:['white',2,'firstpen'],secondpen:['red',2,'secondpen'],eraser:{size:32,code:'eraser'},layer:{color:'blue',size:3,code:'layer'} };
+			var stat={color:environdefine.firstpen[0], size:environdefine.firstpen[1],code:environdefine.firstpen[2]};
+
+
+			const myPics = document.getElementById('myPics');
+			const context = myPics.getContext('2d');
+	
+
+
+	
+
+
+			// Not style, Canvas should be changed. 	
+			myPics.width=canvaswidth
+			myPics.height=gratio*canvaswidth
+			myPics.style.width=canvaswidth+'px';
+			myPics.style.height=gratio*canvaswidth+'px';
+
+
+			lcon.fillStyle=environdefine.background[0];
+			lcon.fillRect(0,0,layerpic.width, layerpic.height);
+
+
+
+			var sharecanvasoptionbox = document.getElementById('sharecanvasoptionbox');
+			var colorbutton=document.createElement('button');
+			colorbutton.id='colordisplay';
+			colorbutton.innerHTML=stat.color;
+			sharecanvasoptionbox.appendChild(colorbutton);
+			
+			var sizebutton=document.createElement('button');
+			sizebutton.id='sizedisplay';
+			sharecanvasoptionbox.appendChild(sizebutton);
+			sizebutton.innerHTML=stat.size;
+
+
+
+
+			//The x and y offset of the canvas from the edge of the page
+			const rect = myPics.getBoundingClientRect();
+
+			//Add the event listeners for mousedown, mousemove, and mouseup
+			myPics.addEventListener('mousedown',e=>{	
+				x = e.clientX-rect.left;
+				y = e.clientY-rect.top;
+				isDrawing = true;
+				socket.emit('menteetomentordraw',{pos:convertToratio(x,y),mousestat:'down'})
+			});
+
+			myPics.addEventListener('mousemove',e=>{
+				if(isDrawing===true){
+					drawLine(context,x,y,e.clientX-rect.left, e.clientY-rect.top,stat,0);
+					x = e.clientX - rect.left;
+					y = e.clientY - rect.top;
+					socket.emit('menteetomentordraw',{pos:convertToratio(x,y),mousestat:'move',statoption:stat})
+				}
+			});
+
+			window.addEventListener('mouseup',e => {
+				if(isDrawing === true){
+					drawLine(context, x, y, e.clientX - rect.left, e.clientY - rect.top,stat,0);
+					x = 0;
+					y = 0;
+					isDrawing = false;
+				}
+			});
+
+
+			function clearLcon(){
+				lcon.clearRect(0,0,layerpic.width, layerpic.height);
+				lcon.fillStyle=environdefine.background[0];
+				lcon.fillRect(0,0,layerpic.width, layerpic.height);
+			}
+
+			function drawLine(ctext,x1, y1, x2, y2,vstat,mode){
+				if(mode==0){//user
+					if(stat.code=='eraser'){	
+						ctext.beginPath();
+						ctext.globalCompositeOperation='destination-out';
+						ctext.lineWidth = stat.size;
+						ctext.lineCap='round';
+						ctext.moveTo(x1, y1);
+						ctext.lineTo(x2, y2);
+						ctext.stroke();
+						ctext.closePath();
+
+					}else{
+						ctext.beginPath();
+						ctext.globalCompositeOperation='source-over';
+						ctext.strokeStyle = stat.color;	
+						ctext.lineWidth = stat.size;
+						ctext.lineCap='round';
+						ctext.moveTo(x1, y1);
+						ctext.lineTo(x2, y2);
+						ctext.stroke();
+						ctext.closePath();
+
+					}
+			
+				}else if(mode==1){//tuser,  have to use vstat instead stat
+					if(vstat.code=='eraser'){
+						ctext.beginPath();
+						ctext.globalCompositeOperation='destination-out';
+						ctext.lineWidth=vstat.size;
+						ctext.lineCap='round';
+						ctext.moveTo(x1, y1);
+						ctext.lineTo(x2, y2);
+						ctext.stroke();
+						ctext.closePath();
+
+	
+					}else if(vstat.code=='layer'){
+						ctext.beginPath();
+						ctext.globalCompositeOperation='source-over';
+						ctext.strokeStyle = environdefine[vstat.code].color;
+						ctext.lineWidth=vstat.size;	
+						ctext.moveTo(x1,y1);
+						ctext.lineTo(x2,y2);
+						ctext.lineJoin='round';
+						ctext.lineCap='round';
+						ctext.stroke();
+						ctext.closePath();
+					}else {
+						ctext.beginPath();
+						ctext.globalCompositeOperation='source-over';
+						ctext.strokeStyle = environdefine[vstat.code][0];
+						ctext.lineWidth = vstat.size;
+						ctext.lineCap='round';
+						ctext.moveTo(x1, y1);
+						ctext.lineTo(x2, y2);
+						ctext.stroke();
+						ctext.closePath();
+
+
+					}
+				}else if(mode==2){
+					if(stat.code=='eraser'){	
+						ctext.beginPath();
+						ctext.globalCompositeOperation='destination-out';
+						ctext.lineWidth = 32;
+						ctext.lineWidth = stat.size;
+						ctext.lineCap='round';
+						ctext.moveTo(x1, y1);
+						ctext.lineTo(x2, y2);
+						ctext.stroke();
+						ctext.closePath();
+
+					}else{
+						ctext.beginPath();
+						ctext.globalCompositeOperation='source-over';
+						ctext.strokeStyle = notestat.color;	
+						ctext.lineWidth = notestat.size;
+						ctext.lineCap='round';
+						ctext.moveTo(x1, y1);
+						ctext.lineTo(x2, y2);
+						ctext.stroke();
+						ctext.closePath();
+
+					}
+
+
+				}
+
+			}
+
+
+			//copycanvas
+			var prvx=0, prvy=0;
+			socket.on('copypicsofmentor',function(ma){
+				//drawDot(copycontext,ma.pos[0],ma.pos[1]);
+
+
+				var cx=ma.pos[0]*(rect.right-rect.left);
+				var cy=ma.pos[1]*(rect.bottom-rect.top);
+
+				if(ma.statoption.code=='layer'){
+					var can=lcon;
+				}else{
+					var can=context;
+				}
+				if(ma.mousestat==='move'){
+					drawLine(can,prvx,prvy,cx,cy,ma.statoption,1);
+					prvx = cx;
+					prvy = cy;
+				}else if(ma.mousestat==='up'){
+					drawLine(can, prvx, prvy,cx,cy,ma.statoption,1);
+					prvx = 0;
+					prvy = 0;
+
+				}else if(ma.mousestat==='down'){
+					prvx = cx;
+					prvy = cy;
+				}
+			});
+			socket.on('eraseofmentor',function(ma){
+				if(ma.mode==0){
+					context.clearRect(0,0,myPics.width, myPics.height);	
+				}else{
+					lcon.clearRect(0,0,layerpic.width,layerpic.height);
+					lcon.fillStyle=environdefine.background[0];
+					lcon.fillRect(0,0,layerpic.width, layerpic.height);
+				}
+			});
+
+
+			function removeall(elename){
+				var ele=document.getElementById(elename)
+				while(ele.firstChild){
+					ele.removeChild(ele.firstChild);
+				}
+			}
+
+
+
+			socket.on('chattingtouser',function(a){
+				if(a.chatoption==0){
+					//socket.emit('chattingtoserver',{chatoption:1,chatmsg:a.chatmsg,username:userinfo.username});
+					/*
+					var chathistorydiv=document.getElementById('chathistory');
+					var msgdiv=document.createElement('div');	
+					msgdiv.style.textAlign='left';
+					var msga=document.createElement('A');
+					msga.innerHTML='From Mentor : '+a.chatmsg;
+					msgdiv.appendChild(msga);
+					chathistorydiv.appendChild(msgdiv);*/
+
+					removeall('sharedinputdiv');
+					var msgdiv=document.createElement('div');	
+					var msga=document.createElement('A');
+					msga.innerHTML=a.chatmsg;
+					msgdiv.appendChild(msga);
+					sharedinputdiv.appendChild(msgdiv);
+					MathJax.Hub.Queue(["Typeset",MathJax.Hub,"sharedinputdiv"])	
+
+
+
+				}else if(a.chatoption==3){
+					
+					var chathistorydiv=document.getElementById('chathistory');
+					var msgdiv=document.createElement('div');	
+					msgdiv.style.textAlign='right';
+					var msga=document.createElement('A');
+					msga.innerHTML=a.chatmsg;
+					msgdiv.appendChild(msga);
+					chathistorydiv.appendChild(msgdiv);
+								}
+			});
+
+			document.getElementById('chatmsg').addEventListener('keydown',function(e){
+				//if(!e){var e=window.event;}
+				//e.preventDefault();
+				if(e.keyCode==13){sendMenteemsg();}
+			},false);
+
+			function sendMenteemsg(){
+				var mentormsg=document.getElementById('chatmsg').value;
+				socket.emit('chattingtoserver',{username:userinfo.username,chatoption:2,chatmsg:mentormsg});
+				document.getElementById('chatmsg').value='';
+			}
+
+			function onSharepaper(s) {
+				var shbox=document.getElementById('chatbox');
+				if(s==0){
+					document.getElementById('sharepaperondiv').style.display='none';
+					//document.getElementById('optionpanel').appendChild(shbox);
+				}else if(s==1){
+					document.getElementById('sharepaperondiv').style.display='block';
+					//document.getElementById('sharepaperoptionbox').appendChild(shbox);
+				}
+			}
+
+			//touchCanvas
+			var touchX, touchY;
+			function getTouchPos(e) {
+				if (!e)var e = event;
+				if(e.touches) {
+					if (e.touches.length == 1) { // Only deal with one finger
+						var touch = e.touches[0]; // Get the information for finger #1
+						touchX=touch.pageX-touch.target.offsetLeft;
+						touchY=touch.pageY-touch.target.offsetTop;
+					}
+				}
+			}
+
+			function sketchpad_touchStart(){
+				getTouchPos();
+				x=touchX;
+				y=touchY;
+				drawLine(context, x, y, touchX, touchY,stat,0);
+				socket.emit('menteetomentordraw',{pos:convertToratio(x,y),mousestat:'down',statoption:stat})
+				event.preventDefault();	
+			}
+
+			function sketchpad_touchMove(e){
+				getTouchPos(e);
+				
+				drawLine(context, x, y, touchX, touchY,stat,0);
+				x=touchX;
+				y=touchY;
+				socket.emit('menteetomentordraw',{pos:convertToratio(x,y),mousestat:'move',statoption:stat})
+				event.preventDefault();	
+			}
+
+			
+			myPics.addEventListener('touchstart',sketchpad_touchStart, false);
+			myPics.addEventListener('touchmove',sketchpad_touchMove,false);
+
+
+			//convert to Ratio;
+			function convertToratio(rx, ry){
+				var canvaswt=rect.right-rect.left;
+				var canvashg=rect.bottom-rect.top;
+				var nx=rx/canvaswt;
+				var ny=ry/canvashg;
+				
+				return [nx,ny];
+			}
+				
+			//SHORT CUT KEY
+			document.onkeydown = function(e){
+				if(e.shiftKey && e.which==32){//first pen Shift+Space
+					stat.color=environdefine.firstpen[0];
+					stat.size=environdefine.firstpen[1];
+					stat.code=environdefine.firstpen[2];
+				}else if(e.shiftKey && e.which==81){//eraser; Shift + Q 
+					stat.color='';
+					stat.size=environdefine.eraser.size;
+					stat.code=environdefine.eraser.code;
+				}else if(e.shiftKey && e.which==82){ //second Key: Shift + R
+					stat.color=environdefine.secondpen[0];
+					stat.size=environdefine.secondpen[1];
+					stat.code=environdefine.secondpen[2];
+
+				}else if(e.shiftKey && e.which==69){ // 
+					//clearCanvas(); // Block in Mentee's area afraiding mistkaen erasing. 
+				}else if(e.shiftKey && e.which==187){
+					stat.size=stat.size*2;
+				}else if(e.shiftKey && e.which==189){
+					stat.size=stat.size*(.5);
+				}else if(e.shiftKey && e.which==78){
+					noteVisibility();
+				} 
+				document.getElementById('sizedisplay').innerHTML=stat.size;
+				document.getElementById('colordisplay').innerHTML=stat.color;
+			}
+
+			function b64ToUnit8Array(b64Image){
+					var img = atob(b64Image.split(',')[1]);	
+					var img_buffer=[];
+					var i=0;
+					while(i<img.length){
+						img_buffer.push(img.charCodeAt(i));
+						i++;
+					}
+					return new Uint8Array(img_buffer);
+			}
+
+
+			function screenSaveToServer(){
+
+
+				var sharediv=document.getElementById('sharedinputdiv');
+				var can3=document.createElement('canvas');
+				//sharediv.style.backgroundColor=environdefine.background[0]; // temporary inject to 
+				var ctx3=can3.getContext('2d');
+				can3.width=canvaswidth
+				can3.height=gratio*canvaswidth
+				can3.style.width=canvaswidth+'px';
+				can3.style.height=gratio*canvaswidth+'px';
+
+				html2canvas(sharediv).then(function(sharei){
+					
+					ctx3.drawImage(layerpic,0,0);
+					ctx3.drawImage(sharei,0,0);
+					ctx3.drawImage(myPics,0,0);
+
+					var b64Image=can3.toDataURL('image/png');
+					var blob = dataURItoBlob(b64Image);
+	
+					var formData = new FormData();
+					
+					formData.append('file',blob,'screen_'+userinfo.username+'_'+Date.now()+'.png');
+
+	
+					var xhr = new XMLHttpRequest();
+					xhr.open('post','/xhr',true);
+					xhr.send(formData);
+					alert('saved... in server');
+
+
+				});
+
+
+
+
+			
+				function dataURItoBlob(dataURI){
+					var byteString = atob(dataURI.split(',')[1]);
+					var mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0]
+
+					var ab = new ArrayBuffer(byteString.length);
+					var ia = new Uint8Array(ab);
+					for(var i=0; i<byteString.length; i++){
+						ia[i] = byteString.charCodeAt(i);
+					}
+					var bb = new Blob([ab],{'type':mimeString});
+					return bb;
+				}	
+
+
+			}
+
+			function screenSave(aid,canvid){
+
+				console.log('here');
+				var sharediv=document.getElementById('sharedinputdiv');
+				//sharediv.style.backgroundColor=environdefine.background[0];
+				html2canvas(sharediv).then(function(sharei){
+					var screensavea=document.createElement('A');
+					var can3=document.createElement('canvas');
+					var ctx3=can3.getContext('2d');
+					can3.width=canvaswidth
+					can3.height=gratio*canvaswidth
+					can3.style.width=canvaswidth+'px';
+					can3.style.height=gratio*canvaswidth+'px';
+
+
+					ctx3.drawImage(layerpic,0,0);
+					ctx3.drawImage(sharei,0,0);
+					ctx3.drawImage(myPics,0,0);
+					screensavea.download=userinfo.username+'_'+Date.now()+'.png';
+					screensavea.href=can3.toDataURL('image/png');
+					screensavea.click();
+					screensavea.click();
+					screensavea.click();
+
+				});
+			}
+			function mynoteSave(aid,canvid){
+				var screensavea=document.getElementById(aid);
+				screensavea.download=userinfo.username+'_'+Date.now()+'.png';
+				var canvasid=document.getElementById(canvid);
+				screensavea.href=canvasid.toDataURL();
+			}
+

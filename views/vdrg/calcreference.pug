@@ -1,0 +1,324 @@
+html
+	head
+		script(src='/socket.io/socket.io.js')
+	body
+		div
+			h2 Calc Reference
+		script.
+			var socket = io('/vdrg');
+			socket.on('connect',()=>{
+				console.log('connection ready');
+
+			});
+
+
+			socket.emit('rconnumbertovideo')
+			socket.on('rconnumbertovideoafter',function(a){
+				var robj=a.rcon;
+				var vi=a.vi;
+
+
+				var prbvidset=connRcontovideo(robj,vi);
+				console.log(prbvidset);
+
+
+				function filterSet(prbvidset,files,fstand){
+
+
+					var prbnovidset=[];
+					var zprbvidset=[];
+					if(fstand[0]==1){
+						for(var ia=0; ia<prbvidset.length; ia++){
+							zprbvidset[ia]=[];
+							prbnovidset[ia]=[];
+							for(var ib=0; ib<prbvidset[ia].length; ib++){
+								if(prbvidset[ia][ib].vidinfo.length!=0){
+									zprbvidset[ia].push(prbvidset[ia][ib]);
+								}else{
+									prbnovidset[ia].push(prbvidset[ia][ib]);
+								}
+							}
+						}
+					}
+					console.log(zprbvidset);
+					console.log(prbnovidset);
+
+					var prbtestset=[];
+					if(fstand[1]==1){
+						for(var ia=0; ia<prbvidset.length; ia++){
+							prbtestset[ia]=[];
+							for(var ib=0; ib<prbvidset[ia].length; ib++){
+								var chk=0;
+								for(var ic=0; ic<files.length; ic++){
+
+									var testname=files[ic].split('.');
+									var testnamea=testname[0]+'.'+testname[1];
+									if(testnamea==prbvidset[ia][ib].prbid){
+										chk=1;
+										break;
+									}
+								}
+								if(chk==1){
+									prbtestset[ia].push(prbvidset[ia][ib]);
+								}
+							}
+						}
+					}
+					console.log(prbtestset);
+				}
+				filterSet(prbvidset,a.files,[0,1]);
+				function connRcontovideo(robj,vi){
+					var slotlist=[];
+					for(var ib=0; ib<robj[0].r2list.length; ib++){
+						for(var ic=0; ic<robj[0].r2list[ib].r1list.length; ic++){
+							slotlist.push([robj[0].r3id,robj[0].r3listinfo,robj[0].r2list[ib].r2id,robj[0].r2list[ib].r2listinfo,robj[0].r2list[ib].r1list[ic][1],robj[0].r2list[ib].r1list[ic][2]]);
+						}
+					}
+
+
+					console.log(slotlist);
+
+					var prbvidset=[];
+					for(var ic=0; ic<slotlist.length; ic++){
+						var prblist=slotlist[ic][5].split(',');
+					
+						var prbvid=[];
+						for(var ia=0; ia<prblist.length; ia++){
+							prbvid[ia]={prbid:prblist[ia],vidinfo:[]};
+							for(var ib=0; ib<vi.length; ib++){
+								if(vi[ib].childcol==prblist[ia]){
+									prbvid[ia].vidinfo.push([vi[ib].vidaddr,vi[ib].vidinfo])
+								}
+							}
+						}
+
+						prbvidset.push(prbvid);
+					}
+				
+					return prbvidset;
+					
+
+					
+				}
+
+
+			});
+
+
+			socket.emit('calcreference');
+			socket.on('calcreferenceafter',function(a){	
+
+				var indr3set=[];
+				for(var ia=0; ia<a.a.length; ia++){
+					var chk=0;
+					for(var ib=0; ib<indr3set.length; ib++){
+						if(indr3set[ib][0]==a.a[ia].r3id){
+							chk=1;
+							break;
+						}
+					}	
+					if(chk==0){
+						indr3set.push([a.a[ia].r3id,a.a[ia].r3listinfo]);
+					}
+				}
+
+
+				rootobj=[];
+				for(var ia=0; ia<indr3set.length; ia++){
+					var indr2set=[];
+					rootobj[ia]={r3id:indr3set[ia][0],r3listinfo:indr3set[ia][1],r2list:[]}
+					for(var ib=0; ib<a.a.length; ib++){
+						if(a.a[ib].r3id==indr3set[ia][0]){
+							var chk=0;
+							for(var ic=0; ic<indr2set.length; ic++){
+								if(indr2set[ic][0]==a.a[ib].r2id){
+									chk=1;
+									break;
+								}
+							}
+							if(chk==0){
+								indr2set.push([a.a[ib].r2id,a.a[ib].r2listinfo])
+							}
+
+
+						}
+					}
+
+					for(var id=0; id<indr2set.length; id++){
+						var indr1set=[];
+						rootobj[ia].r2list[id]={r2id:indr2set[id][0],r2listinfo:indr2set[id][1]};
+						for(var ie=0; ie<a.a.length; ie++){
+							if(a.a[ie].r2id==indr2set[id][0]){
+								var chk=0;
+								for(var ig=0; ig<indr1set.length; ig++){
+									if(indr1set[ig][0]==a.a[ie].r1id){
+										chk=1;
+										break;
+									}
+								}
+								if(chk==0){
+									indr1set.push([a.a[ie].r1id,a.a[ie].r1listinfo,a.a[ie].prblist])
+								}
+							}
+						}
+						
+						rootobj[ia].r2list[id].r1list=indr1set;
+							
+					}
+
+				
+				}
+
+
+				function finishTouch(robj,lct){
+
+
+					function testShape(robj,lct){
+						var lctnu=lct.length;
+						if(lctnu==0){
+							return robj;
+						}else if(lctnu==1){
+							if(lct.length-1 < lct[0]){
+								console.log('lctnu=1, error from lct range at lctnu =1');
+								return null;
+							}else{
+								return robj[lct[0]].r2list;
+							}
+						}else if(lctnu==2){
+							if(robj.length-1 < lct[0]){
+								//console.log('lctnu=2, error from lct range at lctnu =1');
+								return null;
+							}else if(robj[lct[0]].r2list.length-1 < lct[1]){
+								//console.log('lctnu=2, error from lct range at lctnu =2');
+								return null;
+							}else{
+								
+								return robj[lct[0]].r2list[lct[1]].r1list;
+							}
+		
+						}else if(lctnu==3){
+							if(robj.length-1 < lct[0]){
+								console.log('lctnu=3, error from lct range at lctnu =1');
+								return null;
+							}else if(robj[lct[0]].r2list.length-1 < lct[1]){
+								console.log('lctnu=3, error from lct range at lctnu =2');
+								return null;
+							}else if(robj[lct[0]].r2list[lct[1]].r1list.length-1 < lct[2]){
+								console.log('lctnu=3, error from lct range at lctnu =3');
+								return null;
+							}else{
+								return robj[lct[0]].r2list[lct[1]].r1list[lct[2]];
+							}
+						
+						}
+					}
+
+
+					var r1count=0;
+					var prbcount=0;
+					var slotlist=[];
+					for(var ib=0; ib<robj[0].r2list.length; ib++){
+						for(var ic=0; ic<robj[0].r2list[ib].r1list.length; ic++){
+							r1count+=1;
+							slotlist.push([robj[0].r3id,robj[0].r3listinfo,robj[0].r2list[ib].r2id,robj[0].r2list[ib].r2listinfo,robj[0].r2list[ib].r1list[ic][1],robj[0].r2list[ib].r1list[ic][2]]);
+							prbcount+=robj[0].r2list[ib].r1list[ic][2].split(',').length;
+						}
+					}
+			
+					/*
+					if(lctnu==0){
+						return robj.length;
+					}else if(lctnu==1){
+						if(lct.length-1 < lct[0]){
+							console.log('lctnu=1, error from lct range at lctnu =1');
+						}else{
+							return robj[lct[0]].r2list.length;
+						}
+					}else if(lctnu==2){
+						if(robj.length-1 < lct[0]){
+							console.log('lctnu=2, error from lct range at lctnu =1');
+						}else if(robj[lct[0]].r2list.length-1 < lct[1]){
+							console.log('lctnu=2, error from lct range at lctnu =2');
+						}else{
+							return robj[lct[0]].r2list[lct[1]].r1list.length;
+						}
+	
+					}else if(lctnu==3){
+						if(robj.length-1 < lct[0]){
+							console.log('lctnu=3, error from lct range at lctnu =1');
+						}else if(robj[lct[0]].r2list.length-1 < lct[1]){
+							console.log('lctnu=3, error from lct range at lctnu =2');
+						}else if(robj[lct[0]].r2list[lct[1]].r1list.length-1 < lct[2]){
+							console.log('lctnu=3, error from lct range at lctnu =3');
+						}else{
+							return robj[lct[0]].r2list[lct[1]].r1list[lct[2]][2].split(',').length;
+						}
+					
+					}*/
+				}
+			
+
+
+					
+				console.log(finishTouch(rootobj,[0,3,1]));
+				for(var ia=0; ia<rootobj.length; ia++){
+					console.log(rootobj[ia].r2list.length);
+				}
+				//console.log(JSON.stringify(rootobj));
+
+
+			});
+	
+
+
+
+			/*
+				var indvidset=[];
+				for(var ia=0; ia<a.a.length; ia++){
+					var chk=0;
+					for(var ib=0; ib<indvidset.length; ib++){
+						if(indvidset[ib][0]==a.a[ia].id){
+							chk=1;
+							break;
+						}
+					}	
+					if(chk==0){
+						indvidset.push([a.a[ia].id,a.a[ia].vidaddr,a.a[ia].vidinfo]);
+					}
+				}
+
+				
+				vidprbobj=[];
+				for(var ia=0; ia<indvidset.length; ia++){
+					vidprbobj[ia]={id:indvidset[ia][0],vidinfo:indvidset[ia][2],vidaddr:indvidset[ia][1],prblist:[]}
+					for(var ib=0; ib<a.a.length; ib++){
+						if(a.a[ib].id==indvidset[ia][0]){
+							if(a.a[ib].childcol != null){
+								vidprbobj[ia].prblist.push([a.a[ib].childcol,a.a[ib].rkorder])
+							}
+						}
+					}
+				}
+
+
+				chosenlist=[];
+
+				for(var ia=0; ia<vidprbobj.length; ia++){
+
+					var listdiv=document.createElement('div');
+					listdiv.className='vidlist';
+					var videodiv=document.createElement('div');
+					var videosrc=document.createElement('iframe');
+					videosrc.src=vidprbobj[ia].vidaddr;
+					videodiv.appendChild(videosrc);
+					listdiv.appendChild(videodiv);
+					listdiv.id=vidprbobj[ia].id;
+					listdiv.onclick=function(i,j,k){return function(){
+		
+						registerToPanelVideo(i,j,k);
+					}}(vidprbobj[ia].id,vidprbobj[ia].vidaddr,vidprbobj[ia].prblist);
+					
+
+					videolistdiv.appendChild(listdiv);
+
+			*/

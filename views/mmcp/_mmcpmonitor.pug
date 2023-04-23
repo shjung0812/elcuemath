@@ -1,0 +1,299 @@
+html
+	head
+		title monitoring
+		script(type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML")
+		script(src='/socket.io/socket.io.js')
+		style.
+			#listdiv {
+				background-color:red;
+				width:100%;
+				height:100%;
+			}
+			#hwlist {
+				background-color:#aaaaaa;
+				float:left;
+				width:20%;
+				height:100%;
+			}
+			#prblist {
+				background-color:#cccccc;
+				float:left;
+				width:20%;
+				height:100%;
+				overflow:auto;
+
+			}
+			#imglist {
+				background-color:#dddddd;
+				float:left;
+				width:60%;
+				height:100%;
+				overflow:auto;
+			}
+
+			.imgdiv {
+				width:60%;
+				margin:5% auto;
+			}
+			.imgdiv img {
+				width:100%;
+			}
+			.evaltext {
+				margin:0 5%;
+				cursor:pointer;
+			}
+
+			.mmcpdiv {
+				width:90%;
+				padding:0 5%;	
+				margin:5% 0;
+			}
+			.prbpicdiv img {
+				width:100%;
+			}
+			.mmcpctspicdiv {
+				width:100%;
+			}
+			.mmcpctspicdiv img {
+				width:100%;
+			}
+
+
+	body
+		div(id='listdiv')
+			div(id='hwlist')
+			div(id='prblist')
+			div(id='imglist')
+		script.
+			var socket = io('/mmcp');
+			socket.on('connect',()=>{
+				console.log('mmcp connection ready');
+			});
+			var username='#{username}';
+			socket.emit('briefmmcphomeworkcall',{username:username});
+
+			socket.on('briefmmcphomeworkcallafter',function(a){
+				var mmcpind=[];
+				console.log(a);
+				for(var ia=0; ia<a.a.length; ia++){
+					var chk=0;
+					for(var ib=0; ib<mmcpind.length; ib++){
+						if(mmcpind[ib][0]==a.a[ia].mmcpconid){
+							chk=1;
+							break;
+						}
+					}
+					if(chk==0){
+						mmcpind.push([a.a[ia].mmcpconid, a.a[ia].listinfo,a.a[ia].mmcpprblist]);
+					}
+				}
+				var mmcppic=[];
+				for(var ia=0; ia<mmcpind.length; ia++){
+					mmcppic[ia]=[mmcpind[ia][0], mmcpind[ia][1],[],mmcpind[ia][2],[]]
+					for(var ib=0; ib<a.a.length; ib++){
+						if(mmcpind[ia][0]==a.a[ib].mmcpconid){
+							mmcppic[ia][2].push([a.a[ib].mpicid,a.a[ib].mmcpprb,a.a[ib].timeallocated, a.a[ib].timepassed,a.a[ib].createdate,a.a[ib].prbid]);
+
+							var chk=0;
+							for(var ic=0; ic<mmcppic[ia][4].length; ic++){
+								if(mmcppic[ia][4][ic]==a.a[ib].prbid){
+									chk=1;
+									break;
+								}
+							}
+							if(chk==0){
+								mmcppic[ia][4].push(a.a[ib].prbid)
+							}
+	
+						}
+					}
+
+					
+				}
+				console.log(mmcppic);
+				var hwlistdiv=document.getElementById('hwlist');
+				for(var ia=0; ia<mmcppic.length; ia++){
+					var fdiv=document.createElement('div');
+					fdiv.className='usercolorset';
+					fdiv.id='chosen'+mmcppic[ia][0];
+					var fdiva=document.createElement('a');
+					fdiva.innerHTML=mmcppic[ia][1]+' Solv Ratio : '+mmcppic[ia][4].length+'/'+(mmcppic[ia][3].split(',').length) +'개의 문제';
+					fdiv.appendChild(fdiva);
+					fdiv.onclick=function(i,j,k,l){
+						return function(){
+							mmcpprbCall(k,l);
+							prbpicDisplay(i);
+							userColorset(j)
+						}
+					}(mmcppic[ia][2],mmcppic[ia][0],mmcppic[ia][3],mmcppic[ia][4]);
+					hwlistdiv.appendChild(fdiv);
+				}
+
+					
+				for(var ia=0; ia<a.b.length; ia++){
+					var chk=0;
+					for(var ib=0; ib<hwlistdiv.childNodes.length; ib++){
+						if(hwlistdiv.childNodes[ib].id=='chosen'+a.b[ia].mmcpconid){
+							chk=1;
+							break;
+						}
+					}
+			
+					if(chk==0){
+						var fdiv=document.createElement('div');
+						fdiv.className='usercolorset';
+						var fdiva=document.createElement('a');
+						fdiva.innerHTML=a.b[ia].mmcplistinfo;
+						fdiva.style.color='yellow';
+						fdiv.appendChild(fdiva);
+						hwlistdiv.appendChild(fdiv);
+					}
+				
+				}
+
+			});
+
+			socket.on('prbcallfrommcpidafter',function(a){
+			
+				var mmcpdisplay=document.getElementById('prblist');
+				removeallele('prblist');
+				for(var ia=0; ia<a.a.length; ia++){
+					var mmcpdiv=document.createElement('div');
+					mmcpdiv.className='mmcpdiv';
+
+					var chk=0;
+					for(var ib=0; ib<a.solvedprb.length; ib++){
+						if(a.solvedprb[ib]==a.a[ia].prbid){
+							chk=1;
+							break;
+						}
+					}
+					if(chk==1){
+						mmcpdiv.style.border='thick dotted blue';
+					}
+
+
+					//function checkPrbregisterofuser(prbid){
+					//if(checkPrbregisterofuser(a.a[ia].prbid)){
+						//mmcpdiv.style.border='thick dotted red';
+					//}
+					if(a.a[ia].prbpickor!=null){
+						var mmcpctspicdiv=document.createElement('div');
+						var mmcpctspic=document.createElement('img');
+						mmcpctspic.src=a.a[ia].prbpickor;
+						mmcpctspicdiv.className='mmcpctspicdiv';
+						mmcpctspicdiv.appendChild(mmcpctspic);
+						mmcpdiv.appendChild(mmcpctspicdiv);
+					}
+					var mmcpctsdiv=document.createElement('DIV');
+					mmcpctsdiv.className='mmcplist';
+					mmcpctsdiv.id=a.a[ia].prbid;
+					var mmcpdiva=document.createElement('A');
+					mmcpdiva.innerHTML=a.a[ia].prbkorean.replace(/`/g,'');
+					mmcpctsdiv.appendChild(mmcpdiva);
+
+					//mmcpctsdiv.onclick=function(i){return function(){clickToChosen(i)}}(a.a[ia].prbid);
+					mmcpdiv.appendChild(mmcpctsdiv);
+					mmcpdisplay.appendChild(mmcpdiv);
+				}
+				MathJax.Hub.Queue(["Typeset",MathJax.Hub,mmcpdisplay]);
+ 
+
+	
+			});
+
+			function mmcpprbCall(chosenlist,solvedprb){
+				socket.emit('prbcallfrommcpid',{mcpid:chosenlist,solvedprb:solvedprb})
+			}
+			function prbpicDisplay(piclist){
+				removeallele('imglist');
+				var imglist=document.getElementById('imglist');
+				for(var ia=0; ia<piclist.length; ia++){
+					var imgdiv=document.createElement('div');
+					var prbdotted=document.getElementById('prb'+piclist[ia][5]);
+					if(prbdotted){
+						prbdotted.style.border='thick dotted blue'
+					}
+					imgdiv.className='imgdiv';
+
+
+					var imgeldiv=document.createElement('div');
+					var imgel=document.createElement('img');
+					imgel.src='/usernote/mmcphomework/'+piclist[ia][0];
+					imgeldiv.appendChild(imgel);	
+					imgdiv.appendChild(imgeldiv);
+
+					var imginfo=document.createElement('div');
+					var imginfoa=document.createElement('a');
+					imginfoa.innerHTML='  time passed : '+piclist[ia][3]+'/'+piclist[ia][2]+'   createdate:'+piclist[ia][4];
+					//imginfoa.innerHTML=a.a[ia].mmcpconid+'  time passed : '+a.a[ia].timepassed+'/'+a.a[ia].timeallocated+'   createdate:'+a.a[ia].createdate+'  Answer: '+a.a[ia].mmcpprb[2];
+					imginfo.appendChild(imginfoa);
+					imgdiv.appendChild(imginfo);
+
+
+					/*
+					
+					var mentorcomment=document.createElement('div');
+					var mentorcommentinput=document.createElement('input');
+					var mentorcommentbutton=document.createElement('button');
+					mentorcommentbutton.innerHTML='Send';
+
+				
+					var correcta=document.createElement('a');
+					correcta.className='evaltext';
+					correcta.innerHTML='correct';
+					correcta.onclick=function(j){
+						return function(){
+							sendMsgtouser(j,'correct','')
+						}
+					}(a.a[ia].numid);
+					mentorcomment.appendChild(correcta);
+
+					var wronga=document.createElement('a');
+					wronga.className='evaltext';
+					wronga.innerHTML='wrong';
+					wronga.onclick=function(j){
+						return function(){
+							sendMsgtouser(j,'wrong','')
+						}
+					}(a.a[ia].numid);
+					mentorcomment.appendChild(wronga);
+
+
+					if(a.a[ia].comment!=null){
+						if(a.a[ia].comment=='wrong'){
+							wronga.style.border='solid 1px red'
+							correcta.style.border=''
+						}else if(a.a[ia].comment=='correct'){
+							correcta.style.border='solid 1px red'
+							wronga.style.border=''
+						}else{
+						}
+					}*/
+
+
+					//imgdiv.appendChild(mentorcomment);
+
+					imglist.appendChild(imgdiv);
+				}
+				MathJax.Hub.Queue(["Typeset",MathJax.Hub,imglist]);
+				
+
+			}
+			function removeallele(elename){
+				var ele=document.getElementById(elename)
+				while(ele.firstChild){
+					ele.removeChild(ele.firstChild);
+				}
+			}
+			function userColorset(username){
+				var colordiv=document.getElementsByClassName('usercolorset');
+				for(var ia=0; ia<colordiv.length; ia++){
+					colordiv[ia].style.backgroundColor='';
+					colordiv[ia].style.color='';
+				}
+				document.getElementById('chosen'+username).style.backgroundColor='blue';
+				document.getElementById('chosen'+username).style.color='white';
+				
+			}
+

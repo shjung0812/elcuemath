@@ -1,0 +1,26 @@
+html
+	head
+		title Caller Page
+		script(src="https://unpkg.com/peerjs@1.0.0/dist/peerjs.min.js")
+		script(src='/socket.io/socket.io.js')
+		script(src='/cdct/audccaller.js')
+		script.
+			var plistj = !{JSON.stringify(plist).replace(/<\//g, '<\\/')}
+
+	body
+		div
+			h2 Caller page
+		div
+			-if(plist.length==0){
+				div
+					p No Ans User
+			-}else{
+				-for(var ia=0; ia<plist.length; ia++){
+
+					div
+						p(onclick='ConnectToAns();')=plist[ia]
+				-}
+			-}	
+		div
+			video
+		

@@ -1,0 +1,120 @@
+html
+	head
+		style.
+		script(src='/socket.io/socket.io.js')
+		script(src="https://unpkg.com/peerjs@1.0.0/dist/peerjs.min.js")
+		script.
+			var socket=io();
+			var peer= new Peer();
+			var Call;	
+
+			window.onload=function(){
+				var constraints = {
+					video:{ width:{ideal:4086},height:{ideal:2106}},audio:true
+				};
+				//constraints={audio:true}
+	
+
+
+
+
+				navigator.mediaDevices.getUserMedia(constraints).then(function(stream){
+
+
+					socket.on('mucmcallerresetcaller',function(ma){
+						alert('chooseres function called : '+ ma.peerid);
+						chooseres(ma.peerid,sendstream);
+					});
+
+
+					function chooseres(peerid,cb){
+						console.log(peerid+' connected with this id');
+						Call=peer.call(peerid, stream);
+						cb(Call);
+					}
+					function sendstream(call){
+						call.on('stream',function(remoteStream){
+							var ansvideo=document.getElementById('ansvideo');
+							ansvideo.srcObject = remoteStream;
+							ansvideo.onloadedmetadata = function(e){
+							ansvideo.play();		
+							}
+						});
+
+					}
+
+
+									
+							
+							var myvideo=document.getElementById('callervideo');
+							myvideo.srcObject = stream;
+							myvideo.onloadedmetadata = function(e){
+								myvideo.play();		
+							}
+				
+						socket.emit('mucminitialstatus');	
+
+					socket.on('mucmresidsent',function(rpeer){
+						var resdivout=document.getElementById('idsentusers');
+						removeall(resdivout);
+					
+						if(rpeer.csts.length==0){
+							var resdiv=document.createElement('div');
+							var pdiv=document.createElement('p');
+							pdiv.innerHTML= 'No Responds';
+							resdivout.appendChild(pdiv);
+						}else{
+							for(var ia=0; ia<rpeer.csts.length; ia++){
+								var resdiv=document.createElement('div');
+								var resbutton=document.createElement('button');
+								resbutton.innerHTML=rpeer.csts[ia][0];
+								resbutton.onclick=(function(i){return function(){chooseres(i,sendstream);};})(rpeer.csts[ia][1]);
+							
+								resdiv.appendChild(resbutton)
+								resdivout.appendChild(resdiv);
+							
+							}
+						}
+					
+					});
+
+
+
+
+				});
+				function removeall(ele){
+					while(ele.firstChild){
+						ele.removeChild(ele.firstChild);
+					}
+				}
+
+				function checkresid(){
+					var resdivout=document.getElementById('idsentusers');
+					console.log(resdivout);
+				}
+
+			}
+
+
+			peer.on('close',function(){
+				console.log('connection destroyed');
+			});
+			function Calldisconnected(){
+				Call.close();
+			}
+
+	
+
+
+	body
+		div
+			h2 MUCM Caller
+		div(id='idsentusers')
+		div
+			button(onclick="Calldisconnected()") terminate
+		div
+			video(id='callervideo')
+		div 
+			video(id='ansvideo')
+			
+		

@@ -1,0 +1,122 @@
+html
+	head
+		script(src='/socket.io/socket.io.js')
+		style.
+			#videobox {
+				width:100%;
+			}
+			.videodiv {
+				width:50%;
+				float:left;
+			}
+			video {
+				width:100%;
+			}
+	body
+		h2 media Test
+		div(id='videobox')
+			div(class='videodiv')
+				video(id='localVideo' autoplay playsinline controls='false')
+			div(class='videodiv')
+				video(id='remoteVideo' autoplay playsinline controls='false')
+			
+		script.
+			var socket = io('/mucm');
+			socket.on('connect',()=>{
+				console.log('mucm connected');
+				socket.emit('mucmsocketidregister',{user:'caller',socketid:socket.id,username:'mentor(optional)',position:2});
+
+			});
+
+
+			const constraints = {
+				'video':true,
+				'audio':true
+			}
+
+
+			if(navigator.mediaDevices){
+				navigator.mediaDevices.getUserMedia(constraints).then(async stream => {
+
+					const videoElement = document.querySelector('video#localVideo');
+					//videoElement.srcObject = stream;	
+
+
+					const configuration = {iceServers:[{urls:'turn:numb.viagenie.ca:3478',username:'eccentric1984@gmail.com',credential:'aa2732'}]};
+					const peerConnection = new RTCPeerConnection(configuration);
+
+					//peerConnection.addTransceiver('video', {direction:'sendonly'}).sender.replaceTrack(stream.getVideoTracks()[0]);
+
+
+					//send my stream to remote peer no matter what the fuck the connection established. 
+					stream.getTracks().forEach(track=>{
+						peerConnection.addTrack(track, stream);
+						//peerConnection.addTransceiver(track,stream);
+
+					});
+
+					const offer = await peerConnection.createOffer();
+					await peerConnection.setLocalDescription(offer);
+					socket.emit('webrtccallertoserver',{offer:offer})
+
+					socket.on('webrtcservertocaller', async message => {
+						if(message.answer){
+							const remoteDesc = new RTCSessionDescription(message.answer);
+							await peerConnection.setRemoteDescription(remoteDesc)
+						}
+					});	
+
+
+
+
+					peerConnection.onicecandidate = (e) => {
+						console.log(e.candidate);
+						socket.emit('webrtctoservernewicecandidate',{destination:'toresponder',newicecandidate:e.candidate});
+					}
+
+					socket.on('webrtctocallernewicecandidate',async function(a){
+						if(a.newicecandidate){
+							await peerConnection.addIceCandidate(a.newicecandidate);
+						}
+					});
+
+
+
+					let codecList=null;
+					peerConnection.addEventListener('connectionstatechange',e=>{
+						if(peerConnection.iceGatheringState==='complete'){
+							const senders = peerConnection.getSenders();
+							senders.forEach((sender)=>{
+								if(sender.track.kind==='video'){
+									codecList = sender.getParameters().codecs;
+									return;
+								}
+							});
+						}
+						var str='';
+						for(var ia=0; ia<codecList.length; ia++){
+							str=str+codecList[ia].mimeType+'@@';
+						}
+						codecList = null;
+					});
+		
+
+					console.log(peerConnection.getTransceivers());
+
+
+
+					const remoteStream = new MediaStream();
+					const remoteVideo = document.querySelector('video#remoteVideo');
+
+					peerConnection.addEventListener('track',async (event) => {
+						remoteStream.addTrack(event.track);
+						remoteVideo.srcObject = remoteStream
+					});
+					
+				})
+				.catch(error => {
+					console.error('Error accessing media devices',error);
+				});
+			}
+
+			

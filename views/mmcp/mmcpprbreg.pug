@@ -1,0 +1,207 @@
+html
+	head
+		title PrbRegister
+		script(type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML")
+		script(src='/socket.io/socket.io.js')
+		style.
+			#r3set,#r2set,#r1set {
+				margin: 2% 2%;
+			}
+	
+
+			#prbchosen {
+				background-color:#aaaaaa;
+				margin:2% 2%;
+			}
+			#prbcontents {
+				width:50%;
+				height:100%;
+				float:left;
+			}
+			#prbarea {
+				width:50%;
+				height:100%;
+				float:left;
+			}
+
+	body
+		
+		div(id='prbcontents')
+			div(id='r3set')
+			div(id='r2set')
+			div(id='r1set')
+		div(id='prbarea')
+			div(id='timebutton')
+			div(id='prbchosen')
+			div(id='prblistregister')
+		script.
+			var socket = io('/mmcp');
+			socket.on('connect',()=>{
+				console.log('mmcp connection ready');
+			});
+
+			var chosenprb;
+
+
+
+
+			socket.on('callprblistafter',function(a){
+				removeallele('prblistregister');
+				var prblistregister=document.getElementById('prblistregister');
+				for(var ia=0; ia<a.prblist.length; ia++){
+					var prbdiv=document.createElement('div');
+					var prbdivprb=document.createElement('div');
+					var prbdivprba=document.createElement('A');
+					prbdivprba.innerHTML=a.prblist[ia][1];
+					prbdivprb.appendChild(prbdivprba);
+					prbdivprb.id=a.prblist[ia][0];
+					prbdivprb.className='prbid';
+					prbdivprb.onclick=function(i,j){return function(){chosenPrb(i,j)}}(a.prblist[ia][0],a.prblist[ia][1]);
+					prbdiv.appendChild(prbdivprb);	
+					prblistregister.appendChild(prbdiv);				
+	
+				}
+				MathJax.Hub.Queue(["Typeset",MathJax.Hub,prblistregister]);
+			});
+
+	
+
+
+			function callmmcpPrblist(cptid){
+				socket.emit('mmcpcallprblist',{cptid:cptid});
+			}
+
+			socket.on('mmcpcallr1after',function(a){
+				removeallele('r1set');
+				var r1setdiv=document.getElementById('r1set');
+				for(var ia=0; ia<a.b.length; ia++){
+					var r1div=document.createElement('div');
+					r1div.onclick=function(i){
+						return function(){
+							callmmcpPrblist(i);
+						}
+					}(a.b[ia].cptid);
+					var r1diva=document.createElement('a');
+					r1diva.innerHTML=a.b[ia].listinfo;
+					r1div.appendChild(r1diva);
+					r1setdiv.appendChild(r1div);
+				}
+			});
+	
+
+			function callR1(r2id){
+				socket.emit('mmcpcallr1',{r2id:r2id});
+			}
+
+			socket.on('mmcpcallr2after',function(a){
+				removeallele('r2set');
+				var r2setdiv=document.getElementById('r2set');
+				for(var ia=0; ia<a.b.length; ia++){
+					var r2div=document.createElement('div');
+					r2div.onclick=function(i){
+						return function(){
+							callR1(i);
+						}
+					}(a.b[ia].r2id);
+					var r2diva=document.createElement('a');
+					r2diva.innerHTML=a.b[ia].r2listinfo;
+					r2div.appendChild(r2diva);
+					r2setdiv.appendChild(r2div);
+				}
+			});
+
+			function callR2(r3id){
+				socket.emit('mmcpcallr2',{r3id:r3id});
+			}
+
+			socket.on('mmcpcallr3after',function(a){
+				var r3set=document.getElementById('r3set');
+				for(var ia=0; ia<a.a.length; ia++){
+					var r3setdiv=document.createElement('div');
+					r3setdiv.onclick=function(i){
+						return function(){
+							callR2(i);
+						}
+					}(a.a[ia].r3id)
+					var r3setdiva=document.createElement('A');
+					r3setdiva.innerHTML=a.a[ia].listinfo;
+					r3setdiv.appendChild(r3setdiva);
+					r3set.appendChild(r3setdiv);
+				}
+			});
+
+			callR3();
+			function callR3(){
+				socket.emit('mmcpcallr3');
+			}
+
+
+			socket.on('prbregisterafter',function(a){
+				alert(a.prbid + ' is registered');
+			});
+
+			function registerPrb(){
+				var ststime=document.getElementById('stsinput').value;
+				if(Number(ststime)>1 ){
+					if(chosenprb!=''){
+						socket.emit('prbregister',{prbid:chosenprb,solutiontime:Number(ststime)});
+					}else{
+						alert('prb is empty');
+					}
+				}else{
+					alert('check Number');
+				}
+			}
+
+			function chosenPrb(prbid,prbcon){
+				removeallele('prbchosen')
+				var prbiddiv=document.getElementsByClassName('prbid');
+				for(var ia=0; ia<prbiddiv.length; ia++){
+					prbiddiv[ia].style.backgroundColor='';
+				}
+
+				var prbchosen=document.getElementById('prbchosen');
+				var prbchosendiv=document.createElement('div');
+				var prbchosena=document.createElement('A');
+				prbchosena.innerHTML=prbcon;
+				prbchosendiv.appendChild(prbchosena);
+				prbchosen.appendChild(prbchosendiv);
+				document.getElementById(prbid).style.backgroundColor='red';
+				document.getElementById(prbid).style.color='white';
+
+				chosenprb=prbid;
+				MathJax.Hub.Queue(["Typeset",MathJax.Hub,prbchosen]);
+
+
+
+				removeallele('timebutton');
+				var timebutton=document.getElementById('timebutton')
+				var solutiontimeset=document.createElement('div');
+				var stsinput=document.createElement('input');
+				stsinput.id='stsinput';
+				stsinput.value=60;
+			
+				solutiontimeset.appendChild(stsinput);
+				timebutton.appendChild(solutiontimeset);
+	
+				var stsbutton=document.createElement('button');
+				stsbutton.innerHTML='Send';
+
+				var stsbuttondiv=document.createElement('div');
+				stsbuttondiv.appendChild(stsbutton);
+				solutiontimeset.appendChild(stsbuttondiv);
+				stsbutton.onclick=function(){registerPrb();}	
+				timebutton.appendChild(stsbutton);
+
+			}
+
+			function removeallele(elename){
+				var ele=document.getElementById(elename)
+				while(ele.firstChild){
+					ele.removeChild(ele.firstChild);
+				}
+			}
+
+
+		
+		

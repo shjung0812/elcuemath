@@ -1,0 +1,170 @@
+html
+	head
+		script(type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML")
+		script(src='/socket.io/socket.io.js')
+		title Glance Test All users
+		style.
+			#imglist {
+			}
+			.imgdiv {
+				width:60%;
+				margin:5% auto;
+			}
+			.imgdiv img {
+				width:100%;
+			}
+
+
+	body
+		div(id='userlistdiv')
+		div(id='imglist')
+
+
+		script.
+			var socket = io('/mmcp');
+			var socket2 = io('/vdrg');
+			socket.on('connect',()=>{
+				console.log('mmcp connection ready');
+			});
+
+			function removeallele(elename){
+				var ele=document.getElementById(elename)
+				while(ele.firstChild){
+					ele.removeChild(ele.firstChild);
+				}
+			}
+
+			function callvdrgUsers(userfile){
+				socket2.emit('getcurrentvdrgusers',{userfile:userfile});
+			}
+
+			function sendRecord(chosenusername,prbid,cptid){
+				var msglist=['coversta','instructprb','sharehomeworkresult','shareglancetestresult'];
+				console.log('ssss');
+				socket2.emit('vdrgwriterecord',{username:chosenusername,hisopt:msglist[3],prbid:prbid,cptid:cptid});
+			}
+
+
+
+
+			socket2.on('getcurrentvdrgusersafter',function(a){
+
+				var userbox=document.createElement('div');
+				var color=['white','blue']
+				var duration=5000;
+				userbox.setAttribute("style","position:fixed;z-index:20;top:10%;left:35%;background-color:"+color[0]+";padding:5% 10%;color:"+color[1]+";");
+
+				var mentoridlist=[];
+				var menteeidlist=[];
+
+
+				for(var ia=0; ia<a.users.length; ia++){
+					if(a.users[ia].connectionstate==1){
+						mentoridlist.push([a.users[ia].mentorid,a.users[ia].mentorsocketid,a.users[ia].menteelist]);
+					}
+				}
+				for(var ia=0; ia<mentoridlist.length; ia++){
+					var userdiv=document.createElement('div');
+					userdiv.innerHTML=mentoridlist[ia][0];
+					userdiv.onclick=function(ma,mb,mc){
+						return function(){
+							var userboxi=document.createElement('div');
+							var color=['black','white']
+							var duration=5000;
+							userboxi.setAttribute("style","position:fixed;z-index:20;top:10%;left:35%;background-color:"+color[0]+";padding:5% 10%;color:"+color[1]+";");
+							for(var ib=0; ib<mb.length; ib++){
+				
+								if(mb[ib].connectionstate==1){
+									var tdiv=document.createElement('div');
+									tdiv.innerHTML=mb[ib].username;
+									tdiv.onclick=function(k,l,m,n){
+										return function(){
+											socket2.emit('vdrgsharehomework',{menteesocketid:k,mentorsocketid:l,userfile:m,auxaddr:'/mmcppic/'});
+											sendRecord(n,m,'')
+										}
+									}(mb[ib].menteesocketid,ma,mc,mb[ib].username);
+									userboxi.appendChild(tdiv);
+								}
+							}
+							document.body.appendChild(userboxi);
+							setTimeout(function(){
+								userboxi.parentNode.removeChild(userboxi);
+							},duration);
+						}
+					}(mentoridlist[ia][1],mentoridlist[ia][2],a.userfile);
+					userbox.appendChild(userdiv);
+					
+				}
+				setTimeout(function(){
+					userbox.parentNode.removeChild(userbox);
+				},duration);
+				document.body.appendChild(userbox);
+
+
+
+			});
+
+
+
+
+
+
+			socket.on('briefmmcpglancetestcallafter',function(a){
+				removeallele('imglist');
+				var imglist=document.getElementById('imglist');
+				for(var ia=0; ia<a.a.length; ia++){
+					var imgdiv=document.createElement('div');
+					imgdiv.className='imgdiv';
+
+					var imgeldiv=document.createElement('div');
+					var imgel=document.createElement('img');
+					imgel.src='/usernote/mmcppic/'+a.a[ia].mpicid;
+					imgel.onclick=function(i){
+						return function(){
+							callvdrgUsers(i);
+						}
+					}(a.a[ia].mpicid)
+
+
+
+					imgeldiv.appendChild(imgel);	
+					imgdiv.appendChild(imgeldiv);
+
+					var imginfo=document.createElement('div');
+					var imginfoa=document.createElement('a');
+					imginfoa.innerHTML=a.a[ia].mmcpconid+'  time passed : '+a.a[ia].timepassed+'/'+a.a[ia].timeallocated+'   createdate:'+a.a[ia].createdate+'  Answer: '+a.a[ia].mmcpprb[2];
+					imginfo.appendChild(imginfoa);
+					imgdiv.appendChild(imginfo);
+
+					imglist.appendChild(imgdiv);
+				}
+				MathJax.Hub.Queue(["Typeset",MathJax.Hub,imglist]);
+				
+			});
+
+
+
+
+			callPichistory();
+			function callPichistory(){
+				socket.emit('mmcphomeworkcalluserlist');
+			}
+
+			socket.on('mmcphomeworkcalluserlistafter',function(a){
+				var choicelist=document.getElementById('userlistdiv');
+				for(var ia=0; ia<a.a.length; ia++){
+					var userdiv=document.createElement('div');
+					userdiv.onclick=function(i){
+						return function(){
+							socket.emit('briefmmcpglancetestcall',{username:i});
+						}
+					}(a.a[ia].username);
+					var userdiva=document.createElement('A');
+					userdiva.innerHTML=a.a[ia].username;
+					userdiv.appendChild(userdiva);
+					choicelist.appendChild(userdiv);
+				}
+
+			});
+
+

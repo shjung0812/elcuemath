@@ -1,0 +1,53 @@
+html
+	
+	head
+		style.
+			#title a {
+				text-decoration:none;
+				color:black;
+				font-size:1.5em;
+			}
+		script.
+			var caselist=!{JSON.stringify(caselist)}
+			function AssignLinkTo(){
+				for(var ia=0; ia<caselist.length; ia++){
+					if(caselist[ia][2]==1){
+						var pg=document.getElementById(caselist[ia][0]);
+						pg.childNodes[0].href='./eer?stchk=6&csbid='+caselist[ia][3];
+					}
+				}
+			}
+			function AssignNotification(){
+
+				for(var ia=0; ia<caselist.length; ia++){
+					if(caselist[ia][2]==1){
+						var pg=document.getElementById(caselist[ia][0]);
+						pg.style.borderStyle='solid';
+					}else{
+						var pg=document.getElementById(caselist[ia][0]);
+						pg.style.color='#bbbbbb';
+					}
+				}
+
+
+			}
+			window.onload=function(){
+				//AssignLinkTo();
+				AssignNotification();
+			}
+
+
+
+	body
+		div(id='title')
+			a(href='./eer?stchk=7&slabid='+slabid) pick caselist
+		div
+			-for(var ia=0; ia<caselist.length; ia++){
+				div(id=caselist[ia][0])
+					-if(caselist[ia][2]==1){
+						a(href='./eer?stchk=9&caseid='+caselist[ia][0]+'&slkid='+slkid)=caselist[ia][1]
+					-}else{
+						a=caselist[ia][1]
+					-}
+			-}
+			

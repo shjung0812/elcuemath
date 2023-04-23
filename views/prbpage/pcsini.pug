@@ -1,0 +1,117 @@
+html
+	head
+		style.
+			#crindexlist div a {
+				text-decoration:none;
+				color:black;				
+			}
+			#back {
+				font-size:2em;
+				text-decoration:none;
+				color:black;				
+			}
+			#caseoptionboard {
+				width:50%;
+				background-color:#124512;
+			}
+			#caseoptiondiv {
+				width:100%;
+				background-color:#215421;
+			}
+			#caseoptioncreate {
+				width:33%;
+				background-color:#45aa45;
+				float:left;
+			}
+			#caseoptionupdate {
+				width:33%;
+				background-color:#aaeeaa;
+				float:left;
+			}
+			#createpcp {
+				width:34%;
+				background-color:#ccffcc;
+				float:left;
+			}
+			#forming {
+				display:none;
+			}
+			.caseupdate {
+				width:2%;
+				background-color:#aaeeaa;
+				display:none;
+			}
+		script.
+			function caseoptioncreate(){
+				document.getElementById('forming').style.display='block';
+				document.getElementById('rdcreate').checked=true;
+				document.getElementById('rdcreate').style.display='none';
+				document.getElementById('rdupdate').style.display='none';
+				document.getElementById('rddelete').style.display='none';
+				document.getElementById('pcsid').style.display='none';
+			}
+			function callupdate(){
+				var up=document.getElementsByClassName('caseupdate');
+				for(var ia=0; ia<up.length; ia++){
+					up[ia].style.display='inline-block';
+				}
+			}
+			function caseoptionupdate(pcsid){
+				document.getElementById('forming').style.display='block';
+				document.getElementById('rdupdate').checked=true;
+				document.getElementById('rdcreate').style.display='none';
+				document.getElementById('rdupdate').style.display='none';
+				document.getElementById('rddelete').style.display='none';
+				document.getElementById('pcsid').style.display='none';
+				document.getElementById('pcsid').value=pcsid;
+
+				removefocus();
+				document.getElementById(pcsid).style.backgroundColor='#aaeeaa';
+
+			}
+			function createpcp(){
+				document.getElementById('forming').style.display='block';
+				document.getElementById('rdcreate').checked=true;
+				document.getElementById('rdcreate').style.display='none';
+				document.getElementById('rdupdate').style.display='none';
+				document.getElementById('rddelete').style.display='none';
+				document.getElementById('pcsid').style.display='none';
+				document.getElementById('pcsopt').value='pcp';
+			}
+			function removefocus(){
+				var crindexlist=document.getElementById('crindexlist');
+				for(var ia=0; ia<crindexlist.childNodes.length; ia++){
+					if(crindexlist.childNodes[ia].nodeName==='DIV'){
+						crindexlist.childNodes[ia].style.backgroundColor='';
+					}
+				}
+			}
+	body
+		div(id='bodydiv')
+			a(href='./pcsclassify?stchk=-1' id='back') Elcue Point System
+			div(id='forming')
+				form(action='/admin/pcsclassifyform',method='get')
+					a pcsinfo
+					input(type='text',id='pcsinfo',name='pcsinfo')
+					input(type='hidden',id='pcsopt',name='pcsopt', value='csindex')
+					input(type='hidden', id='pcsid' name='pcsid')
+					input(type='radio',id='rdcreate',name='modimode', value=0 checked)
+					input(type='radio',id='rdupdate',name='modimode', value=1)
+					input(type='radio',id='rddelete',name='modimode', value=2)
+					input(type='submit', value='submit')
+
+
+
+		div(id='crindexlist')
+			-for(var ia=0; ia<rs.length; ia++){
+				div(id=rs[ia][0])
+					a(onclick='caseoptionupdate("'+rs[ia][0]+'")' class='caseupdate') U
+					a=rs[ia][2]
+					a(href='./pcsclassify?stchk=1&crindex='+rs[ia][0]+'&pcsinfo='+rs[ia][1])=rs[ia][1]
+			-}
+		div(id='displaycaseoption')
+			div(id='caseoptionboard')
+				div(id='caseoptiondiv')
+					div(id='caseoptioncreate' onclick='caseoptioncreate()') case create
+					div(id='caseoptionupdate' onclick='callupdate()') case update
+					div(id='createpcp' onclick='createpcp()') pcp create

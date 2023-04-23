@@ -1,0 +1,18 @@
+html
+	head
+		script(src='/socket.io/socket.io.js')
+	body
+		div
+			input(type='text' id='operationinfo')
+			button(onclick='editIndex()') click
+		script.
+			var socket = io('/whalse',{
+				transports:['websocket'],
+				upgrade:false
+			});
+			var username='wjdtjrgus';
+			function editIndex(){	
+				var operationinfo=document.getElementById('operationinfo');
+				socket.emit('quatertimeindex',{teacherid:username,operationinfo:operationinfo.value,mode:'create'});
+			}
+

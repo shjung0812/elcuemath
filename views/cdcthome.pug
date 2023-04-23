@@ -1,0 +1,31 @@
+html
+	head
+		link(rel='stylesheet' href='cdct/cdcthome.css')
+		style.
+	body
+		div
+			h2 정석현의 홈페이지
+		div
+			p=sessiontest
+
+		div
+			a(href='') Drawing test
+		-if(user){
+			div
+				a(href='/logout') Logout
+		-}
+		div
+			a(href='/login') Login
+		div
+			a(href='/sies/home') SIES 
+		div
+			a(href='/mmcc/home') Mento Mentee Communication
+		div
+			a(href='/audiocall/choicepage') Audiocall
+		div
+			a(href='/chattest') ChatTest
+		div
+			a(href='/mucm') Multi User Communication 
+	
+
+

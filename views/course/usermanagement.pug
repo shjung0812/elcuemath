@@ -1,0 +1,17 @@
+html
+	head
+		style.
+			a {
+				display:inline-block;	
+				width:7%;
+			}
+	body
+		div(id='back')
+		div
+			-for(var ia=0; ia<rs.length; ia++){
+				div
+					a=rs[ia].DisplayName
+					a=rs[ia].username
+					a(href='./usermanagementedit?emode=0&userregi='+rs[ia].userregi) remove
+			-}
+			

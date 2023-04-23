@@ -1,0 +1,484 @@
+html
+	
+	head
+		title SIES mentee page
+		style.
+			body {
+				padding:0;
+				margin:0;
+			}
+			
+			#prbsignalwrap {
+				background-color:#0000ff;	
+				width:100%;
+				height:100%;
+				overflow:auto;
+			}
+
+			#prblistbox {
+				width:60%;
+				height:100%;
+				float:left;
+				overflow:auto;
+				margin:0 10%;
+			}
+			#signalwrap {
+				width:20%;
+				height:100%;
+				background-color:#ffff66;
+				float:left;
+			}
+			.prbcontainer {
+				width:80%;
+				margin:2px 0;
+				padding:0 10%;
+				background-color:#cc9999;
+			}
+			#signalresultsendbox {
+				width:100%;
+				background-color:#99ffff;
+				cursor: pointer;
+			}
+			#signalresultsendbox p {
+				font-size:3em;
+			}
+			#signalvideocallbox {
+				width:100%;
+				height:30%;
+				background-color:#99ffff;
+				cursor: pointer;
+			}
+			#signalvideocallbox p {
+				font-size:3em;
+			}
+			#waitingcontentwrap {
+				background-color:#f2a333;
+				width:100%;
+				height:100%;
+				position:fixed;
+				top:0;
+				left:0;
+			}
+			#waitingcontentbox {
+				width:100%;
+				height:70%;
+				position:relative;
+				top:15%;
+				background-color:#aaaaaa;
+			}
+			.prbchoice {
+				cursor:pointer;
+			}
+			.prbchoice:hover {
+				background-color:red;
+			}
+			
+			#videopopupwrap {
+				width:100%;
+				height:100%;
+				position:fixed;
+				background-color:#33ff77;
+				top:0;
+				left:0;
+			}
+
+			#mentorvideobox {
+				width:80%;
+				height:100%;
+				background-color:#115511;
+				float:left;
+			}
+			#videooptionbox {
+				width:20%;
+				height:100%;
+				background-color:#339922;
+				float:left;
+			}
+			#selfvideobox {
+				width:100%;
+				height:80%;
+				background-color:#22aa77;
+			}
+			#videodisconnectbox {
+				width:100%;
+				height:20%;
+				background-color:#228811;	
+			}
+
+
+			#mentorvideobox video {
+				width:100%;
+				height:100%;
+			}
+			#selfvideobox video {
+				width:100%;
+				height:100%;
+			}
+
+			#messageforwaiting {
+				position:absolute;
+				top:30%;
+				left:0%;
+				width:100%;;
+				height:50%;
+				background-color:#ff2288;
+			}
+		script(src='/socket.io/socket.io.js')
+		script(src="https://cdn.jsdelivr.net/npm/peerjs@0.3.20/dist/peer.min.js")
+		script(type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML")
+		script.
+			Element.prototype.remove = function() {
+				this.parentElement.removeChild(this);
+			}
+			NodeList.prototype.remove = HTMLCollection.prototype.remove = function() {
+			for(var i = this.length - 1; i >= 0; i--) {
+				if(this[i] && this[i].parentElement) {
+					this[i].parentElement.removeChild(this[i]);
+				}
+			}
+			}
+			var socket=io('/sies');
+			var peer = new Peer();
+			var Call;
+			var Stream;
+			var a=0;
+			socket.on('connect',()=>{
+				console.log('connection ready');
+				socket.emit('siessendsocketid',{socketid:socket.id,userkind:1});
+				waitingstate();
+
+			});
+
+
+
+			peer.on('call',function(call){
+				Call=call
+
+				var selfvideobox=document.getElementById('selfvideobox');
+				var mentorvideobox=document.getElementById('mentorvideobox');
+	
+				var selfvideo=document.getElementById('selfvideo');
+				var mentorvideo=document.getElementById('mentorvideo');
+		
+				var constraints={video:true,audio:true}
+				navigator.mediaDevices.getUserMedia(constraints).then(function(stream){
+					console.log('in');
+					selfvideo.srcObject = stream;
+					selfvideo.onloadedmetadata = function(e){
+						selfvideo.play();		
+					}
+					//Stream=stream;
+					call.answer(stream)
+				}).catch(function(err){
+					console.log('out');
+					call.answer();
+					/*
+					call.on('stream',function(remoteStream){
+						mentorvideo.srcObject = remoteStream;
+						mentorvideo.onloadedmetadata = function(e){
+							mentorvideo.play();		
+						}
+					});*/
+				});
+
+
+				call.on('stream',function(remoteStream){
+					mentorvideo.srcObject = remoteStream;
+					mentorvideo.onloadedmetadata = function(e){
+						mentorvideo.play();		
+					}
+				});
+				hideelement('messageforwaiting');
+			});
+
+		
+
+			socket.on('siescallterminatebymentortomentee',function(){
+				console.log('disconnect call is reached');
+				showelement('messageforwaiting')
+				hideelement('videopopupwrap');
+	
+				Call.close();
+
+
+				var selfvideo=document.getElementById('selfvideo');
+				if(selfvideo.srcObject!=null){
+					let tracks=selfvideo.srcObject.getTracks()
+					tracks.forEach(function(track){
+						track.stop();
+					});
+				}
+
+				selfvideo.srcObject = null;
+
+				var instructorvideo=document.getElementById('mentorvideo');
+				let tracksobj=instructorvideo.srcObject;
+				if(tracksobj){
+					let tracks1=tracksobj.getTracks();
+					tracks1.forEach(function(track){
+						track.stop();
+					});
+					instructorvideo.srcObject = null;
+				}
+
+			});
+
+
+			var prbstatepanel=[null,null,null];// [crsinfo, correct_incorrect , ansernumber]
+			socket.on('getlearningmaterialfrommentor',function(ma){
+				hideelement('waitingcontentwrap');
+				removeallele('prblistbox')
+				//removeallele('wrapprbcontent')
+
+				//#prbstatepanel initialization
+				console.log(ma);
+				prbstatepanel[0]=[ma.crsname,ma.ele,ma.prbs.length];
+				prbstatepanel[1]=[];
+				prbstatepanel[2]=[];
+				for(var ia=0; ia<ma.prbs.length; ia++){
+					prbstatepanel[1].push(0);
+				}
+				//prbstatepanel initialization#
+			
+
+				var wrapprbcontent=document.getElementById('prblistbox');
+
+				var videodiv=document.createElement('div');
+				videodiv.id='videodiv';
+				var video=document.createElement('iframe');
+				video.src=ma.vidaddr;
+				videodiv.appendChild(video);
+				wrapprbcontent.appendChild(videodiv);
+				
+				
+				var prblistdiv=document.createElement('div');
+				prblistdiv.id='prblist';
+				wrapprbcontent.appendChild(prblistdiv);
+
+				for(var ia=0; ia<ma.prbs.length; ia++){
+					//prbstatepanel update
+					prbstatepanel[2][ia]=ma.prbs[ia][3];
+
+					var prbcontainer=document.createElement('DIV');
+					prbcontainer.className='prbcontainer';
+
+					var prbdiv=document.createElement('DIV');	
+					prbdiv.className='prbdiv'
+					var prbp=document.createElement('p');
+					prbp.innerHTML=ma.prbs[ia][1];
+					prbdiv.appendChild(prbp);
+					prbcontainer.appendChild(prbdiv);
+
+
+					var wrapprbchoice=document.createElement('DIV');
+	
+					var prbchoicediva=document.createElement('DIV');
+					var prbchoicea = document.createElement('p');
+					prbchoicediva.appendChild(prbchoicea);
+
+					var prbchoiceb = document.createElement('p');
+					var prbchoicedivb=document.createElement('DIV');
+					prbchoicedivb.appendChild(prbchoiceb);
+
+					var prbchoicec = document.createElement('p');
+					var prbchoicedivc=document.createElement('DIV');
+					prbchoicedivc.appendChild(prbchoicec);
+
+					var prbchoiced = document.createElement('p');
+					var prbchoicedivd=document.createElement('DIV');
+					prbchoicedivd.appendChild(prbchoiced);
+
+					var prbchoicee = document.createElement('p');
+					var prbchoicedive=document.createElement('DIV');
+					prbchoicedive.appendChild(prbchoicee);
+
+					prbchoicediva.className='prbchoice'
+					prbchoicedivb.className='prbchoice'
+					prbchoicedivc.className='prbchoice'
+					prbchoicedivd.className='prbchoice'
+					prbchoicedive.className='prbchoice'
+				
+					prbchoicea.innerHTML=ma.prbs[ia][4];
+					prbchoiceb.innerHTML=ma.prbs[ia][5];
+					prbchoicec.innerHTML=ma.prbs[ia][6];
+					prbchoiced.innerHTML='답이없다';
+					prbchoicee.innerHTML="Don't Know"
+
+					prbchoicediva.onclick=(function(i){ return function() {judgerightanswer(i,1)}})(ia);
+					prbchoicedivb.onclick=(function(i){ return function() {judgerightanswer(i,2)}})(ia);
+					prbchoicedivc.onclick=(function(i){ return function() {judgerightanswer(i,3)}})(ia);
+					prbchoicedivd.onclick=(function(i){ return function() {judgerightanswer(i,4)}})(ia);
+					prbchoicedive.onclick=(function(i){ return function() {judgerightanswer(i,5)}})(ia);
+		
+					wrapprbchoice.appendChild(prbchoicediva);
+					wrapprbchoice.appendChild(prbchoicedivb);
+					wrapprbchoice.appendChild(prbchoicedivc);
+					wrapprbchoice.appendChild(prbchoicedivd);
+					wrapprbchoice.appendChild(prbchoicedive);
+
+					prbcontainer.appendChild(wrapprbchoice);
+					prblistdiv.appendChild(prbcontainer);
+				}
+				MathJax.Hub.Queue(["Typeset",MathJax.Hub,"prblistbox"])	
+			});
+
+			function testcompleteallmaterial(){
+				var ja=0;
+				for(var ia=0; ia<prbstatepanel[1].length; ia++){
+					if(prbstatepanel[1][ia]==0){
+						ja=1;
+						break;
+					}
+				}
+				
+				if(ja==0){
+					return 1; // all course is completed. 
+				}else{
+					return 0;
+				}
+			}
+
+
+			function waitingstate(){
+				removeallele('waitingcontentwrap')
+				var waitingdiv=document.createElement('div');
+				waitingdiv.id='waitingcontentbox';
+				var waitingdivp=document.createElement('p');
+				waitingdivp.innerHTML='Waiting...';
+				waitingdiv.appendChild(waitingdivp);
+				var wrapprbcontent=document.getElementById('waitingcontentwrap');
+				wrapprbcontent.appendChild(waitingdiv);
+
+				showelement('waitingcontentwrap');
+				document.getElementById('signalresultsendbox').style.display='none';	
+				hideelement('videopopupwrap');
+			}	
+
+			function sendlearningresult(){
+				var testcomplete=testcompleteallmaterial();
+				if(testcomplete==0){
+					alert('The problems are not completed yet');
+				}else{
+					socket.emit('learningresultsent',{socketid:socket.id,prbstatepanel:prbstatepanel,mentee:'menteeid',mentor:'shjung'});
+					//alert('Sent to Mentor');
+					waitingstate();
+					tempAlert('Sent to Mentor within 3 seconds.....', 3000);
+				
+				}
+			}
+
+
+			function indicateSolved(ele,ansindex){
+				resetallchoicecolor(ele);
+				var prbcontainer=document.getElementsByClassName('prbcontainer');
+				prbcontainer[ele].childNodes[1].childNodes[ansindex].style.backgroundColor='orange';
+			}
+			function resetallchoicecolor(ele){
+				var prbcontainer=document.getElementsByClassName('prbcontainer');
+				//prbcontainer[0].childNodes[1].childNodes[prbindex].style.backgroundColor='orange';
+	
+				for(var ia=0; ia<5; ia++){
+					prbcontainer[ele].childNodes[1].childNodes[ia].style.backgroundColor='';
+					
+				}
+			}
+
+
+
+			function tempAlert(msg,duration){
+				var el = document.createElement("div");
+				el.setAttribute("style","position:absolute;top:10%;left:35%;background-color:white;padding:5% 10%;");
+				el.innerHTML = msg;
+				setTimeout(function(){
+					el.parentNode.removeChild(el);
+				},duration);
+				document.body.appendChild(el);
+			}
+
+			function judgerightanswer(prbindex,choicenum){
+				indicateSolved(prbindex,choicenum-1)
+				if(prbstatepanel[2][prbindex]===choicenum){
+					prbstatepanel[1][prbindex]=1; //Correct
+				}else if(choicenum===5){
+					prbstatepanel[1][prbindex]=3; //Incorrect by don't know
+				}else{
+					prbstatepanel[1][prbindex]=2; //Incorrect by ignore
+				}
+
+				var testcomplete=testcompleteallmaterial();
+				if(testcomplete==0){
+				}else{
+					//alert('All problem are answered. ; You can send the result pressing the button on the right');
+					var shown = true;	
+					document.getElementById('signalresultsendbox').style.display='block';	
+					setInterval(function(){
+						messageToggle('signalresultsendbox');
+					},500);
+				}
+
+				function messageToggle(idstring){
+					console.log(0);
+					if(shown){
+						console.log(1);
+						document.getElementById(idstring).style.backgroundColor='black';	
+						shown=false;
+					}else{
+						console.log(2);
+						document.getElementById(idstring).style.backgroundColor='white';	
+						shown=true;
+					}
+				}
+
+
+
+
+			}
+
+			function removeallele(parentid){
+				var parent=document.getElementById(parentid);
+				while(parent.firstChild){
+					parent.firstChild.remove();
+				}
+			}
+
+			function calltomentor(){
+				//socket.emit('registersocketid',{id:socket.id});
+				waitingstate();
+				alert('Connected to Mentor');
+			}
+
+			function inquieryRequest(){
+				socket.emit('siesmenteerequest',{peerid:peer.id,mentee:'menteeid',mentor:'shjung'});
+				console.log('inquieryRequest SEnt');
+				showelement('videopopupwrap');
+			
+			}
+			function hideelement(eleid){
+				var ele=document.getElementById(eleid);
+				ele.style.display='none'
+			}
+			function showelement(eleid){
+				var ele=document.getElementById(eleid);
+				ele.style.display='block'
+			}
+
+	body
+		div(id='prbsignalwrap')
+			div(id='prblistbox')
+			div(id='signalwrap')
+				div(id='signalvideocallbox' onclick='inquieryRequest()')
+					p Ask to Mentor
+				div(id='signalresultsendbox' onclick='sendlearningresult()')
+					p Send Result
+		div(id='waitingcontentwrap')
+		div(id='videopopupwrap')
+			div(id='mentorvideobox')
+					video(id='mentorvideo')
+			div(id='videooptionbox')
+				div(id='selfvideobox')
+					video(id='selfvideo')
+				div(id='videodisconnectbox')
+			div(id='messageforwaiting')
+				div
+					a Waiting Video Call from Mentor
+

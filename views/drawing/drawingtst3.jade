@@ -1,0 +1,111 @@
+html
+	head
+	body
+		canvas(id='canvas' width='800' height='400')
+		canvas(id='canvas2' width='800' height='400')
+		p(id='canvasDiv')
+		button(onclick="socket.emit('roomsid',socket.id)") Click me
+		script(src='/socket.io/socket.io.js')
+		script(type='text/javascript' src='https://code.jquery.com/jquery-1.8.1.js')
+
+		script(type='text/javascript').
+
+			//binary test	
+				let buffer = new ArrayBuffer(16);
+				alert(buffer.byteLength);
+			
+				let view = new Uint32Array(buffer);
+				alert(Uint32Array.BYTES_PER_ELEMENT);
+
+
+				view[0]=123456;
+				for(let num of view){
+					console.log(num);
+				}	
+			//binary test	
+
+			var tstnode=document.createTextNode('hey');
+			var add=document.getElementById('canvasDiv').appendChild(tstnode);
+			document.body.appendChild(add);			
+			var socket=io('/draw');
+			
+			document.getElementById('canvas2').setAttribute('style','border:2px solid #000000;');
+			context2=document.getElementById('canvas2').getContext('2d');
+			
+			socket.on('canvpos',function(canvaspo){
+				context2.clearRect(0,0, context2.canvas.width, context2.canvas.height);
+				//context2.strokeStyle='#df4b26';
+				context2.strokeStyle='#000000';
+				context2.lineJoin='round';
+				context2.lineWidth=5;
+				 for(var i=0; i<canvaspo[0].length; i++){
+					context2.beginPath();
+					if(canvaspo[2][i] && i){
+						context2.moveTo(canvaspo[0][i-1], canvaspo[1][i-1]);
+					}else{
+						context.moveTo(canvaspo[0][i]-1,canvaspo[1][i]);
+					}
+	
+					context2.lineTo(canvaspo[0][i],canvaspo[1][i]);
+					context2.closePath();
+					context2.stroke();
+				}
+			});
+			document.getElementById('canvas').setAttribute('style','border:2px solid #000000;');
+
+			context=document.getElementById("canvas").getContext('2d');
+			var canvasDiv=document.getElementById('canvasDiv');
+			context=canvas.getContext('2d');
+			$('#canvas').mousedown(function(e){
+				var mouseX=e.pageX - this.offsetLeft;
+				var mouseY=e.pageY - this.offsetTop;
+					paint=true; 
+				addClick(e.pageX-this.offsetLeft, e.pageY-this.offsetTop);
+				redraw();
+			});
+			$('#canvas').mousemove(function(e){
+				if(paint){
+					addClick(e.pageX-this.offsetLeft, e.pageY-this.offsetTop, true);
+					redraw();
+				}
+				
+			});
+			$('#canvas').mouseup(function(e){
+				paint=false;	
+			});
+			$('#canvas').mouseleave(function(e){
+				paint=false;
+			});
+			var clickX = new Array();
+			var clickY = new Array();
+			var clickDrag= new Array();
+			var paint;
+			var canvpos=[clickX,clickY,clickDrag];
+			function addClick(x, y, dragging){
+				clickX.push(x);
+				clickY.push(y);
+				clickDrag.push(dragging);
+				
+				socket.emit('canvpos',canvpos);
+			}
+			function redraw(){
+				context.clearRect(0,0, context.canvas.width, context.canvas.height);
+				context.strokeStyle='#000000';
+				//context.strokeStyle='#df4b26';
+				context.lineJoin='round';
+				context.lineWidth=5;
+				 for(var i=0; i<clickX.length; i++){
+					context.beginPath();
+					if(clickDrag[i] && i){
+						context.moveTo(clickX[i-1], clickY[i-1]);
+					}else{
+						context.moveTo(clickX[i]-1,clickY[i]);
+					}
+	
+					context.lineTo(clickX[i],clickY[i]);
+					context.closePath();
+					context.stroke();
+				}
+	
+			}
+			

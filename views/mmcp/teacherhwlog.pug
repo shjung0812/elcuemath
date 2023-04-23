@@ -1,0 +1,200 @@
+html
+	head
+		title HW student Log
+		script(type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML")
+		script(src='/socket.io/socket.io.js')
+		script(src='/chartjs/chartjs.js')
+		script(src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.5.0/chart.min.js")
+		style.
+			#container1 {
+				width:100%;
+				height:100%;
+			}
+			#stdlist {
+				width:10%;
+				height:100%;
+				background-color:#aaaaaa;
+				float:left;
+			}
+			#stdlist div {
+				cursor:pointer;
+			}
+			#historylist {
+				width:50%;
+				height:100%;
+				overflow:auto;
+				float:left;
+			}
+			#graphdiv {
+				width:40%;
+				height:100%;
+				overflow:auto;
+				float:left;
+			}
+			#usergraph,#thisweekalluser {
+				width:100%;
+			}
+			#thisweektime {
+				font-size:2em;
+			}
+
+	
+	body
+		div(id='container1')
+			div(id='graphdiv')
+				div(id='thisweekalluser')
+				div(id='usergraph')
+			div(id='historylist')
+			div(id='stdlist')
+		
+
+		script.
+			var userinfo=!{JSON.stringify(userinfo)}
+			var data=!{JSON.stringify(data)}.split('\n');
+			var hwdata=!{JSON.stringify(hwdata)};
+			var socket = io('/mmcp');
+			socket.on('connect',()=>{
+				console.log('mmcp connection ready');
+			});
+
+
+			function fillHistorylist(username){
+				removeallele('historylist');
+				var historylist=document.getElementById('historylist');
+				if(typeof username!=='undefined'){
+					for(var ia=data.length-1; ia >= 4000; ia--){
+						var chk=0;
+						for(var ib=0; ib<data[ia].split(' ').length; ib++){
+							//console.log(data[ia].split(' ')[ib], username+',');
+							if(data[ia].split(' ')[ib]==username+',' || data[ia].split(' ')[ib]==username){
+								chk=1;
+								break;
+							}
+						}
+						if(chk){
+							var fadiv=document.createElement('div')
+							var fa=document.createElement('a');
+							fa.innerHTML=data[ia];
+							fadiv.appendChild(fa);
+							historylist.appendChild(fadiv);
+						}
+					}
+				}else{
+					for(var ia=data.length-1; ia >= 0; ia--){
+						var fadiv=document.createElement('div')
+						var fa=document.createElement('a');
+						fa.innerHTML=data[ia];
+						fadiv.appendChild(fa);
+						historylist.appendChild(fadiv);
+					}
+
+				}
+
+			}
+			fillHistorylist();
+			function displayHWhistory(i){
+				removeallele('usergraph');
+				var userhwdata=[];
+				for(var ia=0; ia<hwdata.length; ia++){
+					if(hwdata[ia].username==i){
+						userhwdata.push(hwdata[ia])
+					}
+				}
+				hwhistoryData(userhwdata,'usergraph');
+			}
+
+
+			function removeallele(parentid){
+				var parent=document.getElementById(parentid);
+				while(parent.firstChild){
+					parent.firstChild.remove();
+				}
+			}
+
+			function userColorset(username){
+				var colordiv=document.getElementsByClassName('usercolorset');
+				for(var ia=0; ia<colordiv.length; ia++){
+					colordiv[ia].style.backgroundColor='';
+					colordiv[ia].style.color='black';
+				}
+				document.getElementById('chosen'+username).style.backgroundColor='#DDF2BF';
+				document.getElementById('chosen'+username).childNodes[1].style.color='black';
+				
+			}
+
+
+			socket.on('callstdlistafter',function(a){
+				var indstd=[];
+				for(var ia=0; ia<a.a.length; ia++){
+					var chk=0;
+					for(var ib=0; ib<indstd.length; ib++){
+						if(indstd[ib][0]==a.a[ia].username){
+							chk=1;
+							break;
+						}
+					}
+					if(chk==0){
+						indstd.push([a.a[ia].username,a.a[ia].DisplayName]);
+					}
+				}	
+
+				var mmcpsetobj=[];
+				for(var ia=0; ia<indstd.length; ia++){
+					mmcpsetobj[ia]={username:indstd[ia][0],mmcpcon:[],Displayname:indstd[ia][1]}
+					for(var ib=0; ib<a.a.length; ib++){
+						if(indstd[ia][0]==a.a[ib].username){
+							mmcpsetobj[ia].mmcpcon.push([a.a[ib].mmcpconid,a.a[ib].listinfo,a.a[ib].prblist])
+						}
+					}
+				}
+
+
+				var userlist=document.getElementById('stdlist');
+				for(var ia=0; ia<mmcpsetobj.length; ia++){
+					var fa=document.createElement('div');			
+					fa.id='chosen'+mmcpsetobj[ia].username;
+					fa.className='usercolorset';
+					var fab=document.createElement('a');
+					fab.href='/mmcp/teacherhwcheck?username='+mmcpsetobj[ia].username;
+					fab.innerHTML='Check HW  ';
+					fab.style.color='black';
+					
+					//faa.className='usercolorset';
+
+					fa.onclick=function(i){
+						return function(){
+							userColorset(i);
+							fillHistorylist(i);
+							//socket.emit('callhwdata',{username:i});
+							displayHWhistory(i)
+					
+						}
+					}(mmcpsetobj[ia].username);
+					var faa=document.createElement('a');
+					faa.className='usercolorset';
+					faa.style.color='black';
+					faa.style.textDecoration='none';
+
+					faa.innerHTML=mmcpsetobj[ia].Displayname;
+					fa.appendChild(fab);
+					fab.setAttribute('target', '_blank');
+					fa.appendChild(faa);
+					userlist.appendChild(fa);
+				}
+				var fa=document.createElement('div');		
+				fa.className='usercolorset';
+				var fab=document.createElement('a');
+				fab.style.color='black';
+				fab.style.textDecoration='none';
+				fab.innerHTML='HW connect';
+				fab.href='/mmcp/teachermmcpconnect';
+				fab.setAttribute('target', '_blank');
+				fa.appendChild(fab);
+				userlist.appendChild(fa);
+		
+				displayThisWeekHWgraph(hwdata,'thisweekalluser',indstd);
+			});
+			function callStdlist(){
+				socket.emit('callstdlist',{username:userinfo.username});
+			}
+			callStdlist();

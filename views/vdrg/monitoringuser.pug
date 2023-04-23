@@ -1,0 +1,697 @@
+html
+	head
+		title User monitoring
+		script(src='/socket.io/socket.io.js')
+		script(type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML")
+		style.
+			body {
+				background-color:#cccccc;
+			}
+			#headdiv {
+				width:100%;
+				height:10%;
+			}
+			#bodydiv {
+				height:90%;
+				width:100%;
+			}
+			#userlistdiv {
+				width:70%;
+				height:100%;
+				float:left;
+			}
+			#monitoringprb{
+				width:30%;
+				height:100%;
+				float:left;
+				overflow:auto;
+			}
+			
+			.userdiv {
+				width:100%;
+				height:30%;
+				overflow:auto;
+				border:1px solid;
+			}
+			.usernamediv {
+				width:100%;
+				//height:20%;
+			}
+			.stadiv {
+				width:100%;
+				height:10%;
+				overflow:hidden;
+			}
+			.slotlistbox {
+				margin: 1% 0 0 0;
+			}
+			.slotlistbox, .prbsolvelistbox {
+				width:100%;
+				height:30%;
+			}
+
+			.slotbox {
+				width:3%;
+				float:left;
+			}
+
+			.prbsolvebox {
+				float:left;
+				width:3%;
+			}
+			.slotboxin, .prbsolveboxin {
+				border:1px solid;
+				margin:0 5% 0 5%;
+				text-align:center;
+			}
+			.stastar {
+				float:left;
+				margin:0 5% 0 5%;
+				font-size:.7em;
+			}
+			.mprbdiv {
+				margin:2% 0  0 0;
+			}
+			.imgdiv {
+				width:100%;
+			}
+			.imgdiv img {
+				width:100%;
+			}
+			.multia {
+				border:1px solid;
+			}
+	body
+		div
+			div(id='headdiv')
+				input(id='settime' value=5)
+				button(onclick='sethourTime()') Check Result
+				audio(id='sound1' src='/sounds/beep-07.mp3' autoplay='false')
+			div(id='bodydiv')
+				div(id='userlistdiv')
+				div(id='monitoringprb')
+			
+		script.
+			var socket = io('/vdrg');
+			socket.on('connect',()=>{
+				socket.emit('vdrgmonitor',{socketid:socket.id,username:'mentor(optional)',position:2});
+
+			});
+
+
+			var hourTime=5;
+			function sethourTime(){
+				
+				var inputvalue=document.getElementById('settime');
+				hourTime=parseFloat(inputvalue.value);
+				checkUserprogress();
+				inputvalue.value=parseFloat(inputvalue.value)+10;;
+				
+				
+			}
+
+
+
+		
+
+
+			socket.on('monitoringprbresultafter',function(a){
+				const date= new Date();
+				const ctime=date.getHours()+':'+date.getMinutes()+':'+date.getSeconds();
+
+				var sound=document.getElementById('sound1');
+				sound.play();
+
+				alert('updated: '+ctime);
+				removeallele('monitoringprb');
+				var rset=[];
+				for(var ia=0; ia<a.plist.length; ia++){
+					rset[ia]=[a.plist[ia],a.rlist[ia]]
+				}
+
+
+				//console.log(rset);
+				var mprb=document.getElementById('monitoringprb');
+				for(var ia=0; ia<rset.length; ia++){
+					var fdiv=document.createElement('div');
+					fdiv.className='mprbdiv';
+					var fdiva=document.createElement('a');
+					fdiva.innerHTML=rset[ia][0][1];
+					fdiv.appendChild(fdiva);
+
+					if(rset[ia][0][8]!=null){
+						var imgdiv=document.createElement('div');
+						imgdiv.className='imgdiv';
+						var imgel=document.createElement('img');
+						imgel.src=rset[ia][0][8];
+						imgdiv.appendChild(imgel);
+						fdiv.appendChild(imgdiv);
+					}
+
+					var multipdiv=document.createElement('div');	
+					var multi1=document.createElement('div');
+					var multi1el=document.createElement('a');
+					multi1el.innerHTML=rset[ia][0][4];
+					multi1.appendChild(multi1el);
+					multipdiv.appendChild(multi1);
+
+					var multi2=document.createElement('div');
+					var multi2el=document.createElement('a');
+					multi2el.innerHTML=rset[ia][0][5];
+					multi2.appendChild(multi2el);
+					multipdiv.appendChild(multi2);
+
+					var multi3=document.createElement('div');
+					var multi3el=document.createElement('a');
+					multi3el.innerHTML=rset[ia][0][6];
+					multi3.appendChild(multi3el);
+					multipdiv.appendChild(multi3);
+
+					var multiA=document.createElement('div');
+					var multiAel=document.createElement('a');
+					multiAel.innerHTML=rset[ia][0][2];
+					multiA.appendChild(multiAel);
+					multiA.className='multia';
+					multipdiv.appendChild(multiA);
+
+					fdiv.appendChild(multipdiv);
+
+					if(rset[ia][1]==1){
+						fdiv.style.backgroundColor='#06EE06';
+					}else if(rset[ia][1]==-1){
+						fdiv.style.backgroundColor='orange';
+					}else if(rset[ia][1]==-2){
+						fdiv.style.backgroundColor='blue';
+						fdiv.style.color='white';
+					}else{
+						fdiv.style.backgroundColor='red';
+					}
+					mprb.appendChild(fdiv);
+				}
+				MathJax.Hub.Queue(["Typeset",MathJax.Hub,mprb])	
+			});
+
+			function showresultprb(username){
+				if(username!=''){
+
+					var prblist=[];
+					var resultlist=[];
+
+					//getusernumber
+					var unum;
+					for(var ia=0; ia<userstory.length; ia++){
+						if(userstory[ia].username==username){
+							unum=ia;
+							break;
+						}
+					}
+
+					for(var ib=0; ib<userstory[unum].srt.length; ib++){
+						prblist.push(userstory[unum].srt[ib][0]);
+						resultlist.push(userstory[unum].srt[ib][1]);
+					}
+
+
+					var mprbnum=document.getElementById('monitoringprb').childElementCount;
+						
+					if(mprbnum!=prblist.length){
+						socket.emit('monitoringprbresult',{plist:prblist,rlist:resultlist});
+					}
+
+				}
+
+				
+
+			}
+
+
+			function showresultprbOfBox(plist,rlist){
+				socket.emit('monitoringprbresult',{plist:plist,rlist:rlist});
+			}
+
+
+
+			function putColoron(classN, idN,colorN){
+				var cn=document.getElementsByClassName(classN);
+				for(var ia=0; ia<cn.length; ia++){	
+					cn[ia].style.color='';
+					cn[ia].style.backgroundColor='';
+				}
+				document.getElementById(idN).style.backgroundColor=colorN[0];
+				document.getElementById(idN).style.color=colorN[1];
+			}
+
+
+
+
+			var displayusername='';
+			function updateUserrecord(){
+
+
+				var userlistdiv=document.getElementById('userlistdiv');
+				removeallele('userlistdiv');
+
+
+				for(var ia=0; ia<userstory.length; ia++){
+
+
+					var username=userstory[ia].username;
+
+					var userdiv=document.createElement('div');
+					userdiv.className='userdiv';
+					userdiv.id=username+'div';
+					var usernamediv=document.createElement('div');
+					usernamediv.onclick=function(i){
+						return function(){
+							displayusername=i;
+							putColoron('userdiv',i+'div',['#33fff3','#333333'])
+						}
+					}(username);
+					usernamediv.className='usernamediv';
+					var usernamediva=document.createElement('a');
+					usernamediva.innerHTML=username;
+					usernamediv.appendChild(usernamediva);
+					userdiv.appendChild(usernamediv);
+
+
+					var stadiv=document.createElement('div');
+					stadiv.className='stadiv';
+					userdiv.appendChild(stadiv);
+
+					for(var ic=0; ic<5; ic++){
+						var stastar=document.createElement('div');
+						stastar.innerHTML='&#9956';
+						stastar.className='stastar';
+						stadiv.appendChild(stastar);
+				
+						if(ic<userstory[ia].numsta.length){
+							stastar.style.backgroundColor='blue';
+							stastar.style.color='white';
+						}
+					}
+
+
+					// slotlist display ika
+					var slotlistbox=document.createElement('div');
+					slotlistbox.className='slotlistbox';
+
+
+					var uprbnum;
+					//find user
+					for(var ic=0; ic<pnum.length; ic++){
+						if(userstory[ia].username==pnum[ic].username){
+							uprbnum=pnum[ic].prbnum;
+						}
+					}	
+
+
+					for(var ib=0; ib<uprbnum.length; ib++){
+						var slotbox=document.createElement('div');
+						slotbox.className='slotbox';
+
+
+						var iprblist=[];
+						var iresultlist=[];
+						for(var ic=0; ic<userstory[ia].ika[ib][2].length; ic++){
+							iprblist.push(userstory[ia].ika[ib][2][ic][1]);
+							iresultlist.push(-1);
+							//iresultlist.push(userstory[ia].prbsolve[ib][2][ic][0]);
+						}
+
+						slotbox.onclick=function(i,k){
+							return function(){
+								//showresultprbOfBox(i,k);
+							}
+						}(iprblist,iresultlist)
+
+
+
+						var slotboxin=document.createElement('div');
+						slotboxin.className='slotboxin';
+						slotbox.appendChild(slotboxin);
+						slotlistbox.appendChild(slotbox);	
+
+						if(userstory[ia].ika[ib][1]!=0){
+							slotbox.style.backgroundColor='red';
+							slotboxin.innerHTML=userstory[ia].ika[ib][1]+'/'+userstory[ia].ika[ib][0];
+							slotbox.style.color='white';
+						}else{
+							slotboxin.innerHTML=userstory[ia].ika[ib][0];
+						}
+					}
+					userdiv.appendChild(slotlistbox);
+
+
+
+
+
+					// prbsolve
+					var prbsolvelistbox=document.createElement('div');
+					prbsolvelistbox.className='prbsolvelistbox';
+					for(var ib=0; ib<uprbnum.length; ib++){
+
+						var prblist=[];
+						var resultlist=[];
+
+
+						for(var ic=0; ic<userstory[ia].ika[ib][2].length; ic++){
+							prblist.push(userstory[ia].ika[ib][2][ic][1]);
+							resultlist.push(-1);
+						}
+
+
+
+
+						for(var ic=0; ic<userstory[ia].prbsolve[ib][2].length; ic++){
+							prblist.push(userstory[ia].prbsolve[ib][2][ic][1]);
+							resultlist.push(userstory[ia].prbsolve[ib][2][ic][0]);
+						}
+
+
+
+						var prbsolvebox=document.createElement('div');
+						prbsolvebox.className='prbsolvebox';
+						prbsolvebox.onclick=function(i,k){
+							return function(){
+								showresultprbOfBox(i,k);
+							}
+						}(prblist,resultlist)
+						var prbsolveboxin=document.createElement('div');
+						prbsolveboxin.className='prbsolveboxin';
+						prbsolvebox.appendChild(prbsolveboxin);
+						prbsolvelistbox.appendChild(prbsolvebox);	
+
+
+						if(userstory[ia].prbsolve[ib][1]!=0){
+							prbsolvebox.style.backgroundColor='green';
+							prbsolveboxin.innerHTML=userstory[ia].prbsolve[ib][1]+'/'+userstory[ia].prbsolve[ib][0];
+							prbsolvebox.style.color='white';
+						}else{
+							prbsolveboxin.innerHTML=userstory[ia].prbsolve[ib][0];
+						}
+					}
+					userdiv.appendChild(prbsolvelistbox);
+
+				
+					userlistdiv.appendChild(userdiv);
+				}
+					if(displayusername!=''){		
+						putColoron('userdiv',displayusername+'div',['#33fff3','#333333'])
+					}
+			}
+
+
+			function removeallele(parentid){
+				var parent=document.getElementById(parentid);
+				while(parent.firstChild){
+					parent.firstChild.remove();
+				}
+			}
+
+
+			socket.on('vdrgmonitorafter',function(a){
+				for(var ia=0; ia<a.userlist.length; ia++){
+					userstory.push({username:a.userlist[ia].username})
+				}
+				setInterval(checkUserprogress,3000)
+				//updateUserrecord();
+			});
+
+
+			var prbnum=[];
+			var pnum=[];
+			socket.on('monitorcallrconafter',function(a){
+				console.log(a);
+				var robj=a.rcon;
+				var slotlist=[];
+
+				var frucpt=[];
+
+				var indusers=[];
+				for(var ia=0; ia<a.a.length; ia++){
+					var chk=0;
+					for(var ib=0; ib<indusers.length; ib++){
+						if(indusers[ib]==a.a[ia].username){
+							chk=1;
+							break;
+						}
+					}
+					if(chk==0){
+						indusers.push(a.a[ia].username)
+					}
+				}
+
+				for(var ia=0; ia<indusers.length; ia++){
+
+
+					var indfilterid=[];
+					
+					for(var ib=0; ib<a.a.length; ib++){
+						var chk=0;
+						for(var ic=0; ic<indfilterid.length; ic++){
+							if(indfilterid[ic]==a.a[ib].filterid && a.a[ib].username==indusers[ia]){
+								chk=1;
+								break;
+							}
+						}
+						if(chk==0 && a.a[ib].username==indusers[ia]){
+							indfilterid.push(a.a[ib].filterid)
+						}
+					}
+
+					frucpt[ia]={username:indusers[ia],cptid:[]};
+					//pnum[ia]={username:indusers[ia],prbnum:[]}
+					for(var ib=0; ib<indfilterid.length; ib++){
+						
+						for(var ic=0; ic<a.b.length; ic++){
+							if(indfilterid[ib]==a.b[ic].filterid){
+								frucpt[ia].cptid.push([a.b[ic].cptid,a.b[ic].prbset]);
+								//pnum[ia].prbnum.push([a.b[ic].prbset])
+							}
+						}
+
+					}
+
+
+
+				}
+				for(var ia=0; ia<frucpt.length; ia++){
+					pnum[ia]={username:frucpt[ia].username,prbnum:[]}
+				
+					for(var ib=0; ib<robj[0].r2list.length; ib++){
+						for(var ic=0; ic<robj[0].r2list[ib].r1list.length; ic++){
+							for(var id=0; id<frucpt[ia].cptid.length; id++){
+								if(frucpt[ia].cptid[id][0]==robj[0].r2list[ib].r1list[ic][0]){
+									//slotlist.push([robj[0].r3id,robj[0].r3listinfo,robj[0].r2list[ib].r2id,robj[0].r2list[ib].r2listinfo,robj[0].r2list[ib].r1list[ic][1],robj[0].r2list[ib].r1list[ic][2]]);
+									pnum[ia].prbnum.push([frucpt[ia].cptid[id][1]])
+									//pnum[ia].prbnum.push([frucpt[ia].cptid[id][1].split(',').length])
+									
+								}
+							}
+						}
+					}
+				}	
+
+
+
+
+
+			});
+
+
+
+
+			callRcon();
+
+			function callRcon(){
+				socket.emit('monitorcallrcon');
+			}
+
+
+			var userstory=[];
+			socket.on('monitorfromservertomentor',function(a){
+				for(var ia=0; ia<userstory.length; ia++){
+					//if(userstory[ia].username==a.username){
+						//iknowitalready
+						calcProgress(a,ia,hourTime,'ika')
+
+						//solved problem within time
+						calcProgress(a,ia,hourTime,'solvedprb')
+
+						//number of save to ask
+						calcProgress(a,ia,hourTime,'sta')
+
+						//prblist result with series time; srt
+						calcProgress(a,ia,hourTime,'srt');
+
+					//}
+				}
+
+
+				updateUserrecord();		
+				showresultprb(displayusername);		
+							
+			});
+
+			function calcProgress(uhistory,uidx,hourTime,opt){
+				var numikaset=[];
+				var mst=Date.parse(uhistory.servertime);
+				var bettime=1000*60*60*hourTime;
+				if(opt=='ika'){
+					for(var ia=0; ia<uhistory.rdcthis.length; ia++){
+
+
+						if(uhistory.rdcthis[ia].hisopt=='iknowitalready' && (mst-bettime)<Date.parse(uhistory.rdcthis[ia].createdate) && uhistory.rdcthis[ia].username==userstory[uidx].username){
+							numikaset.push([uhistory.rdcthis[ia].rconnum,uhistory.rdcthis[ia].prbid]);
+						}
+					}
+
+					var uprbnum;
+					//find user
+					for(var ic=0; ic<pnum.length; ic++){
+						if(userstory[uidx].username==pnum[ic].username){
+							uprbnum=pnum[ic].prbnum;
+							break;
+						}
+					}	
+
+
+					var rcika=[];
+					for(var ia=0; ia<uprbnum.length; ia++){
+						rcika[ia]=[uprbnum[ia][0].split(',').length,0,[]];
+						for(var ib=0; ib<numikaset.length; ib++){
+
+							var chk=0;					
+							var plist=uprbnum[ia][0].split(',');
+							for(var ic=0; ic<plist.length; ic++){
+								if(plist[ic]==numikaset[ib][1]){
+									chk=1;
+									break;
+								}
+							}
+							if(chk==1){
+								rcika[ia][1]+=1;
+								rcika[ia][2].unshift([numikaset[ib][0],numikaset[ib][1]]);
+						
+							}
+						}
+					}					
+
+					userstory[uidx].ika=rcika;
+				}else if(opt=='solvedprb'){
+					var allowednumprbset=[];
+					for(var ia=0; ia<uhistory.rdcthis.length; ia++){
+						if((mst-bettime) < Date.parse(uhistory.rdcthis[ia].createdate) && uhistory.rdcthis[ia].hisopt=='prbsolve' && uhistory.rdcthis[ia].username==userstory[uidx].username){
+							allowednumprbset.push([uhistory.rdcthis[ia].resultcode,uhistory.rdcthis[ia].prbid]);
+						}
+					}
+
+					var uprbnum;
+					//find user
+					for(var ic=0; ic<pnum.length; ic++){
+						if(userstory[uidx].username==pnum[ic].username){
+							uprbnum=pnum[ic].prbnum;
+							break;
+						}
+					}	
+
+
+
+					var solvedprbset=[];
+					for(var ia=0; ia<uprbnum.length; ia++){
+						solvedprbset[ia]=[uprbnum[ia][0].split(',').length,0,[]];
+						for(var ib=0; ib<allowednumprbset.length; ib++){
+		
+							var chk=0;					
+							var plist=uprbnum[ia][0].split(',');
+							for(var ic=0; ic<plist.length; ic++){
+								if(plist[ic]==allowednumprbset[ib][1]){
+									chk=1;
+									break;
+								}
+							}
+							if(chk==1){
+								solvedprbset[ia][1]+=1;
+								solvedprbset[ia][2].unshift([allowednumprbset[ib][0],allowednumprbset[ib][1]])
+						
+							}
+						}
+					}
+
+					userstory[uidx].prbsolve=solvedprbset;
+					
+				}else if(opt=='sta'){
+					var numsta=[];
+					var indsta=[];
+					for(var ia=0; ia<uhistory.rdcthis.length; ia++){
+						if((uhistory.rdcthis[ia].hisopt=='savetoask' || uhistory.rdcthis[ia].hisopt=='rmsavetoask' || uhistory.rdcthis[ia].hisopt=='mrmsavetoask' ) && uhistory.rdcthis[ia].username==userstory[uidx].username){
+
+
+
+							var chk=0;
+							for(var ib=0; ib<indsta.length; ib++){
+								if(indsta[ib]==uhistory.rdcthis[ia].prbid){
+									chk=1;
+									break;
+								}
+							}
+							if(chk==0){
+								indsta.push(uhistory.rdcthis[ia].prbid)
+							}
+						
+						}
+					}
+
+
+
+						var stalist=[];
+						for(var ia=0; ia<indsta.length; ia++){
+							var numsta=0;
+
+							for(var ib=0; ib<uhistory.rdcthis.length; ib++){
+								if((uhistory.rdcthis[ib].hisopt=='savetoask' || uhistory.rdcthis[ib].hisopt=='rmsavetoask' || uhistory.rdcthis[ib].hisopt=='mrmsavetoask' ) && uhistory.rdcthis[ib].username==userstory[uidx].username){
+									if(uhistory.rdcthis[ib].prbid==indsta[ia]){
+										numsta+=1;
+									}
+
+								}
+							}
+
+
+							if(numsta%2==1){
+								stalist.push(indsta[ia])
+							}
+						}
+
+
+
+
+					userstory[uidx].numsta=stalist;
+
+				}else if(opt='srt'){
+					var srt=[];
+					for(var ia=0; ia<uhistory.rdcthis.length; ia++){
+
+						if((mst-bettime)<Date.parse(uhistory.rdcthis[ia].createdate) && uhistory.rdcthis[ia].username==userstory[uidx].username){
+							//numikaset.push([uhistory.rdcthis[ia].rconnum,uhistory.rdcthis[ia].prbid]);
+							if(uhistory.rdcthis[ia].hisopt=='iknowitalready'){
+								srt.unshift([uhistory.rdcthis[ia].prbid,-1])	
+							}else if(uhistory.rdcthis[ia].hisopt=='prbsolve'){
+								srt.unshift([uhistory.rdcthis[ia].prbid,uhistory.rdcthis[ia].resultcode])	
+							}else if(uhistory.rdcthis[ia].hisopt=='savetoask'){
+								srt.unshift([uhistory.rdcthis[ia].prbid,-2])	
+							}
+						}
+					}
+					userstory[uidx].srt=srt;
+
+				}
+			}
+
+
+			function checkUserprogress(){
+				socket.emit('monitorfrommentortoserver');
+			};
+
+		
+		

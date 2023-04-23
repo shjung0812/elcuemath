@@ -1,0 +1,96 @@
+html
+	head
+		script(src='/socket.io/socket.io.js')
+		style.
+			#backdataheadlist {
+				width:20%;
+				height:100%;
+				float:left;
+				overflow:auto;
+			}
+			#backdatadetaillist {
+				width:80%;
+				height:100%;
+				float:left;
+				overflow:auto;
+			}
+			.el {
+				display:inline-block;
+				margin:0 2%;
+			}
+	body
+		div(id='backdataheadlist')
+		div(id='backdatadetaillist')
+
+		script.
+			var socket = io('/whalse',{
+				transports:['websocket'],
+				upgrade:false
+			});
+
+
+
+			function removeallele(parentid){
+				var parent=document.getElementById(parentid);
+				while(parent.firstChild){
+					parent.firstChild.remove();
+				}
+			}
+
+
+			function callBackmanageData(){
+				socket.emit('backdatainfo');
+			}
+
+			callBackmanageData();
+			socket.on('backdatainfoafter',function(a){
+				var bhl=document.getElementById('backdataheadlist');
+				for(var ia=0; ia<a.a.length; ia++){
+					var fdiv=document.createElement('div');
+
+					var fdate=document.createElement('a');
+					fdate.innerHTML=a.a[ia].createdate;
+
+					var oname=document.createElement('a');	
+					oname.innerHTML=a.a[ia].originalfilename;
+					oname.onclick=function(i){
+						return function(){
+							callBackdata(i,1);
+						}
+					}(a.a[ia].operationid);
+
+					fdiv.appendChild(fdate);
+					fdiv.appendChild(oname);
+
+					if(a.a[ia].trialresult=='failed'){
+						fdiv.style.color='red';
+					}
+
+					bhl.appendChild(fdiv);
+				}
+			});
+
+			function callBackdata(operationid,mode){
+				socket.emit('callbackdatadetail',{operationid:operationid,mode:mode});
+			}
+			socket.on('callbackdatadetailafter',function(a){
+				console.log(a);
+
+
+				removeallele('backdatadetaillist');
+				var bdd=document.getElementById('backdatadetaillist');
+
+				var chosendata=['parcel_code','url','operationid','match_id']
+				var chosendata=['parcel_code','url']
+				for(var ia=0; ia<a.a.length; ia++){
+					var fdiv=document.createElement('div');
+
+					for(let v of chosendata){
+						var fa=document.createElement('a');	
+						fa.className='el';
+						fa.innerHTML=a.a[ia][v];
+						fdiv.appendChild(fa);
+					}
+					bdd.appendChild(fdiv);
+				}
+			});

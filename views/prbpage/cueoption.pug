@@ -1,0 +1,75 @@
+html
+	head
+		style.
+			.crslist {
+				display:none;
+			}
+			input[type=checkbox] {
+				transform:scale(1.5);
+			}
+			#back a {
+				text-decoration:none;
+				color:black;
+				font-size:2em;
+			}
+		script.
+			function displaycrslist(userid){
+				var udisplay=document.getElementById(userid);
+				var ustyle=udisplay.style.display;
+
+				if(ustyle=='none' || ustyle==''){
+					udisplay.style.display='block';
+				}else{
+					udisplay.style.display='none';
+				}
+			}
+			
+			function clickall(userid){
+				var cname=document.getElementsByClassName('i'+userid);
+				var achk=0;
+				for(var ib=0; ib<cname.length; ib++){
+					if(cname[ib].checked==false){
+						achk=1;
+						break;
+					}
+				}
+		
+				if(achk==0){
+					for(var ia=0; ia<cname.length; ia++){
+						cname[ia].checked=false;
+					}
+				}else{
+					for(var ia=0; ia<cname.length; ia++){
+						cname[ia].checked=true;
+					}
+				}
+			}
+			
+	body
+		div(id='back')
+			a(href='./pcsclassify?stchk=11') Back
+		div
+			-for(var ia=0; ia<userbcrs.length; ia++){
+				div(class='usercrsdiv')
+					div(class='username' onclick='displaycrslist("'+userbcrs[ia][0]+'")')
+						a=userbcrs[ia][0]
+					div(id=userbcrs[ia][0] class='crslist')
+						a(onclick='clickall("'+userbcrs[ia][0]+'")') All
+						form(action='./pcsclassify?stchk=13' method='get')
+							input(type='hidden' name='stchk' value=13)
+							input(type='hidden' name='userid' value=userbcrs[ia][0])
+							input(type='hidden' name='qmode' value=0)
+							select(name='daybefore')
+								option(value=0) without Date
+								-for(var ic=1; ic<32; ic++){
+									option(value=ic)=ic+' day before'
+								-}
+							-for(var ib=0; ib<userbcrs[ia][1].length; ib++){
+								div
+									input(type='checkbox' name='crslist' value=userbcrs[ia][1][ib] class='i'+userbcrs[ia][0])
+									a=userbcrs[ia][1][ib]
+			
+							-}
+							input(type='submit' value='submit')
+		
+			-}

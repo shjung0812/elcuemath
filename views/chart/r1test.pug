@@ -1,0 +1,142 @@
+html
+	head
+		//script(src='/chartjs/chartjs.js')
+		script(src='/socket.io/socket.io.js')
+		script(src='https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.min.js')
+		
+		style.
+			#userstatisticsdiv {
+				width:50%;
+				height:100%;
+			}
+
+	body
+		p hi r1 test
+		div(id='userstatisticsdiv')
+		script.
+			var socket = io('/vdrg',{
+				transports:['websocket'],
+				upgrade:false
+			});
+			var username='king0422';
+
+
+
+
+			socket.emit('userstatistics',{username:username,mode:'r1rhstatistics'})
+
+
+
+			var prcperiod=7;
+			socket.on('userstatisticsafter',function(a){	
+				console.log(a);
+
+				var dateofref=new Date('2020-01-06').getTime()/1000/60/60/24; //monday start
+				//don't know about the reason but, the date indicate sunday but dateref indicate monday. so there is difference the written date and result date code. 
+
+
+				//comparion on days
+				var dateoftoday=new Date().getTime()/1000/60/60/24;
+
+				var dateprocessing = dateofref;
+
+
+				var dividedtimelist=[];
+				while(dateprocessing < dateoftoday){
+				
+					var rh_dfprbid=[];
+					for(var ia=0; ia<a.a.length; ia++){
+						if((Math.floor(new Date(a.a[ia].createdate).getTime()/1000/60/60/24) <= dateprocessing+prcperiod)&& (Math.floor(new Date(a.a[ia].createdate).getTime()/1000/60/60/24) >= dateprocessing) ){
+							rh_dfprbid.push(a.a[ia].prbid);
+							//rh_dfprbid.push(Math.floor(new Date(a.a[ia].createdate).getTime()/1000/60/60/24));
+						}
+					}
+					if(rh_dfprbid.length!=0){
+						dividedtimelist.push({'startdate':dateprocessing,'enddate':dateprocessing+prcperiod,uprbid:rh_dfprbid})
+					}
+					dateprocessing += prcperiod;
+					
+				}
+
+				console.log(dividedtimelist);
+				//var cctp={'username':username,'period':prcperiod,'r1countlist':[]}
+			
+				dividedtimelist.slice().reverse().forEach(function(j){
+				//for(let j of dividedtimelist){
+					var r1_rh_temp={};
+					for(let z of a.cpt){
+						var tnum=0;
+						for(let k of j.uprbid){
+							if(z.prblist.split(',').includes(k)){
+								tnum+=1;
+							}
+						}
+						if(tnum!=0){
+							r1_rh_temp[z.listinfo]=tnum;
+						}
+					}
+
+					//sort
+					let sortable = [];
+					for (var subject in r1_rh_temp) {
+						sortable.push([subject, r1_rh_temp[subject]]);
+					}
+
+					sortable.sort(function(a, b) {
+						return b[1] - a[1];
+					});
+
+
+					let r1_rh_sorted = [];
+					let labels=[];
+					sortable.forEach(function(item){
+							
+						r1_rh_sorted.push(item[1])
+						labels.push(item[0])
+						//r1_rh_sorted.push({item[0]:item[1]})
+						//r1_rh_sorted[item[0]]=item[1]
+					});
+
+
+					var canvasel=document.createElement('canvas');
+					//var canvasel=document.createElement('canvas').getContext('2d');
+					
+					document.getElementById('userstatisticsdiv').appendChild(canvasel);
+					let ctx=canvasel.getContext('2d');
+					var arrDayStr = ['일','월','화','수','목','금','토']
+					var dt = new Date(j.startdate*3600*1000*24);
+					var myChart = new Chart(ctx,{
+						type:'bar',
+						data:{
+							labels:labels,
+							datasets:[{
+								label:username+ ' : '+dt.getFullYear()+'-'+(dt.getMonth()+1)+'-'+dt.getDate()+' '+arrDayStr[dt.getDay()],
+								data:r1_rh_sorted,
+								//backgroundColor:bgcolor,
+								//backgroundColor:[
+									//'rgba(255,99,132,.5)'
+								//],
+								borderWidth:1
+							}]
+						},
+						options:{
+							title:{
+								display:true,
+								fontSize:10
+							},
+							scales:{
+								yAxes:[{
+									ticks: {
+										beginAtZero:true
+									}
+								}]
+								
+							}
+						}
+
+					});
+
+	
+				});
+			});
+			

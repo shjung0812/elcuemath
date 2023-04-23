@@ -1,0 +1,365 @@
+html
+	head
+		script(src='/socket.io/socket.io.js')
+		title MMTT Allocation
+		style.
+			body {
+				background-color:#aaaaaa;
+			}
+			#optionbuttondiv{
+				width:100%;
+				height:5%;
+			}
+			#mmtbox {
+				width:100%;
+				height:95%;
+				background-color:yellow;
+			}
+			#mentorlist {
+				width:30%;
+				float:left;
+			}
+			#registeredmenteelist {
+				width:40%;
+				float:left;
+			}
+			#unregisteredmenteelist {
+				width:30%;
+				float:right;
+			}
+			#optionbuttondiv div {
+				padding:0 5%;
+				float:left;
+				width:20%;
+			}
+			.menteelistdivallocated, .conoptdiv {
+				float:left;
+				width:50%;
+			}
+			.adiv {
+				width:100%;
+				height:5%;
+				margin:5% 0;
+			}
+	body
+		div(id='optionbuttondiv')
+			div(onclick='callUnassignedusername();')
+				a unassigned Prb
+			div
+				button(onclick='updateMMTT();') MMTTUpdate
+			div
+				button(onclick='stateUpdate();') State Update
+		div(id='mmttbox')
+			div(id='mentorlist')
+			div(id='registeredmenteelist')
+			div(id='unregisteredmenteelist')
+		script.
+			var socket = io('/vdrg');
+			socket.on('connect',()=>{
+				console.log('vdrg connected');
+			});
+
+			function stateUpdate(){
+				socket.emit('mmttserverstateupdate')
+			}
+
+
+			socket.on('mmttupdateafter',function(){
+				chosenlist=[];
+				mmttmentorid='';
+				removeallele('registeredmenteelist');
+				socket.emit('mmttcallmentorlist');
+				chosenRepresent();
+			});
+
+
+
+			function tomentorCenter(mentorid,username){
+				socket.emit('mmtttomentorcenter',{mentorid:mentorid,username:username,mode:'tomentorcenter'})
+			}
+
+
+			function toWrss(mentorid, username,i,j){
+
+				var color=['white','blue']
+				var duration=5000;
+				var userbox=document.createElement('div');
+				userbox.setAttribute("style","position:fixed;z-index:20;top:10%;left:35%;background-color:"+color[0]+";padding:5% 10%;color:"+color[1]+";");
+
+				for(var ia=0; ia<gindmentor.length; ia++){
+					if(gindmentor[ia][0]!=mmttmentorid){
+					var userdiv=document.createElement('div');
+					userdiv.innerHTML=gindmentor[ia][0];
+					userdiv.onclick=function(ma){
+						return function(){
+							setConopt(i,j,1)
+							socket.emit('mmtttomentorcenter',{mentorid:ma,username:username,mode:'towrss'})
+						}
+					}(gindmentor[ia][0]);
+					userbox.appendChild(userdiv);
+					}
+					
+				}
+				setTimeout(function(){
+					userbox.parentNode.removeChild(userbox);
+				},duration);
+				document.body.appendChild(userbox);
+
+
+
+
+			}
+
+			socket.on('mmtttomentorcenterafter',function(a){
+				console.log(a.msg);
+				location.reload();
+			});
+
+			function updateMMTT(){
+				/*
+				var nchosenlist=[];
+				for(var ia=0; ia<chosenlist.length; ia++){
+					if(chosenlist[ia][1]==1){
+						console.log(chosenlist[ia][0]+'  is wrss, process is cancled');
+					}else{
+						nchosenlist.push(chosenlist[ia])
+					}
+				}
+				chosenlist=nchosenlist;*/
+				socket.emit('mmttupdate',{chosenlist:chosenlist,mmttmentorid:mmttmentorid});
+			}
+
+			function setConopt(udiv,idx,conoptval,username){
+				if(conoptval==0){
+					document.getElementById('a'+username).remove();
+					chosenlist=removeItemFromExist(chosenlist,username)
+				}else{
+					chosenlist[idx][1]=conoptval;
+				}
+			}
+
+			var mmttmentorid;
+			var chosenlist=[];
+			var stat={chosencolor:'blue', fontcolor:'white'}
+
+			function displayMenteelist(mtl){
+				chosenlist=[];
+				removeallele('registeredmenteelist');
+				var registeredmenteelist=document.getElementById('registeredmenteelist');
+				for(var ia=0;ia<mtl.length; ia++){
+					var adiv=document.createElement('div');
+					adiv.className='adiv';
+					adiv.id='a'+mtl[ia][0];
+
+					var udiv=document.createElement('div');
+					udiv.id='reg'+mtl[ia][0];
+					udiv.className='menteelistallocated'
+					var udiva=document.createElement('a');
+					udiva.innerHTML=mtl[ia][0];
+					udiv.appendChild(udiva);
+					udiv.onclick=function(i){
+						return function(){
+							clickToChosen(i)
+						}
+					}(mtl[ia]);
+
+
+					var conoptdiv=document.createElement('div');
+					conoptdiv.className='conoptdiv';
+					var conopt0=document.createElement('a');
+					conopt0.className='con'+ia;
+					conopt0.innerHTML='as mentorcenter';
+					conopt0.onclick=function(i,j,k){
+						return function(){
+							setConopt(i,j,0,k)
+							tomentorCenter(mmttmentorid,k);
+						}
+					}(conopt0,ia,mtl[ia][0]);
+			
+
+	
+
+					var conopt1=document.createElement('a');
+					conopt1.className='con'+ia;
+					conopt1.innerHTML='as wrss';
+					conopt1.onclick=function(i,j,k){
+						return function(){
+							toWrss(mmttmentorid,k,i,j);
+						}
+					}(conopt1,ia,mtl[ia][0]);
+
+					//function toWrss(mentorid, username){
+					//function tomentorCenter(mentorid,username){
+						//socket.emit('mmtttomentorcenter',{mentorid:mentorid,username:username})
+					//}
+
+					conoptdiv.appendChild(conopt0);
+					conoptdiv.appendChild(conopt1);
+
+					if(mtl[ia][1]){
+						conopt1.style.border='1px solid red';
+					}else{
+						conopt0.style.border='1px solid red';
+					}
+
+					adiv.appendChild(udiv);
+					adiv.appendChild(conoptdiv);
+				
+					registeredmenteelist.appendChild(adiv);
+					chosenlist.push(mtl[ia])
+				}
+				chosenRepresent();
+			}
+
+			function clickToChosen(item){
+				var chk=checkItemExist(chosenlist,item[0]);
+				if(chk==0){//no exist
+					chosenlist.push(item);
+				}else{
+					chosenlist=removeItemFromExist(chosenlist,item[0]);
+				}
+				chosenRepresent();
+			}	
+
+			function chosenRepresent(){
+				removeAllRepresent('menteelistdiv');
+				if(chosenlist.length!=0){
+					var chosenlistl=chosenlist;
+				
+					for(var ia=0; ia<chosenlistl.length; ia++){
+							var rpdiv=document.getElementById('reg'+chosenlistl[ia][0]);
+							rpdiv.style.backgroundColor=stat.chosencolor;
+							rpdiv.style.color=stat.fontcolor;
+
+
+					}
+				}
+		
+			}
+
+			function removeAllRepresent(cname){
+				var rdiv=document.getElementsByClassName(cname);
+				for(var ia=0; ia<rdiv.length; ia++){
+					rdiv[ia].style.backgroundColor='';
+					rdiv[ia].style.color='';
+				}
+			}
+
+
+
+			function removeItemFromExist(liststr,item){
+				var liststrl=liststr;
+
+				var nlist=[];
+				for(var ia=0; ia<liststrl.length; ia++){
+					if(liststrl[ia][0]==item){
+					}else{
+						nlist.push(liststrl[ia]);
+					}
+				}
+				return nlist;	
+			}
+			function checkItemExist(liststr,item){
+				var liststrl=liststr;
+
+				var chk=0;
+				for(var ia=0; ia<liststrl.length; ia++){
+					if(liststrl[ia][0]==item){
+						chk=1;
+						break;
+					}
+				}
+
+				return chk;
+			}
+
+
+
+
+			function colorErase(cname){
+				var cdiv=document.getElementsByClassName(cname);
+				for(var ia=0; ia<cdiv.length; ia++){
+					cdiv[ia].style.backgroundColor='';
+				}
+			}
+
+			socket.emit('mmttcallmentorlist');
+			var gindmentor;
+			socket.on('mmttcallmentorlistafter',function(a){
+				removeallele('mentorlist')
+				var mentorlist=document.getElementById('mentorlist');
+
+
+				var indmentor=[];
+				for(var ia=0; ia<a.a.length; ia++){
+					var chk=0;
+					for(var ib=0; ib<indmentor.length; ib++){
+						if(indmentor[ib][0]==a.a[ia].username){
+							chk=1;
+							break;
+						}
+					}
+					if(chk==0){
+						indmentor.push([a.a[ia].username,a.a[ia].DisplayName]);
+					}
+				}
+
+				gindmentor=indmentor;
+				var mmttobj=[];
+				for(var ia=0; ia<indmentor.length; ia++){
+					mmttobj[ia]={mentorid:indmentor[ia][0], mentorname:indmentor[ia][1], menteelist:[]}
+					for(var ib=0; ib<a.a.length; ib++){
+						if(a.a[ib].username==mmttobj[ia].mentorid && a.a[ib].childcol!=null){
+							
+							mmttobj[ia].menteelist.push([a.a[ib].childcol, a.a[ib].conopt]);
+						}
+					}
+				}
+
+				for(var ia=0; ia<mmttobj.length; ia++){
+					var udiv=document.createElement('div');
+					var udiva=document.createElement('a');
+					udiva.innerHTML=mmttobj[ia].mentorname;
+					udiv.onclick=function(i,j){
+						return function(){
+							displayMenteelist(i);
+							mmttmentorid=j;
+						}
+					}(mmttobj[ia].menteelist, mmttobj[ia].mentorid);
+					udiv.appendChild(udiva);
+					mentorlist.appendChild(udiv);
+				}
+			});
+
+			function callUnassignedusername(){
+				socket.emit('mmttcallunassignedusername');
+			}
+			socket.on('mmttcallunassignedusernameafter',function(a){
+				removeallele('unregisteredmenteelist');
+				var ugm=document.getElementById('unregisteredmenteelist');
+				for(var ia=0; ia<a.a.length; ia++){
+					var udiv=document.createElement('div');
+					udiv.id='reg'+a.a[ia].username;
+					udiv.className='menteelistdiv';
+					udiv.onclick=function(i,j){
+						return function(){
+							clickToChosen([i,0])
+						}
+					}(a.a[ia].username);
+					var udiva=document.createElement('a');
+					udiva.innerHTML=a.a[ia].username;
+					udiv.appendChild(udiva);
+					ugm.appendChild(udiv);
+				}
+				chosenRepresent();
+			});
+
+
+			function removeallele(parentid){
+				var parent=document.getElementById(parentid);
+				while(parent.firstChild){
+					parent.firstChild.remove();
+				}
+			}
+
+	

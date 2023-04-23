@@ -1,0 +1,122 @@
+html
+	head
+		link(rel="stylesheet",href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css")
+		script(src="https://code.jquery.com/jquery-1.12.4.js")
+		script(src="https://code.jquery.com/ui/1.12.1/jquery-ui.js")
+		script(src='/socket.io/socket.io.js')
+		style.
+			#headlist{
+				width:100%;
+				
+			}
+			#writingdetail {
+				width:100%;
+			}
+			#headlist div, .slot div, #timepickup div{
+				display:inline-block;
+				width:10%;
+				margin:0 2%;
+			}
+			#timepickup {
+				margin:3% 0 2% 0;
+			}
+
+	body
+
+	
+		div(id='studentlist')
+	
+		div(id='writinglist')
+			div(id='headlist')
+			div(id='timepickup')
+				div
+					input(type='text', id='datepicker', placeholder='insert date')
+				div
+					input(type='text', id='teachingplan')
+				div
+					input(type='text', id='teachingresult')
+				div
+					input(type='text', id='note')
+				div
+					button(onclick='manageData("insert")') click
+
+			div(id='writingdetail')
+
+		script.
+			var socket = io('/vdrg',{
+				transports:['websocket'],
+				upgrade:false
+			});
+
+
+			$(function (){
+				$("#datepicker").datepicker();
+			});
+			var headlist=['applieddate','teachingplan','teachingresult','note']
+
+			function manageData(mode){
+			
+				var idlist=['datepicker','teachingplan','teachingresult','note']
+				var textlist=[];
+				for(let v of idlist){
+					textlist.push(document.getElementById(v).value);
+				
+				}
+				var count=0;
+				for(var ia=0; ia<textlist.length; ia++){
+				
+					if(textlist[ia]!=""){
+						count++;
+					}
+				}
+				if(count >= 1){
+					socket.emit('managedata',{applieddate:textlist[0],teachingplan:textlist[1], teachingresult:textlist[2],note:textlist[3], studentid:'bob',teacherid:'wjdtjrgus',mode:mode});
+				}else{
+					alert('insert something');
+				}
+			}
+
+			socket.on('managedataafter',function(a){
+				alert(a);
+			});
+
+			socket.emit('studentinfogetdata');
+
+			socket.on('studentinfogetdataafter',function(a){
+				var fdiv=document.getElementById('headlist');
+				for(var ia=0; ia<headlist.length; ia++){
+					var sdiv=document.createElement('div');
+					var sdiva=document.createElement('a');	
+					sdiva.innerHTML=headlist[ia];
+					sdiv.appendChild(sdiva);
+					fdiv.appendChild(sdiv);
+				}
+
+
+				var qdiv=document.getElementById('writingdetail');
+				for(var ia=0; ia<a.a.length; ia++){
+					var udiv=document.createElement('div');
+					udiv.className='slot';
+					for(let k of headlist){
+						var chk=0;
+						for(let p in a.a[ia]){
+							if(p==k){
+								chk=1;
+								break;
+							}
+						}
+						if(chk==1){
+							var sdiv=document.createElement('div');
+							var sdiva=document.createElement('a');	
+							sdiva.innerHTML=a.a[ia][k];
+							sdiv.appendChild(sdiva);
+							udiv.appendChild(sdiv);
+							
+						}
+					}
+					qdiv.appendChild(udiv);
+				}
+	
+			});
+			
+

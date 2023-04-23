@@ -1,0 +1,558 @@
+html
+	head
+		style.
+			#pg{
+				position:relative;
+				top:0%;
+				height:100%;
+				width:50%;
+				overflow-y:scroll;
+				
+			}
+			#pickingcpg{
+				width:50%;
+				float:left;
+			}
+			#displaycpg{
+				width:50%;
+				float:left;
+			}
+			#pickingupg{
+				position:absolute;
+				left:66%;
+				top:0;
+				width:33%;
+				overflow:auto;
+			}
+
+			#pickingcpg div img, #displaycpg div img {
+				width:100%;
+			}
+			#pickingcpg div div, #displaycpg div div{
+				padding:2% 0;
+
+			}
+			#displayupg{
+				position:absolute;
+				left:66%;
+				top:0;
+				width:33%;
+			}
+			.prbbox , .dprbbox {
+				width:86%;
+				height:auto; 
+				box-shadow: 30px 20px 20px -10px grey;
+				float:left;
+				margin: 2%;
+				padding:5%;
+				overflow:auto;
+			}
+			#tpcp{
+				width:50%;
+				float:left;
+				height:100%;
+				overflow:auto;
+			}
+			#cpcp{
+				float:left;
+				width:50%;
+				height:100%;
+				overflow:auto;
+			}
+			#displaychoice{
+				position:fixed;
+				right:0%;
+				top:5%;
+				height:95%;
+				width:5%;
+				overflow:scroll;
+				z-index:3;
+			}
+			#displaychoice:hover {
+				width:40%;
+			}
+			.allpcp.dallpcp{
+				overflow:auto;
+				padding:0 0 0 9%;
+			}
+			.allpcp	{
+				//overflow:auto;
+				padding:0 0 0 9%;
+			}
+			.caseid {
+				padding: 0 0 0 5%;
+			}
+			.casename{
+				background-color:#00aaaa;
+			}
+
+			.dallpcp {
+				overflow:hidden;
+			}
+			#formingCreate{
+				margin:30px 0;
+				width:100%;
+				float:left;
+			}
+			#formingRemove {
+				display:inline-block;
+			}
+			#formingKeyEntity {
+				display:inline-block;
+			}
+			#pcp {
+				position:fixed;
+				top:0%;
+				left:50%;
+				width:40%;
+				height:100%;
+				background-color:#eeeeee;
+			}
+			#bodydiv {
+				width:96%;
+				height:6%;
+				padding:2% 2%;
+			}
+			#pcpset {
+				width:100%;
+				height:90%;
+				background-color:#eeeeee;
+			}
+			.prbbox div, .dprbbox div {
+				overflow:auto;
+			}
+			#cpcp div a:nth-child(2) {
+				display:inline-block;
+				width:5%;
+				font-size:.5em;
+			}
+		script(type='text/javascript' async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML").
+		script.
+			var aspcplist='';
+			var aspcpcolorlist='';
+			var asprbidlist='';
+			var asprbidcolorlist='';
+			var aspcpcolorlist='';
+			function chklist(pcp,list){
+				var achk=0;
+				var o1aspcplist=list.split(',');
+				for(var ie=0; ie<o1aspcplist.length; ie++){
+					if(pcp==o1aspcplist[ie]){
+						achk=1;
+					}
+				}
+				return [achk,o1aspcplist];
+			}
+
+			var keunit='';
+			var keprbid='';
+			function putkeentity(chosenentity){
+				removeallunderline()
+				document.getElementById('chosenentity').value=chosenentity;
+				keunit=chosenentity;
+				document.getElementById('d'+chosenentity).style.borderStyle='solid';
+				//document.getElementById('d'+chosenentity).style.textDecoration='underline';
+				
+			}
+			function putkeprbid(chosenprbid){
+				document.getElementById('chosenprbid').value=chosenprbid;
+				keprbid=chosenprbid;
+			}
+			function putnormid(normid){
+				var chkpcp=chklist(normid,aspcplist);
+				if(aspcplist==''){
+					document.getElementById('normid').value=normid;
+					aspcplist=normid;
+				}else if(chkpcp[0]==0){
+					aspcplist=aspcplist+','+normid;
+				}else{
+					var idx=chkpcp[1].indexOf(normid);
+					chkpcp[1].splice(idx,1);
+					aspcplist='';
+					
+					for(var ib=0; ib<chkpcp[1].length; ib++){
+						if(chkpcp[1].length-1==ib){
+							aspcplist=aspcplist+chkpcp[1][ib];
+						}else{
+							aspcplist=aspcplist+chkpcp[1][ib]+',';
+						}
+					}
+				}
+				document.getElementById('normid').value=aspcplist;
+
+				if(aspcplist==''){
+					removeallcolor('allpcp')
+				
+				}else{
+					removeallcolor('allpcp')
+					var o1aspcplist=aspcplist.split(',');
+					for(var ia=0; ia<o1aspcplist.length; ia++){
+						document.getElementById(o1aspcplist[ia]).style.backgroundColor='green';
+					}
+				}
+
+			}
+			function fillprbidcolor(colorid,color){
+				var chkprbidcolor=chklist(colorid,asprbidcolorlilst);
+				
+				document.getElementById(id).style.backgroundColor=color;
+			}
+			function putprbid(prbid){
+				var prbchk=chklist(prbid,asprbidlist)
+				if(asprbidlist==''){
+					document.getElementById('prbid').value=prbid;
+					asprbidlist=prbid;
+				}else{
+					if(prbchk[0]==0){
+						asprbidlist=asprbidlist+','+prbid;
+					}else{
+						asprbidlist='';
+						var idx=prbchk[1].indexOf(prbid);
+						prbchk[1].splice(idx,1);
+						for(var ia=0; ia<prbchk[1].length; ia++){
+							if(prbchk[1].length-1==ia){
+								asprbidlist=asprbidlist+prbchk[1][ia];
+							}else{	
+								asprbidlist=asprbidlist+prbchk[1][ia]+',';
+							}
+						}
+					}
+					document.getElementById('prbid').value=asprbidlist;
+				}
+				if(asprbidlist==''){
+					removeallcolor('prbbox')
+				
+				}else{
+					removeallcolor('prbbox')
+					var o1asprbidlist=asprbidlist.split(',');
+					for(var ia=0; ia<o1asprbidlist.length; ia++){
+						document.getElementById(o1asprbidlist[ia]).style.backgroundColor='green';
+					}
+						//document.getElementById(prbase[ia][0]).style.backgroundColor='black';
+				}
+				focusprbid(asprbidlist);
+				
+				
+			}
+			function removeFocusprbid(){
+				var pgdiv=document.getElementById('displaypicking');
+				while(pgdiv.firstChild){
+					pgdiv.removeChild(pgdiv.firstChild);
+				}
+
+			}
+			function focusprbid(prbidlist){
+				removeFocusprbid();
+				var ctn;
+				var vas0;
+				var vas1;
+				var o1prbidlist;
+				var vpcps=!{JSON.stringify(pcps)};
+				var pgdiv=document.getElementById('displaypicking')
+				var num;
+				if(prbidlist==''){
+				}else{
+					o1prbidlist=prbidlist.split(',');
+					for(var ia=0; ia<o1prbidlist.length; ia++){
+						ctn=document.createElement('DIV');
+						vas0=document.createElement('A');
+						vas1=document.createElement('A');
+						for(var ib=0; ib<vpcps.length; ib++){
+							if(vpcps[ib][0]==o1prbidlist[ia]){
+								vas0.innerHTML=vpcps[ib][0];
+								vas1.innerHTML=vpcps[ib][1];
+								ib=vpcps.length;
+							}	
+						}
+						ctn.appendChild(vas0);
+						ctn.appendChild(vas1);
+						ctn.setAttribute('class','dfprbbox');
+						ctn.style.backgroundColor='green';
+						ctn.onclick=function(j){return function() {putprbid(j);};}(vas0.innerHTML)
+						pgdiv.appendChild(ctn);
+						MathJax.Hub.Queue(["Typeset",MathJax.Hub,ctn]);
+					
+					}
+				}
+				//MathJax.Hub.Queue(["Typeset",MathJax.Hub,pgdiv]);
+			}
+			function pcpbaseparsing(){
+				var pcpbase='#{pcpbasestr}';
+				var o1pcpbase=pcpbase.split('###');
+				var tmpcpbase;
+				var o2pcpbase=[];
+				var ua;
+				for(var ia=0; ia<o1pcpbase.length-1; ia++){
+				}
+			}
+			function prbpcpparsing(srcstr){
+				var prbase=srcstr;
+				var o1prbase=prbase.split('###');
+				var tmprbase;
+				var o2prbase=[];
+				var ua;
+				for(var ia=0; ia<o1prbase.length-1; ia++){
+					tmprbase=o1prbase[ia].split('@@@');
+					o2prbase[ia]=[tmprbase[0],[]]
+					ua=0;
+					for(var ib=1; ib<tmprbase.length; ib++){
+						o2prbase[ia][1][ua]=tmprbase[ib];
+						ua+=1;
+					}
+				}
+				return o2prbase;
+			}
+			//var prbase=prbpcpparsing('#{prbase}');
+			//var prbase=!{JSON.stringify(prbase)};
+			prbase=JSON.parse(!{JSON.stringify(prbase)});
+			console.log(prbase);
+			function prbasepickingpcp(prbid){
+				removeallcolor('dallpcp');
+				for(var ia=0; ia<prbase.length; ia++){
+					if(prbase[ia][0]==prbid){
+						for(var ib=0; ib<prbase[ia][1].length; ib++){
+							if(prbase[ia][1][ib][2]==0){
+								document.getElementById('d'+prbase[ia][1][ib][0]).style.backgroundColor='orange';
+							}else if(prbase[ia][1][ib][2]==1){
+								document.getElementById('d'+prbase[ia][1][ib][0]).style.backgroundColor='red';
+							}else if(prbase[ia][1][ib][2]==2){
+								document.getElementById('d'+prbase[ia][1][ib][0]).style.backgroundColor='yellow';
+							}
+							//document.getElementById(prbase[ia][1][ib][0]).style.borderStyle='solid';
+						}
+					}
+				}
+			}
+			function removeallunderline(){
+				var dallpcp=document.getElementsByClassName('dallpcp');
+				for(var ia=0; ia<dallpcp.length; ia++){
+					//dallpcp[ia].style.textDecoration='';
+					dallpcp[ia].style.borderStyle='';
+				}
+				
+			}
+			function removeallcolor(classname){
+				var allpcp=document.getElementsByClassName(classname)
+				for(var ia=0; ia<allpcp.length; ia++){
+					allpcp[ia].style.backgroundColor='';
+					//allpcp[ia].style.borderStyle='none';
+				}
+			}
+			//var pcpbase=prbpcpparsing('#{pcpbase}');
+			var pcpbase=!{JSON.stringify(pcpbase)};
+			function removepcpbaseFocus(){
+				var pgdiv=document.getElementById('displaypcpbasepicking');
+				while(pgdiv.firstChild){
+					pgdiv.removeChild(pgdiv.firstChild);
+				}
+			}
+			function pcpbaseFocus(normid){
+				removepcpbaseFocus();
+				var ctn;
+				var vas0;
+				var vas1;
+				var vpcps=!{JSON.stringify(pcps)};
+				var pgdiv=document.getElementById('displaypcpbasepicking');
+				var num;
+				for(var ia=0;ia<pcpbase.length; ia++){
+					if(pcpbase[ia][0]==normid){
+						for(var ib=0; ib<pcpbase[ia][1].length; ib++){
+							ctn=document.createElement('DIV');
+							vas0=document.createElement('A');
+							vas1=document.createElement('A');
+							for(var ic=0; ic<vpcps.length; ic++){
+								if(pcpbase[ia][1][ib]==vpcps[ic][0]){
+									vas0.innerHTML=vpcps[ic][0];
+									vas1.innerHTML=vpcps[ic][1];
+									num=vpcps[ic][0];
+									ic=vpcps.length;
+								}
+							}
+							ctn.appendChild(vas0);
+							ctn.appendChild(vas1);
+							ctn.style.backgroundColor='red';
+							ctn.style.color='white';
+							ctn.setAttribute('class','dfprbbox');
+							//ctn.addEventListener("click",function(){putprbid(num); });
+							//ctn.addEventListener("click",function(){var a=num; putprbid(a);console.log(a);},false);
+							ctn.onclick=function(j){return function() {putprbid(j);};}(num)
+
+							pgdiv.appendChild(ctn);
+							MathJax.Hub.Queue(["Typeset",MathJax.Hub,pgdiv]);
+						}
+					}
+				}
+			}
+			function pcpbasepickingprb(normid){
+				removeallcolor('dprbbox');
+				var ua=0;
+				var redlist=[];
+				var achk;
+		
+				for(var ia=0;ia<pcpbase.length; ia++){
+					if(pcpbase[ia][0]==normid){
+						for(var ib=0; ib<pcpbase[ia][1].length; ib++){
+							document.getElementById('d'+pcpbase[ia][1][ib]).style.backgroundColor='red';
+							redlist[ua]=pcpbase[ia][1][ib];
+							ua+=1;
+						}
+					}
+				}
+				for(var ic=0; ic<prbase.length; ic++){
+					achk=0;
+					for(var id=0; id<redlist.length; id++){
+						if(redlist[id]==prbase[ic][0]){
+							achk=1;
+						}
+					}
+					if(achk==0){
+						document.getElementById('d'+prbase[ic][0]).style.backgroundColor='black';
+						
+					}
+				}
+			}
+			function callingAssignedPrb(){
+				var vpcps=!{JSON.stringify(pcps)};
+				var pgdiv=document.getElementById('displaypcpassigned')
+				var ctn;
+				var vas0;
+				var vas1;
+				for(var ia=0; ia<prbase.length; ia++){
+					ctn=document.createElement('DIV');
+					vas0=document.createElement('A');
+					vas1=document.createElement('A');
+					for(var ib=0; ib<vpcps.length; ib++){
+						if(prbase[ia][0]==vpcps[ib][0]){
+							vas0.innerHTML=vpcps[ib][0];
+							vas1.innerHTML=vpcps[ib][1];
+							ib=vpcps.length;
+						}
+					}
+					ctn.appendChild(vas0);
+					ctn.appendChild(vas1);
+					ctn.style.backgroundColor='grey';
+					ctn.style.color='white';
+					ctn.setAttribute('class','dfprbbox');
+					ctn.onclick=function(j){return function() {putprbid(j);};}(vas0.innerHTML)
+					pgdiv.appendChild(ctn);
+					MathJax.Hub.Queue(["Typeset",MathJax.Hub,pgdiv]);
+				}
+				
+			}
+			function fillasprbid(){
+				for(var ia=0; ia<prbase.length;ia++){
+					document.getElementById('d'+prbase[ia][0]).style.backgroundColor='black';
+					document.getElementById('d'+prbase[ia][0]).style.color='white';
+				}
+			}
+
+			function FindEntityFromDisplayAssigned(assEntity){
+				removeFEFDA()
+				document.getElementById(assEntity).style.borderStyle="solid";
+				
+			}
+			function removeFEFDA(){
+				var freepcp=document.getElementsByClassName('freepcp');
+				for(var ia=0; ia<freepcp.length; ia++){
+					freepcp[ia].style.borderStyle='';
+				}
+
+				var alldallpcp=document.getElementsByClassName('allpcp dallpcp');
+				for(var ia=0; ia<alldallpcp.length; ia++){
+					alldallpcp[ia].style.borderStyle='';
+				}
+				
+			}
+	body
+		div(id='pcp')
+			div(id='bodydiv')
+				a(href='/admin/pcsclassify?stchk=0') Back
+				div(id='formingRemove')
+					form(action='/admin/pcspcpform',method='get')
+						input(type='hidden',id='normid',name='normid')
+						input(type='hidden',id='prbid',name='prbids')
+						input(type='hidden', name='prbase',value=prbase)
+						input(type='hidden', name='currenturl',id='currenturl')
+						input(type='radio',id='rdcreate',name='modimode', value=0, checked)
+						| Add
+						input(type='radio',id='rdcreate',name='modimode', value=1)
+						| Modify Add
+						input(type='radio',id='rddelete',name='modimode', value=2)
+						| Remove
+						input(type='submit', value='submit')
+				div(id='formingKeyEntity')
+					form(action='/admin/pcspcpkeyentity',method='get')
+						input(type='hidden',id='chosenentity',name='chosenentity')
+						input(type='hidden',id='chosenprbid',name='chosenprbid')
+						//input(type='hidden', name='prbase',value=prbase)
+						input(type='hidden', name='currenturl',id='currenturl2')
+						input(type='radio',id='rdcreate',name='setentity', value=2)
+						| auxentity
+						input(type='radio',id='rdcreate',name='setentity', value=0)
+						| subentity
+						input(type='radio',id='rdcreate',name='setentity', value=1 checked)
+						| keyentity
+						input(type='submit', value='setentity')
+
+			div(id='pcpset')
+			
+				div(id='tpcp')
+					div(class='caseid')
+						a(class='casename') Free PCP
+						-for(var iu=0; iu<freepcp.length; iu++){
+							div(id=freepcp[iu][0],onclick='putnormid("'+freepcp[iu][0]+'")',class='allpcp', class='freepcp')
+								a=freepcp[iu][1].replace(/\\\\/g,"\\")
+						-}
+					-for(var ic=0; ic<crpcp.length; ic++){
+						div(class='caseid')
+							a(class='casename')=crpcp[ic][0][1]
+							-for(var ie=0; ie<crpcp[ic][1].length; ie++){
+								div(id=crpcp[ic][1][ie][0],onclick='putnormid("'+crpcp[ic][1][ie][0]+'")',class='allpcp dallpcp', class=crpcp[ic][0][0])
+									a=crpcp[ic][1][ie][1].replace(/\\\\/g,"\\")
+					
+							-}
+					-}
+
+				div(id='cpcp') 
+					-for(var id=0; id<pcplist.length; id++){
+						div(id='d'+pcplist[id][0],onclick='pcpbasepickingprb("#{pcplist[id][0]}");pcpbaseFocus("#{pcplist[id][0]}");putkeentity("#{pcplist[id][0]}");FindEntityFromDisplayAssigned("#{pcplist[id][0]}")',class='dallpcp')
+							a=pcplist[id][1].replace(/\\\\/g,"\\")
+							a=pcplist[id][2]
+					-}
+		div(id='pg')
+			div(id='pickingcpg')
+				-for(var ib=0; ib<pcps.length; ib++){
+					div(class='prbbox', onclick="putprbid('#{pcps[ib][0]}');",id=pcps[ib][0])
+						-for(var ic=0; ic<7; ic++){
+							div
+								a=pcps[ib][ic]
+						-}
+						-if(pcps[ib][8]!=0){
+							div
+								img(src=pcps[ib][8])
+						-}
+				-}
+			div(id='displaycpg')
+				-for(var ib=0; ib<pcps.length; ib++){
+					div(class='dprbbox', onclick="prbasepickingpcp('#{pcps[ib][0]}');putkeprbid('#{pcps[ib][0]}')",id='d'+pcps[ib][0])
+						-for(var ic=0; ic<7; ic++){
+							div
+								a=pcps[ib][ic]
+						-}
+						-if(pcps[ib][8]!=0){
+							div
+								img(src=pcps[ib][8])
+						-}
+				-}
+		div(id='displaychoice')
+			div(id='displaypicking')
+			div(id='displaypcpbasepicking')
+			div(id='displaypcpassigned')
+		script.
+			window.onload=function(){
+				fillasprbid();
+				callingAssignedPrb();
+				document.getElementById('currenturl').value=window.location.href;
+				document.getElementById('currenturl2').value=window.location.href;
+			}
+		

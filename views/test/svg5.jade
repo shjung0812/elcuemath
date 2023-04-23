@@ -1,0 +1,33 @@
+html
+
+	body
+		script(type='text/x-mathjax-config').
+			MathJax.Hub.Config({tex2jax:{inlineMath:[['$','$'],['\\(','\\)']]}});
+		
+		script(type="text/javascript"  async src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_SVG")
+		//script(xlink:href="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML")
+		svg(width='1960' height='1080' xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink")
+			g
+				text(xml:space='preserve' text-anchor='middle' font-family='serif' font-size='50' id='svg_1' y='223' x='636' stroke-opacity='0.8' stroke-width='0' stroke='#007fff' fill='#000000') Hello World \(\alpha\)
+
+				foreignObject(x='100' y='100' width='100' height='100')
+					body(xmlns='http://www.w3.org/1999/xhtml')
+						a \\(\\alpha \\)
+		
+
+
+		script.
+			function saveSvg(svgEl, name) {
+			    svgEl.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+			    var svgData = svgEl.outerHTML;
+			    var preface = '<?xml version="1.0" standalone="no"?>\r\n';
+			    var svgBlob = new Blob([preface, svgData], {type:"image/svg+xml;charset=utf-8"});
+			    var svgUrl = URL.createObjectURL(svgBlob);
+			    var downloadLink = document.createElement("a");
+			    downloadLink.href = svgUrl;
+			    downloadLink.download = name;
+			    document.body.appendChild(downloadLink);
+			    downloadLink.click();
+			    document.body.removeChild(downloadLink);
+			}
+			saveSvg(document.getElementsByTagName('svg')[0],'ddd.svg')

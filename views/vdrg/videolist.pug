@@ -1,0 +1,576 @@
+html
+	head
+
+		script(src='/socket.io/socket.io.js')
+		style.
+			.viddiv {
+				width:100%;
+				height:20%;
+				overflow:hidden;
+				
+			}
+			.vidbox {
+				float:left;
+				width:20%;
+				height:100%;
+			}
+			.vidinfodiv {
+				float:left;
+				width:30%;
+				height:100%;
+			}
+	body
+		h2 Video Register
+
+
+		div
+			button(onclick='iniFunc(60,10,20)') Create Video
+		div(id='videolist')
+		script.
+			
+			var socket = io('/vdrg');
+			socket.on('connect',()=>{
+				console.log('connection ready');
+
+			});
+
+			function uploadFile(bodyname,pinfo){
+				removeallele(bodyname);
+				var uploaddiv=document.createElement('div');
+				uploaddiv.id='uploaddiv';
+				uploaddiv.style.width=100+'%';
+				uploaddiv.style.height=100+'%';
+				uploaddiv.style.backgroundColor='#eeeeee';
+
+				var bodydiv=document.getElementById(bodyname);
+
+				var edittextdiv=document.createElement('div');
+				var edittextdiva=document.createElement('textarea');
+				edittextdiva.innerHTML='edit value';
+				edittextdiv.appendChild(edittextdiva);
+
+				uploaddiv.appendChild(edittextdiv);
+
+
+
+				var sendbuttondiv=document.createElement('div');
+				var sendbutton=document.createElement('button');
+				sendbutton.onclick=function(i){return function(){updateText(i)}}(pinfo[0]);
+				sendbutton.innerHTML='send';
+				sendbuttondiv.appendChild(sendbutton);
+				uploaddiv.appendChild(sendbuttondiv);
+
+				bodydiv.appendChild(uploaddiv);
+
+				function updateText(){
+					socket.emit('vdrgupdateaddr',{vidaddr:pinfo[1],vid:pinfo[0],vidinfo:edittextdiva.value});
+					callWritingInDiv('bodydiv');
+					callVideolist();
+					//terminateEdit();
+				}
+
+
+
+
+			}
+
+
+			function uploadFileEdit(bodyname,pinfo){
+				removeallele(bodyname);
+
+				var uploaddiv=document.createElement('div');
+				uploaddiv.id='uploaddiv';
+				uploaddiv.style.width=100+'%';
+				uploaddiv.style.height=100+'%';
+				uploaddiv.style.backgroundColor='#eeeeee';
+
+				var bodydiv=document.getElementById(bodyname);
+
+
+				var edittextdiv=document.createElement('div');
+				var edittextdiva=document.createElement('textarea');
+				edittextdiva.innerHTML=pinfo[2];
+				edittextdiv.appendChild(edittextdiva);
+
+				uploaddiv.appendChild(edittextdiv);
+
+				var sendbuttondiv=document.createElement('div');
+				var sendbutton=document.createElement('button');
+				sendbutton.innerHTML='send';
+				sendbutton.onclick=function(i){return function(){updateText(i)}}(pinfo[0]);
+				sendbuttondiv.appendChild(sendbutton);
+				uploaddiv.appendChild(sendbuttondiv);
+
+
+				bodydiv.appendChild(uploaddiv);
+
+
+				function updateText(){
+					socket.emit('vdrgupdateaddr',{vidaddr:pinfo[1],vid:pinfo[0],vidinfo:edittextdiva.value});
+					terminateEdit();
+				}
+
+
+				function terminateEdit(){
+					//removeallelement('editbodydiv');
+					document.getElementById('editbodydiv').remove();
+					editfunc=0;
+					previewUp=0;
+					tempAlert('VID info Edited',1000)
+				}
+			}
+
+
+
+			var previewUp=0;
+			function preViewprbUpload(pinfo,bodyname){
+
+				if(previewUp==0){
+					var bodydiv=document.getElementById(bodyname);
+					var textareacontents=document.getElementById('textareael').value;
+					currprb=textareacontents;
+					pinfo[1]=textareacontents;
+
+					var previewdiv=document.createElement('div');
+					previewdiv.id='previewdiv';
+					previewdiv.style.width=100+'%';
+					previewdiv.style.height=100+'%';
+					previewdiv.style.backgroundColor='pink';
+
+					var previewcontentsdiv=document.createElement('div');
+					previewcontentsdiv.style.width=90+'%';
+					previewcontentsdiv.style.height=70+'%';
+					previewcontentsdiv.style.backgroundColor='grey';
+					previewcontentsdiv.style.fontSize='2vw';
+					previewcontentsdiv.style.padding='5% 5% 5% 5%';//curious,,,,,,,
+					previewdiv.appendChild(previewcontentsdiv);
+					
+				
+					var previewa=document.createElement('iframe');
+					previewa.src=textareacontents;
+					previewcontentsdiv.appendChild(previewa);
+				
+
+					removeallele(bodyname);
+					bodydiv.appendChild(previewdiv);
+
+					var previewOption=document.createElement('div');
+					previewOption.style.width='100%';
+					previewOption.style.height='10%';
+					previewdiv.appendChild(previewOption);
+
+					var sendbuttondiv=document.createElement('div');
+					sendbuttondiv.style.width=50+'%';
+					sendbuttondiv.style.height=100+'%';
+					sendbuttondiv.style.backgroundColor='blue';
+					sendbuttondiv.style.cssFloat='left';
+					sendbuttondiv.onclick=function(i,j){return function(){sendPrb(i,j,0);}}(pinfo,textareacontents);
+					previewOption.appendChild(sendbuttondiv);
+
+					var uploadPhoto=document.createElement('div');
+					uploadPhoto.style.width=50+'%';
+					uploadPhoto.style.height=100+'%';
+					uploadPhoto.style.backgroundColor='#222222';
+					uploadPhoto.style.cssFloat='left';
+					uploadPhoto.onclick=function(i){return function(){uploadFileEdit('editbodydiv',i);}}(pinfo);
+					previewOption.appendChild(uploadPhoto);
+
+				
+					//upsideDown('textareadiv','previewdiv');
+					previewUp=1;
+				}else if(previewUp==1){
+					//upsideDown('previewdiv','textareadiv');
+					//document.getElementById('previewdiv').remove();
+					previewUp=0;
+
+					removeallele('editbodydiv');
+					var editbodydiv=document.getElementById('editbodydiv');
+				
+					var textareadiv = document.createElement('div');
+					textareadiv.id='textareadiv';
+					textareadiv.style.width=100+'%';
+					textareadiv.style.height=90+'%';
+
+					var textareael=document.createElement('textarea');
+					textareael.id='textareael';
+					textareael.innerHTML=pinfo[1];
+					textareael.style.width=100+'%';
+					textareael.style.height=100+'%';
+					textareael.style.padding=5+'%';
+					textareael.style.fontSize='2vw';
+					textareadiv.appendChild(textareael);
+					editbodydiv.appendChild(textareadiv);
+					editfunc=1;
+
+
+					document.onkeydown = function(e){
+						if(e.shiftKey && e.which==115 && !e.ctrlKey){//preview
+							e.preventDefault();
+							preViewprbUpload(pinfo,'editbodydiv');
+						}else if(e.ctrlKey && e.which==32 && !e.shiftKey){
+							var el=document.getElementById('textareael');
+							insertAtCursor(el,'\\(\\)',2);
+						}else if(e.ctrlKey && e.shiftKey && e.which!=32){
+							var el=document.getElementById('textareael');
+							insertAtCursor(el,'\\[\\]',2);
+						}else if(e.shiftKey && e.which==54){
+							var el=document.getElementById('textareael');
+							e.preventDefault();
+							insertAtCursor(el,'^{}',1);
+						}else if(e.shiftKey && e.which==112){
+							var el=document.getElementById('textareael');
+							e.preventDefault();
+							insertAtCursor(el,'\\frac{}{}',3);
+
+						}
+
+
+					}
+
+
+
+				}
+			}
+
+
+
+
+
+
+			var editfunc=0;
+			function editFunc(pinfo,divwidth,divposx,divposy){
+				if(editfunc==0){
+					var editbodydiv=document.createElement('div');
+					editbodydiv.id='editbodydiv';
+					
+					const gratio=0.618;
+					const editbodywidth=divwidth;
+					editbodydiv.style.width=editbodywidth + '%';
+					editbodydiv.style.height=editbodywidth+'%';
+					editbodydiv.style.backgroundColor='red';
+					editbodydiv.style.position='fixed';
+					editbodydiv.style.top=divposx+'%';
+					editbodydiv.style.left=divposy+'%';
+
+					document.getElementsByTagName('body')[0].appendChild(editbodydiv);
+						
+				
+					var textareadiv = document.createElement('div');
+					textareadiv.id='textareadiv';
+					textareadiv.style.width=100+'%';
+					textareadiv.style.height=90+'%';
+
+					var textareael=document.createElement('textarea');
+					textareael.id='textareael';
+					textareael.innerHTML=pinfo[1];
+					textareael.style.width=100+'%';
+					textareael.style.height=100+'%';
+					textareael.style.padding=5+'%';
+					textareael.style.fontSize='2vw';
+					textareadiv.appendChild(textareael);
+					editbodydiv.appendChild(textareadiv);
+					editfunc=1;
+					document.onkeydown = function(e){
+						if(e.shiftKey && e.which==115 && !e.ctrlKey){//preview
+							e.preventDefault();
+							preViewprbUpload(pinfo,'editbodydiv');
+						}else if(e.ctrlKey && e.which==32 && !e.shiftKey){
+							var el=document.getElementById('textareael');
+							insertAtCursor(el,'\\(\\)',2);
+						}else if(e.ctrlKey && e.shiftKey && e.which!=32){
+							var el=document.getElementById('textareael');
+							insertAtCursor(el,'\\[\\]',2);
+						}else if(e.shiftKey && e.which==54){
+							var el=document.getElementById('textareael');
+							e.preventDefault();
+							insertAtCursor(el,'^{}',1);
+						}else if(e.shiftKey && e.which==112){
+							var el=document.getElementById('textareael');
+							e.preventDefault();
+							insertAtCursor(el,'\\frac{}{}',3);
+
+						}
+
+
+					}
+
+
+				}else if(editfunc==1){
+					editfunc=0;
+					document.getElementById('editbodydiv').remove();
+					document.onkeydown='';
+				}
+			}
+
+
+
+
+
+			function tempAlert(msg,duration){
+				var el = document.createElement("div");
+				el.setAttribute("style","position:absolute;top:10%;left:35%;background-color:#eeeeee;padding:5% 10%;z-index:6;");
+				el.innerHTML = msg;
+				setTimeout(function(){
+					el.parentNode.removeChild(el);
+				},duration);
+				document.body.appendChild(el);
+			}
+
+
+
+			socket.on('vdrgcreateuploadafter',function(a){
+				uploadFile('bodydiv',[a.vid,a.vidaddr]);	
+			});
+
+
+			function sendPrb(pinfo,prbtext,opt){
+				if(!pinfo){// new prb registered
+
+
+					if(opt==0){ // No upload
+						socket.emit('vdrgcreate',{vidaddr:prbtext})
+						callWritingInDiv('bodydiv');
+						laststat=0;
+						tempAlert('Problem Registered',1000)
+					}else{ //Upload
+						socket.emit('vdrgcreateupload',{vidaddr:prbtext})
+						laststat=0;
+					}
+
+
+				}else{
+					socket.emit('vdrgupdateaddr',{vidaddr:prbtext,vid:pinfo[0],vidinfo:pinfo[2]})
+					editfunc=0;	
+					previewUp=0;
+					document.getElementById('editbodydiv').remove();
+					document.onkeydown='';
+					tempAlert('Problem Edited',1000)
+
+				}
+			}
+
+
+
+
+			function callWritingInDiv(bdv){
+				removeallele(bdv);
+				var bodydiv=document.getElementById(bdv);
+
+				var textareadiv = document.createElement('div');
+				textareadiv.id='textareadiv';
+				textareadiv.style.width=100+'%';
+				textareadiv.style.height=90+'%';
+
+				var textareael=document.createElement('textarea');
+				textareael.id='textareael';
+				textareael.style.width=100+'%';
+				textareael.style.height=100+'%';
+				textareael.style.padding=5+'%';
+				textareael.style.fontSize='2vw';
+				textareael.innerHTML='https://www.youtube.com/embed/';
+				textareadiv.appendChild(textareael);
+				bodydiv.appendChild(textareadiv);
+
+				document.onkeydown = function(e){
+					if(e.shiftKey && e.which==115 && !e.ctrlKey){
+						e.preventDefault();
+						preViewprb('','bodydiv');
+					}
+
+
+				}
+
+
+
+			}
+
+
+
+
+
+			function removeallele(parentid){
+				var parent=document.getElementById(parentid);
+				while(parent.firstChild){
+					parent.firstChild.remove();
+				}
+			}
+
+
+
+			var laststat=0;
+
+			function preViewprb(pinfo,bodyname){
+
+				if(laststat==0){
+					var bodydiv=document.getElementById(bodyname);
+					var textareacontents=document.getElementById('textareael').value;
+					currprb=textareacontents;
+
+					var previewdiv=document.createElement('div');
+					previewdiv.id='previewdiv';
+					previewdiv.style.width=100+'%';
+					previewdiv.style.height=100+'%';
+					previewdiv.style.backgroundColor='pink';
+
+					var previewcontentsdiv=document.createElement('div');
+					previewcontentsdiv.style.width=90+'%';
+					previewcontentsdiv.style.height=70+'%';
+					previewcontentsdiv.style.backgroundColor='grey';
+					previewcontentsdiv.style.fontSize='2vw';
+					previewcontentsdiv.style.padding='5% 5% 5% 5%';//curious,,,,,,,
+					previewdiv.appendChild(previewcontentsdiv);
+					
+				
+					var previewa=document.createElement('iframe');
+					previewa.src=textareacontents;
+					previewcontentsdiv.appendChild(previewa);
+				
+
+					removeallele(bodyname);
+					bodydiv.appendChild(previewdiv);
+
+
+					var previewOption=document.createElement('div');
+					previewOption.style.width='100%';
+					previewOption.style.height='10%';
+					previewdiv.appendChild(previewOption);
+
+					var sendbuttondiv=document.createElement('div');
+					sendbuttondiv.style.width=50+'%';
+					sendbuttondiv.style.height=100+'%';
+					sendbuttondiv.style.backgroundColor='blue';
+					sendbuttondiv.style.cssFloat='left';
+					sendbuttondiv.onclick=function(i,j){return function(){sendPrb(i,j,0);}}(pinfo,textareacontents);
+					previewOption.appendChild(sendbuttondiv);
+
+					var uploadPhoto=document.createElement('div');
+					uploadPhoto.style.width=50+'%';
+					uploadPhoto.style.height=100+'%';
+					uploadPhoto.style.backgroundColor='#222222';
+					uploadPhoto.style.cssFloat='left';
+					uploadPhoto.onclick=function(i,j){return function(){sendPrb(i,j,1);}}(pinfo,textareacontents);
+					previewOption.appendChild(uploadPhoto);
+				
+					laststat=1;
+				}else if(laststat==1){
+					//upsideDown('previewdiv','textareadiv');
+					//document.getElementById('previewdiv').remove();
+					callWritingInDiv('bodydiv');
+					laststat=0;
+				}
+			}
+
+
+
+
+			var inifunc=0;
+			function iniFunc(divwidth,divposx,divposy){
+				if(inifunc==0){
+					var bodydiv=document.createElement('div');
+					bodydiv.id='bodydiv';
+					
+					const gratio=0.618;
+					const bodywidth=divwidth;
+					bodydiv.style.width=bodywidth + '%';
+					bodydiv.style.height=bodywidth+'%';
+					bodydiv.style.backgroundColor='red';
+					bodydiv.style.position='fixed';
+					bodydiv.style.top=divposx+'%';
+					bodydiv.style.left=divposy+'%';
+
+					document.getElementsByTagName('body')[0].appendChild(bodydiv);
+
+					var textareadiv = document.createElement('div');
+					textareadiv.id='textareadiv';
+					textareadiv.style.width=100+'%';
+					textareadiv.style.height=90+'%';
+
+					var textareael=document.createElement('textarea');
+					textareael.id='textareael';
+					textareael.style.width=100+'%';
+					textareael.style.height=100+'%';
+					textareael.style.padding=5+'%';
+					textareael.style.fontSize='2vw';
+					textareael.innerHTML='https://www.youtube.com/embed/';
+					textareadiv.appendChild(textareael);
+					
+					bodydiv.appendChild(textareadiv);
+
+					inifunc=1;
+					document.onkeydown = function(e){
+							if(e.shiftKey && e.which==115 && !e.ctrlKey){//preview
+
+								e.preventDefault();
+								preViewprb('','bodydiv');
+							}else if(e.ctrlKey && e.which==32 && !e.shiftKey){
+								var el=document.getElementById('textareael');
+								insertAtCursor(el,'\\(\\)',2);
+							}else if(e.ctrlKey && e.shiftKey && e.which!=32){
+								var el=document.getElementById('textareael');
+								insertAtCursor(el,'\\[\\]',2);
+							}else if(e.shiftKey && e.which==54){
+								var el=document.getElementById('textareael');
+								e.preventDefault();
+								insertAtCursor(el,'^{}',1);
+							}else if(e.shiftKey && e.which==112){
+								var el=document.getElementById('textareael');
+								e.preventDefault();
+								insertAtCursor(el,'\\frac{}{}',3);
+
+							}
+
+
+					}
+
+
+				}else if(inifunc==1){
+					inifunc=0;
+					document.getElementById('bodydiv').remove();
+					document.onkeydown='';
+				}
+
+					
+			}
+
+				
+
+			callVideolist();
+			socket.on('callvideolistafter',function(a){
+				removeallele('videolist');
+				var videolist=document.getElementById('videolist');
+				for(var ia=0; ia<a.a.length; ia++){
+					var viddiv=document.createElement('div');
+					viddiv.className='viddiv';
+
+					var vidbox=document.createElement('div');
+					var vidvid=document.createElement('iframe');
+					vidvid.src=a.a[ia].vidaddr;
+					vidbox.appendChild(vidvid);
+					vidbox.className='vidbox';
+					viddiv.appendChild(vidbox);
+
+					var vidinfodiv=document.createElement('div');
+					var vidinfodiva=document.createElement('A');
+					vidinfodiva.innerHTML=a.a[ia].vidinfo;
+					vidinfodiv.appendChild(vidinfodiva);
+					vidinfodiv.className='vidinfodiv';
+					viddiv.appendChild(vidinfodiv);
+					
+
+					var vidbuttondiv=document.createElement('div');
+					var vidbutton=document.createElement('button');
+					vidbutton.innerHTML='Edit';
+					vidbutton.onclick=function(i){return function(){editFunc(i,50,20,20)}}([a.a[ia].id,a.a[ia].vidaddr,a.a[ia].vidinfo]);
+					vidbuttondiv.appendChild(vidbutton);
+					vidbuttondiv.className='vidbutton';
+					viddiv.appendChild(vidbuttondiv);
+
+					videolist.appendChild(viddiv);
+				}
+			
+			});
+			function callVideolist(){
+				socket.emit('callvideolist');
+			}
+
+

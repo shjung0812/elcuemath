@@ -1,0 +1,77 @@
+html
+	head
+		link(rel='stylesheet' type='text/css' id='link')
+		script(id='js').
+		script.
+			if(/iPhone|Android/i.test(navigator.userAgent)){
+			//if(!(/iPhone|Android/i.test(navigator.userAgent))){
+			}else{
+				document.getElementById('link').href='/design/design2.0/web/defelestat_css.css';
+				
+				//document.getElementById('js').src='/design/design2.0/web/defelelist_js.js';
+			}
+	body
+		a(id='back' href='/admin/page') Back To Page
+
+		-if(opt==0){
+		div(id='crsElement')=subcrs + ' Narrow Range Search'
+			-for(var ic=0; ic<statcrs.length; ic++){
+				div
+					a=statcrs[ic][0]
+					a=statcrs[ic][1]
+					a=statcrs[ic][2]
+					a(class='prb'+ic onclick='pickprb('+ic+')')=statcrs[ic][3]
+					a=statcrs[ic][4]
+			-}
+		-}else if(opt==1){
+		div(id='crsElement')=subcrs + ' Wide Range Search'
+			-for(var ic=0; ic<statcrs.length; ic++){
+				div
+					a=statcrs[ic][0]
+					a=statcrs[ic][1]
+					a=statcrs[ic][2]
+					a(class='prb'+ic onclick='pickprb('+ic+')')=statcrs[ic][3]
+					a=statcrs[ic][4]
+			-}
+		-}
+		a(href='/admin/coursadd?stchk=2&gcourse=""&subcrs='+subcrs+'&crslist='+packcrslist+'&packrelatedcrs='+packrelatedcrs) Back
+		//gcourse는 안쓰이는듯.
+		script(src='/socket.io/socket.io.js')
+		script.
+			var socket=io('/OCS')
+			function pickprb(num){
+				//separate prb
+				var sp1=document.getElementsByClassName('prb'+num)[0];
+				var prblist=sp1.innerHTML.split(',');
+				socket.emit('askprblist',{prblist:prblist});		
+			}
+
+			socket.on('askprblistres',function(res){
+				var tmptxt;
+				var tmp;
+				var prbset=[];
+				var prbdetail;
+				var oldocs=document.getElementById('prbcont');
+				if(oldocs){
+					while(oldocs.firstChild){
+						oldocs.removeChild(oldocs.firstChild);
+					}
+					var ocsdiv=document.getElementById('prbcont');
+				}else{
+					var ocsdiv=document.createElement('DIV');
+					ocsdiv.setAttribute('id','prbcont');
+				}
+			
+				for(var ia=0; ia<res.prbset.length; ia++){
+					prbset[ia]=document.createElement('DIV');
+					prbdetail=document.createElement('a');
+					tmptxt=document.createTextNode(res.prblist[ia] + ' :  '+res.prbset[ia][0]);
+					prbdetail.appendChild(tmptxt);
+					prbset[ia].appendChild(prbdetail);
+					ocsdiv.appendChild(prbset[ia]);
+				}
+				document.getElementsByTagName('body')[0].appendChild(ocsdiv);
+			});
+		
+
+		

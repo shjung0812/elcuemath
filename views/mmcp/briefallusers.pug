@@ -1,0 +1,233 @@
+html
+	head
+		script(type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML")
+		script(src='/socket.io/socket.io.js')
+		style.
+			#imglist {
+			}
+			.imgdiv {
+				width:60%;
+				margin:5% auto;
+			}
+			.imgdiv img {
+				width:100%;
+			}
+			.evaltext {
+				margin:0 5%;
+				cursor:pointer;
+			}
+
+
+	body
+		div(id='userlistdiv')
+		div(id='imglist')
+
+
+		script.
+			var socket = io('/mmcp');
+			var socket2 = io('/vdrg');
+			socket.on('connect',()=>{
+				console.log('mmcp connection ready');
+			});
+
+			function removeallele(elename){
+				var ele=document.getElementById(elename)
+				while(ele.firstChild){
+					ele.removeChild(ele.firstChild);
+				}
+			}
+
+			function callvdrgUsers(userfile,prbid){
+				socket2.emit('getcurrentvdrgusers',{userfile:userfile,prbid:prbid});
+			}
+
+			function sendRecord(chosenusername,prbid,cptid){
+				var msglist=['coversta','instructprb','sharehomeworkresult'];
+				console.log('ssss');
+				socket2.emit('vdrgwriterecord',{username:chosenusername,hisopt:msglist[2],prbid:prbid,cptid:cptid});
+			}
+
+
+
+			socket2.on('getcurrentvdrgusersafter',function(a){
+
+				var userbox=document.createElement('div');
+				var color=['white','blue']
+				var duration=5000;
+				userbox.setAttribute("style","position:fixed;z-index:20;top:10%;left:35%;background-color:"+color[0]+";padding:5% 10%;color:"+color[1]+";");
+
+				var mentoridlist=[];
+				var menteeidlist=[];
+
+				for(var ia=0; ia<a.users.length; ia++){
+					if(a.users[ia].connectionstate==1){
+						mentoridlist.push([a.users[ia].mentorid,a.users[ia].mentorsocketid,a.users[ia].menteelist]);
+					}
+				}
+				for(var ia=0; ia<mentoridlist.length; ia++){
+					var userdiv=document.createElement('div');
+					userdiv.innerHTML=mentoridlist[ia][0];
+					userdiv.onclick=function(ma,mb,mc,md){
+						return function(){
+							var userboxi=document.createElement('div');
+							var color=['black','white']
+							var duration=5000;
+							userboxi.setAttribute("style","position:fixed;z-index:20;top:10%;left:35%;background-color:"+color[0]+";padding:5% 10%;color:"+color[1]+";");
+							for(var ib=0; ib<mb.length; ib++){
+				
+								if(mb[ib].connectionstate==1){
+									var tdiv=document.createElement('div');
+									tdiv.innerHTML=mb[ib].username;
+									tdiv.onclick=function(k,l,m,n,v){
+										return function(){
+											socket2.emit('vdrgsharehomework',{menteesocketid:k,mentorsocketid:l,userfile:m,auxaddr:'/mmcphomework/',prbid:v});
+											sendRecord(n,m,'')
+										}
+									}(mb[ib].menteesocketid,ma,mc,mb[ib].username,md);
+									userboxi.appendChild(tdiv);
+								}
+							}
+							document.body.appendChild(userboxi);
+							setTimeout(function(){
+								userboxi.parentNode.removeChild(userboxi);
+							},duration);
+							
+						}
+					}(mentoridlist[ia][1],mentoridlist[ia][2],a.userfile,a.prbid);
+					userbox.appendChild(userdiv);
+					
+				}
+				setTimeout(function(){
+					userbox.parentNode.removeChild(userbox);
+				},duration);
+				document.body.appendChild(userbox);
+
+
+
+			});
+
+
+
+
+
+
+			socket.on('briefmmcphomeworkcallafter',function(a){
+				removeallele('imglist');
+				var imglist=document.getElementById('imglist');
+				console.log(a);
+				for(var ia=0; ia<a.a.length; ia++){
+					var imgdiv=document.createElement('div');
+					imgdiv.className='imgdiv';
+
+					var imgeldiv=document.createElement('div');
+					var imgel=document.createElement('img');
+					imgel.src='/usernote/mmcphomework/'+a.a[ia].mpicid;
+					imgel.onclick=function(i,j){
+						return function(){
+							callvdrgUsers(i,j);
+						}
+					}(a.a[ia].mpicid,a.a[ia].mmcpprb[0])
+
+
+
+					imgeldiv.appendChild(imgel);	
+					imgdiv.appendChild(imgeldiv);
+
+					var imginfo=document.createElement('div');
+					var imginfoa=document.createElement('a');
+					imginfoa.innerHTML=a.a[ia].mmcpconid+'  time passed : '+a.a[ia].timepassed+'/'+a.a[ia].timeallocated+'   createdate:'+a.a[ia].createdate+'  Answer: '+a.a[ia].mmcpprb[2];
+					imginfo.appendChild(imginfoa);
+					imgdiv.appendChild(imginfo);
+
+
+					
+					var mentorcomment=document.createElement('div');
+					var mentorcommentinput=document.createElement('input');
+					var mentorcommentbutton=document.createElement('button');
+					mentorcommentbutton.innerHTML='Send';
+
+
+				
+					var correcta=document.createElement('a');
+					correcta.className='evaltext';
+					correcta.innerHTML='correct';
+					correcta.onclick=function(j){
+						return function(){
+							sendMsgtouser(j,'correct','')
+						}
+					}(a.a[ia].numid);
+					mentorcomment.appendChild(correcta);
+
+					var wronga=document.createElement('a');
+					wronga.className='evaltext';
+					wronga.innerHTML='wrong';
+					wronga.onclick=function(j){
+						return function(){
+							sendMsgtouser(j,'wrong','')
+						}
+					}(a.a[ia].numid);
+					mentorcomment.appendChild(wronga);
+
+
+					if(a.a[ia].comment!=null){
+						if(a.a[ia].comment=='wrong'){
+							wronga.style.border='solid 1px red'
+							correcta.style.border=''
+						}else if(a.a[ia].comment=='correct'){
+							correcta.style.border='solid 1px red'
+							wronga.style.border=''
+						}else{
+						}
+					}
+
+					/*
+
+					mentorcomment.appendChild(mentorcommentinput);
+					mentorcomment.appendChild(mentorcommentbutton);*/
+					imgdiv.appendChild(mentorcomment);
+
+					imglist.appendChild(imgdiv);
+				}
+				MathJax.Hub.Queue(["Typeset",MathJax.Hub,imglist]);
+				
+			});
+
+			socket.on('mmcpregistermsgafter',function(){
+				//alert('mmcp registered!');
+			});
+
+			function sendMsgtouser(id,msg,inputid){
+				socket.emit('mmcpregistermsg',{numid:id,msg:msg});
+			}
+
+
+
+			callPichistory();
+			function callPichistory(){
+				socket.emit('mmcphomeworkcalluserlist');
+			}
+
+			socket.on('mmcphomeworkcalluserlistafter',function(a){
+				var choicelist=document.getElementById('userlistdiv');
+				for(var ia=0; ia<a.a.length; ia++){
+					var userdiv=document.createElement('div');
+					userdiv.onclick=function(i){
+						return function(){
+							socket.emit('briefmmcphomeworkcall',{username:i});
+						}
+					}(a.a[ia].username);
+					var userdiva=document.createElement('A');
+					userdiva.innerHTML=a.a[ia].username;
+
+					var userlink=document.createElement('a');
+					userlink.innerHTML='Click';
+					userlink.href='/mmcp/monitor?username='+a.a[ia].username;
+					userlink.setAttribute('target', '_blank');
+					userdiv.appendChild(userdiva);
+					userdiv.appendChild(userlink);
+					choicelist.appendChild(userdiv);
+				}
+
+			});
+
+

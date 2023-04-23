@@ -1,0 +1,41 @@
+html
+	head
+		link(rel='stylesheet' id='link')
+		script(id='js')
+		script.
+			if(/iPhone|Android/i.test(navigator.userAgent)){
+			//if(!(/iPhone|Android/i.test(navigator.userAgent))){
+				document.getElementById('link').href='/design/design2.0/web/AdminPage_css.css';
+				document.getElementById('js').src='/design/design2.0/web/AdminPage_js.js';
+			}else{
+				document.getElementById('link').href='/design/design2.0/web/AdminPage_css.css';
+				document.getElementById('js').src='/design/design2.0/web/AdminPage_js.js';
+			}
+	body
+		div(id='container')
+			a(href='/admin/usermanagement') 사용자관리
+			a(href='/admin/yqwa/userreview') Individual problem result
+			a(href='/admin/resu') RESU Review Evalution of Specific User
+			a(href='/admin/crshistory/login') Crshistory of users
+			a(href='/admin/cuc') Crshistory of registered crs of users
+			a(href='/admin/coursadd?stchk=0') Add, Update Course Page
+			a(href='/admin/managevideo') Management of Video
+			a(href='/admin/createform') Javascript Creation Page
+			a(href='/admin/createmysqlpg') Mysql Creation Page
+			//a(href='/admin/catecreate?chkprb=-1') Elcue Point System EPS
+			a(href='/admin/qoc') Quickly Organizing Course
+			a(href='/admin/coz') Course Organization System Zero COZ
+			a(href='/admin/pcsclassify?stchk=-1') Elcue Point System EPS
+			a(href='/admin/coursetouser') 코스추가 & 삭제하기
+			a(href='/admin/subjectmanage') 과목관리하기
+			a(href='/admin/fbrqs') feedback request
+			a(href='/admin/userchat') User Chatting
+			a(href='/admin/analytics') User Data Analytics
+			a(href='/admin/cee') User Review Evaluation System
+			a(href='/admin/rcm') RealTime Crshistory Monitoring
+			a(href='/admin/yqwachk') YQWA 체크
+			a(href='/admin/cpt') 과외시스템 Private Tutoring
+			a(href='/admin/kormath') 수학표
+			a(href='/admin/upload') Upload
+		
+		

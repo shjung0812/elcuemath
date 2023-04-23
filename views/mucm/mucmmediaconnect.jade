@@ -1,0 +1,114 @@
+html
+	head
+		title connection test
+	
+		script(src='/socket.io/socket.io.js')
+		script(src="https://unpkg.com/peerjs@1.0.0/dist/peerjs.min.js")
+		script.
+			var peer=new Peer();
+	
+			window.onload=function(){
+				constraints={audio:true}
+	
+
+				navigator.mediaDevices.getUserMedia(constraints).then(function(stream){
+
+					function chooseres(peerid,cb){
+						peer=new Peer();
+						console.log(peerid);
+						Call=peer.call(peerid, stream);
+						cb(Call);
+					}
+					function sendstream(call){
+						call.on('stream',function(remoteStream){
+							var ansvideo=document.getElementById('ansvideo');
+							ansvideo.srcObject = remoteStream;
+							ansvideo.onloadedmetadata = function(e){
+							ansvideo.play();		
+							}
+						});
+
+					}
+
+									
+							
+							var myvideo=document.getElementById('callervideo');
+							myvideo.srcObject = stream;
+							myvideo.onloadedmetadata = function(e){
+								myvideo.play();		
+							}
+				
+						socket.emit('mucminitialstatus');	
+
+	
+					socket.on('mucmresidsent',function(rpeer){
+						var resdivout=document.getElementById('idsentusers');
+						removeall(resdivout);
+					
+						if(rpeer.csts.length==0){
+							var resdiv=document.createElement('div');
+							var pdiv=document.createElement('p');
+							pdiv.innerHTML= 'No Responds';
+							resdivout.appendChild(pdiv);
+						}else{
+							for(var ia=0; ia<rpeer.csts.length; ia++){
+								var resdiv=document.createElement('div');
+								var resbutton=document.createElement('button');
+								resbutton.innerHTML=rpeer.csts[ia][0];
+								resbutton.onclick=(function(i){return function(){chooseres(i,sendstream);};})(rpeer.csts[ia][1]);
+							
+								resdiv.appendChild(resbutton)
+								resdivout.appendChild(resdiv);
+							
+							}
+						}
+					
+					});
+
+
+
+
+				});
+				function removeall(ele){
+					while(ele.firstChild){
+						ele.removeChild(ele.firstChild);
+					}
+				}
+
+				function checkresid(){
+					var resdivout=document.getElementById('idsentusers');
+					console.log(resdivout);
+				}
+
+			}
+				if(peer!=undefined){
+				peer.on('close',function(){
+					console.log('connection all destroyed');
+					peer = new Peer();
+				});
+			}
+			function TT(){
+				console.log(peer.disconnected);
+				peer.destroy();
+				console.log(peer.disconnected);
+			}
+
+			socket.on('mucmcallerresetcaller',function(){
+				console.log('socketon')
+				peer.destroy();
+				peer = new Peer();
+			});
+	
+
+
+			
+	body
+		h2 MediaConnection test
+		div(id='idsentusers')
+		div
+			button(onclick="TT()") terminate
+		div
+			video(id='callervideo')
+		div 
+			video(id='ansvideo')
+	

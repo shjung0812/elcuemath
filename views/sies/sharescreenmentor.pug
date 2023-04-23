@@ -1,0 +1,256 @@
+html
+	head
+		script(src='/socket.io/socket.io.js')
+		script(src="https://cdn.jsdelivr.net/npm/peerjs@0.3.20/dist/peer.min.js")
+		title 화면공유연결
+
+	body
+		div(id='webplayerlistbox')
+			div(onclick='Calldisconnected();')
+		div(id='webplayervideobox')
+			div(id='webmentorbox')
+				video(id='callervideo')
+			div(id='webmenteebox')
+				video(id='ansvideo')
+
+		script.
+			var socket=io('/sies');
+
+			socket.on('connect',()=>{
+				console.log('connection ready');
+				tempAlert('연결준비완료', '3000', ['blue','white']);
+				socket.emit('siessendsocketid',{socketid:socket.id,userkind:0});
+			});
+
+			function tempAlert(msg,duration,color){
+				var el = document.createElement("div");
+				el.setAttribute("style","position:absolute;z-index:20;top:10%;left:35%;background-color:"+color[0]+";padding:5% 10%;color:"+color[1]+";");
+				el.innerHTML = msg;
+				setTimeout(function(){
+					el.parentNode.removeChild(el);
+				},duration);
+				document.body.appendChild(el);
+			}
+
+			function removeallele(parentid){
+				var parent=document.getElementById(parentid);
+				while(parent.firstChild){
+					parent.firstChild.remove();
+				}
+			}
+
+
+			async function getConnectedDevices(type){
+				const devices = await navigator.mediaDevices.enumerateDevices();
+				return devices.filter(device => device.kind === type);
+			}
+
+			async function everythingReady(){
+				/*
+					checklist
+						getusermedia test,
+						audio input test,
+				*/
+
+				var equipChecklist=[];
+				var msglist=[];
+
+
+				const navimedia=await navigator.mediaDevices;
+				if(navimedia !== undefined){
+					equipChecklist.push(1);
+					msglist.push('navigator.mediaDevices ok')
+	
+					
+					const audios= await getConnectedDevices('audioinput');
+					if(audios && audios.length>0){
+						equipChecklist.push(1);
+						msglist.push('audio input ok')
+					}else{
+						equipChecklist.push(0);
+						msglist.push('audio input FAILED')
+					}
+					
+				}else{
+					equipChecklist.push(0);
+					const msg = 'navigator.mediaDevices is not found'
+					msglist.push(msg)
+				}
+	
+
+				return {equipcheck:equipChecklist, msglist:msglist}
+
+			}
+
+
+			async function audioConntouser(iceservers){
+				const equipCheck= await everythingReady();
+				console.log(equipCheck);
+
+				if(1){
+					var constraints={video:true,audio:true}
+					navigator.mediaDevices.getDisplayMedia({video:true,audio:true}).then(async stream =>{
+						const configuration = {iceServers:iceservers};
+						const peerConnection = new RTCPeerConnection(configuration);
+						stream.getTracks().forEach(track=>{
+							peerConnection.addTrack(track,stream);
+						});
+
+						const offer = await peerConnection.createOffer();
+						await peerConnection.setLocalDescription(offer);
+						socket.emit('webrtccallertoserver',{offer:offer});
+
+						socket.on('webrtcservertocaller', async message => {
+							if(message.answer){
+								const remoteDesc = new RTCSessionDescription(message.answer);
+								await peerConnection.setRemoteDescription(remoteDesc)
+							}
+						});	
+
+						peerConnection.onicecandidate = (e) => {	
+							console.log('Mentor onicecandidate - e.candidate');
+							socket.emit('webrtctoservernewicecandidate',{destination:'toresponder',newicecandidate:e.candidate});
+						}
+
+						socket.on('webrtctocallernewicecandidate',async function(a){
+							console.log('Mentor socke.on onicecandidate - e.candidate');
+							console.log(a.newicecandidate);
+							if(a.newicecandidate){
+								await peerConnection.addIceCandidate(a.newicecandidate);
+							}
+						});
+
+					});	
+				}
+
+			}
+
+
+
+	
+
+
+
+
+
+
+
+			var peer;
+			var Call;
+			socket.emit('siessharescreen',{userkind:0});
+			socket.on('siessharescreenafter',function(a){
+				peer = new Peer({
+					config: {
+							'iceServers':a.iceservers
+					}
+				});
+
+				peer.on('close',function(){
+					console.log('Peer connection destroyed');
+				});
+
+
+
+			});	
+
+			function Calldisconnected(){
+				Call.close();
+				removeallele('webplayerlistbox');
+
+				var myvideo=document.getElementById('callervideo');
+				let myvideotrack=myvideo.srcObject
+				if(myvideotrack){
+					tracks=	myvideotrack.getTracks()
+			
+					tracks.forEach(function(track){
+						track.stop();
+					});
+					myvideo.srcObject = null;
+
+
+				}
+	
+				var ansvideo=document.getElementById('ansvideo');
+				let tracksobj=ansvideo.srcObject;
+				if(tracksobj){
+					let tracks1=tracksobj.getTracks();
+					tracks1.forEach(function(track){
+						track.stop();
+					});
+					ansvideo.srcObject = null;
+				}
+
+				socket.emit('connectionstopbymentor',{mentor:'shjung',mentee:'menteeid'});
+				removeallele('callervideo');
+				removeallele('ansvideo');
+				socket.emit('siescallterminatebymentor');
+				console.log('call disconnected')
+			
+			}
+
+			function signalServerMentorAccept(){
+				socket.emit('signalservermentoraccept',{mentor:'shjung',mentee:'menteeid'});
+			}
+
+			socket.on('siesmenteerequesttomentor',function(ma){
+				var resdivout=document.getElementById('webplayerlistbox');
+				//removeallele('webplayerlistbox');
+				var resdiv=document.createElement('div');
+				var resbutton=document.createElement('button');
+				resbutton.innerHTML='Menteeconnected'
+				resbutton.onclick=(function(i,j){return function(){
+					//mentorStreamon(i);
+					audioConntouser(j);
+					signalServerMentorAccept();
+				}})(ma.peerid,ma.iceservers);
+				resdiv.appendChild(resbutton)
+				resdivout.appendChild(resdiv);
+
+			});
+
+			function mentorStreamon(peerid){
+
+				var constraints = {
+					video:{ width:{ideal:4086},height:{ideal:2106}},audio:true
+				};
+				constraints={video:true,audio:true}
+	
+					navigator.mediaDevices.getDisplayMedia({video:true,audio:false})
+					.then(stream=>{
+						navigator.mediaDevices.getUserMedia({audio:true}).then(micstream=>{
+						stream.addTrack(micstream.getAudioTracks()[0]);
+						var myvideo=document.getElementById('callervideo');
+						myvideo.srcObject = stream;
+						myvideo.onloadedmetadata = function(e){
+							//myvideo.play();		
+						}
+				
+						Call=peer.call(peerid, stream);
+						Call.on('stream',function(remoteStream){
+							var ansvideo=document.getElementById('ansvideo');
+							ansvideo.srcObject = remoteStream;
+							ansvideo.onloadedmetadata = function(e){
+								ansvideo.play();		
+							}
+						});
+					});
+
+				},error=>{
+					console.log('Unable to acquire screen capture',error);
+				});
+
+
+				var resdivout=document.getElementById('webplayerlistbox');
+				removeallele('webplayerlistbox');
+
+				var terminatediv=document.createElement('DIV');
+				var terminatebutton=document.createElement('button');
+				terminatebutton.innerHTML='Disconnect inquiery';
+				terminatediv.appendChild(terminatebutton);
+				terminatediv.onclick=function(){Calldisconnected();}
+				resdivout.appendChild(terminatediv);
+			}
+
+
+
+

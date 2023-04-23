@@ -1,0 +1,469 @@
+html
+	head
+		style.
+			body {
+				background-color:#eeeeee;
+			}
+			#cont {
+				background-color:#eeeeee;
+				width:100%;
+				height:100%;
+			}
+			#title a {
+				text-decoration:none;
+				color:black;
+				font-size:2em;
+			}
+			#displaycrpcpbased {
+				width:100%;
+				overflow:auto;
+				background-color:#eeeeee;
+			}
+			#crpcpboard {
+				width:100%;
+				overflow:auto;
+				background-color:#dddddd;
+			}
+			.crpcpdiv {
+				width:100%;
+				overflow:auto;
+				background-color:#aaaaaa;
+			}
+			.crpcptitle {
+				width:100%;
+				background-color:#bbbbbb;
+			}
+			.crpcptitle a {
+				display:inline-block;
+				margin: 0 0 0 4%;
+			}
+			.crpcpinvolveddiv {
+				width:95%;
+				background-color:#aaaaaa;
+				margin:0 0 0 5%;
+			}
+			.crpcpinvolveddiv a:nth-child(n+2) {
+				display:inline-block;
+				width:20%;
+			}
+			.crpcpinvolveddiv a:first-child {
+				display:inline-block;
+				width:6%;
+				margin:0 0 0 2%;
+			}
+			.combinationdiv a:nth-child(n+2) {
+				display:inline-block;
+				width:20%;
+			}
+			.combinationdiv a:first-child {
+				display:inline-block;
+				width:5%;
+			}
+			#displayprblist {
+				position:fixed;
+				top:0;
+				left:40%;
+				width:60%;
+				height:100%;
+				background-color:#999999;
+			}
+			#prblistboard {
+				width:94%;
+				height:84%;
+				margin:3%;
+				padding:2% 0 0 0;
+				background-color:#aaaaaa;
+				overflow-y:scroll;
+			}
+	
+			.prblistdiv {
+
+				width:94%;
+				margin:0 3%;
+				background-color:#aaaaaa;
+				overflow:auto;
+			}
+			.prblistdiv:hover {
+				background-color:#0000aa;
+				cursor:pointer;
+			}
+			::-webkit-scrollbar {
+				display:none;
+				
+			}
+			#optiondiv {
+				width:100%;
+				height:10%;
+				background-color:#dddd00;
+			}
+			#deloptiondiv {
+				width:100%;
+				height:100%;
+				text-align:center;
+				background-color:#dd0000;
+			}
+			#deloptiondiv a {
+				position:relative;
+				top:30%;
+			}
+			
+			#turnoptiondiv {
+				width:100%;
+				height:100%;
+				text-align:center;
+				background-color:#ffaa22;
+			}
+			#turnoptiondiv a {
+				position:relative;
+				top:30%;
+			}
+			#newoptiondiv {
+				width:100%;
+				height:100%;
+				text-align:center;
+				background-color:#dddd33;
+			}
+			#newoptiondiv a {
+				position:relative;
+				top:30%;
+			}
+		
+			#individualpcpboard {
+				width:100%;
+				display:none;
+			}	
+			#individualpcpcondiv {
+				width:100%;
+				overflow:auto;
+				background-color:#888888;
+			}
+			.individualpcpviddiv a:first-child{
+				margin:0 2%;
+			}
+			.individualpcpviddiv {
+				width:100%;
+				background-color:#999999;
+				margin:2% 0;
+			}
+			#btnshowpcp {
+				width:100%;
+				height:8%;
+				background-color:#ffdd55;
+				text-align:center;
+				display:none;
+			}
+			#btnshowpcp a {
+				display:inline-block;
+				position:relative;
+				top:30%;
+			}
+
+			
+		script(type='text/javascript' async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML")
+		script(src='/socket.io/socket.io.js')
+		script.
+			Element.prototype.remove=function(){
+				this.parentElement.removeChild(this);
+			}
+			NodeList.prototype.remove = HTMLCollection.prototype.remove = function(){
+				for(var i=this.length -1; i>=0; i--){
+					if(this[i]&& this[i].parentElement){
+						this[i].parentElement.removeChild(this[i]);
+					}
+				}
+			}
+			function removeElementOfDiv(regbdivid,e,thi){
+				e=window.event || e;
+				if(thi===e.target){
+					var fdiv=document.getElementById(regbdivid);
+					if(fdiv){
+						while(fdiv.firstChild){
+							fdiv.removeChild(fdiv.firstChild);
+						}
+					}
+				}
+			}
+			function myfunc(caseid,cslevel,e,thi){
+				var displaycrpcpbased=document.getElementById('displaycrpcpbased');
+
+				//remove existed element
+				removeElementOfDiv('displaycrpcpbased',e,thi);
+				removeElementOfDiv('displayprblistboard',e,thi);
+				var individualpcpboard=document.getElementById('individualpcpboard');
+				if(individualpcpboard){
+					individualpcpboard.remove();
+				}
+				//remove existed element
+
+				var socket=io('/cpm');
+				socket.emit('crpcpbasedvideo',{caseid:caseid,cslevel:cslevel});
+				socket.on('rstcrpcpbasedvideo',function(cpm){
+					
+					var crpcpboard=document.createElement('DIV');
+					crpcpboard.setAttribute('id','crpcpboard');
+	
+		
+					for(var ia=0; ia<cpm.cpmvideo.length; ia++){
+						var crpcpdiv=document.createElement('DIV');
+						crpcpdiv.setAttribute('class','crpcpdiv');
+	
+
+						var crpcptitle=document.createElement('DIV');
+						crpcptitle.setAttribute('class','crpcptitle');
+
+						var csnum=document.createElement('A');
+						csnum.innerHTML=cpm.cpmvideo[ia][0][1].length;
+						crpcptitle.appendChild(csnum);
+
+						for(var ib=0; ib<cpm.cpmvideo[ia][0][0].length; ib++){
+							var va=document.createElement('A');
+							va.innerHTML=cpm.cpmvideo[ia][0][0][ib][1].replace(/\\\\/g,"\\");
+							crpcptitle.appendChild(va);
+						}
+						crpcptitle.onclick=function(i,j,k){return function(){callchosenvideo(i,j,k)}}(cpm.cpmvideo[ia][0][1],cpm.cpmvideo[ia][0][0]);
+
+						crpcpdiv.appendChild(crpcptitle);
+						for(var ib=0; ib<cpm.cpmvideo[ia][1].length; ib++){
+							var crpcpinvolveddiv=document.createElement('DIV');
+							crpcpinvolveddiv.setAttribute('class','crpcpinvolveddiv');
+
+							var pnum=document.createElement('A');
+							pnum.innerHTML=cpm.cpmvideo[ia][1][ib][1].length; 
+							crpcpinvolveddiv.appendChild(pnum);
+							for(var ic=0; ic<cpm.cpmvideo[ia][1][ib][0].length; ic++){
+								var va=document.createElement('A');
+								va.innerHTML=cpm.cpmvideo[ia][1][ib][0][ic][1].replace(/\\\\/g,"\\");
+								crpcpinvolveddiv.appendChild(va);
+								crpcpinvolveddiv.onclick=function(i,j,k){return function(){callchosenvideo(i,j,k);};}(cpm.cpmvideo[ia][1][ib][1],cpm.cpmvideo[ia][1][ib][0],event);
+							}
+		
+							crpcpdiv.appendChild(crpcpinvolveddiv);
+
+						}
+						MathJax.Hub.Queue(["Typeset",MathJax.Hub,crpcpdiv]);
+						
+						crpcpboard.appendChild(crpcpdiv);
+					}
+					displaycrpcpbased.appendChild(crpcpboard);
+
+
+
+					var individualpcpboard=document.createElement('DIV');
+					individualpcpboard.setAttribute('id','individualpcpboard');
+
+					var individualpcpcondiv=document.createElement('DIV');
+					individualpcpcondiv.setAttribute('id','individualpcpcondiv');
+
+
+					for(var ia=0; ia<cpm.indvidpcp.length; ia++){
+						var individualpcpviddiv=document.createElement('DIV');
+						individualpcpviddiv.setAttribute('class','individualpcpviddiv');
+						var vnum=document.createElement('A');
+						vnum.innerHTML=cpm.indvidpcp[ia][1].length;
+						var va=document.createElement('A');
+						va.innerHTML=cpm.indvidpcp[ia][0][1].replace(/\\\\/g,"\\");
+						individualpcpviddiv.onclick=function(i,j,k){return function(){callchosenvideo(i,j,k);};}(cpm.indvidpcp[ia][1],[cpm.indvidpcp[ia][0]],event);
+	
+						individualpcpviddiv.appendChild(vnum);	
+						individualpcpviddiv.appendChild(va);	
+						individualpcpcondiv.appendChild(individualpcpviddiv);
+					}
+					MathJax.Hub.Queue(["Typeset",MathJax.Hub,individualpcpcondiv]);
+					individualpcpboard.appendChild(individualpcpcondiv);
+					document.getElementById('displayindividualpcp').appendChild(individualpcpboard);
+					document.getElementById('btnshowpcp').style.display='block';
+				});
+			}
+			function removefocus(){
+				var prblistboard=document.getElementById('prblistboard');
+				for(var ia=0; ia<prblistboard.childNodes.length; ia++){
+					if(prblistboard.childNodes[ia].nodeName==='DIV'){
+						prblistboard.childNodes[ia].style.backgroundColor='';
+					}
+				}
+			}
+			function removeElementOfDiv_npp(regbdivid){
+				var fdiv=document.getElementById(regbdivid);
+				if(fdiv){
+					while(fdiv.firstChild){
+						fdiv.removeChild(fdiv.firstChild);
+					}
+				}
+			}
+			function VideoRemove(chosendivid,pcpg){
+				removefocus();
+
+				document.getElementById(chosendivid).style.backgroundColor='#dd0000';
+
+				removeElementOfDiv_npp('optiondiv')
+				var optiondiv=document.getElementById('optiondiv');
+				var deloptiondiv=document.createElement('DIV');
+				deloptiondiv.setAttribute('id','deloptiondiv');
+
+				var pcpgstr='';
+				for(var ia=0; ia<pcpg.length; ia++){
+					if(pcpg.length-1==ia){
+						pcpgstr=pcpgstr+pcpg[ia][0];
+					}else{
+						pcpgstr=pcpgstr+pcpg[ia][0]+',';
+					}
+				}
+
+				deloptiondiv.onclick=function(i,j){return function(){
+					RemoveExcute(i,j)
+				}}(chosendivid,pcpgstr);
+
+				var va=document.createElement('A');
+				va.innerHTML='Remove';
+				deloptiondiv.appendChild(va);
+				optiondiv.appendChild(deloptiondiv);
+				document.getElementById('displayprblist').appendChild(optiondiv);
+				
+			}
+			function RemoveExcute(vidid,pcpgstr){
+				var socket=io('/cpm');
+				socket.emit('CPMRemove',{vidid:vidid,pcpgstr:pcpgstr});
+				socket.on('CPMreload',function(){
+					window.location.reload(true);
+				});
+			}
+			function NewVideo(pcpg){
+				var pcpgstr='';
+				for(var ia=0; ia<pcpg.length; ia++){
+					if(pcpg.length-1==ia){
+						pcpgstr=pcpgstr+pcpg[ia][0];
+					}else{
+						pcpgstr=pcpgstr+pcpg[ia][0]+',';
+					}
+				}
+
+				removeElementOfDiv_npp('prblistboard');
+				var prblistboard=document.getElementById('prblistboard');
+				var displayprblist=document.getElementById('displayprblist');
+
+				var socket=io('/cpm');
+				socket.emit('CPMCallingVideo',{pcpgstr:pcpgstr});
+				socket.on('rstCPMCallingVideo',function(rs){
+					for(var ia=0; ia<rs.vid.length; ia++){
+						var prblistdiv=document.createElement('DIV');
+						prblistdiv.setAttribute('class','prblistdiv');
+						prblistdiv.setAttribute('id',rs.vid[ia][0]);
+						prblistdiv.onclick=function(i,j){return function(){NewVideoTurn(i,j);};}(rs.vid[ia][0],pcpgstr);
+
+
+						var viframe=document.createElement('iframe');
+						viframe.src=rs.vid[ia][1];
+						viframe.style.width='90%';
+						//viframe.style.height='40%';
+						prblistdiv.appendChild(viframe);
+						prblistboard.appendChild(prblistdiv);
+					}
+					displayprblist.insertBefore(prblistboard,displayprblist.childNodes[0]);
+						
+				});
+
+			}
+			function NewVideoTurn(vidid,pcpgstr){
+			
+				removefocus();
+				document.getElementById(vidid).style.backgroundColor='#ffaa22';
+
+				removeElementOfDiv_npp('optiondiv');
+				var turnoptiondiv=document.createElement('DIV');
+				turnoptiondiv.setAttribute('id','turnoptiondiv');
+				var va=document.createElement('A');
+				va.innerHTML='Click to insert';
+				turnoptiondiv.appendChild(va);
+				turnoptiondiv.onclick=function(i,j){return function(){NewVideoExcute(i,j);};}(vidid,pcpgstr);
+				
+				document.getElementById('optiondiv').appendChild(turnoptiondiv);
+				
+			}
+			function NewVideoExcute(vidid, pcpgstr){
+				var socket=io('/cpm');
+				socket.emit('CPMNewExcute',{vidid:vidid,pcpgstr:pcpgstr});
+				socket.on('CPMReload',function(rs){
+					window.location.reload(true);
+				});
+			}
+			function callchosenvideo(vlist,pcpg,e){
+				var socket=io('/cpm');
+
+				removeElementOfDiv_npp('displayprblistboard');
+
+				var displayprblistboard=document.getElementById('displayprblistboard');
+				
+
+				var displayprblist=document.createElement('DIV');	
+				displayprblist.setAttribute('id','displayprblist');
+
+				var prblistboard=document.createElement('DIV');
+				prblistboard.setAttribute('id','prblistboard');
+
+				var optiondiv=document.createElement('DIV');
+				optiondiv.setAttribute('id','optiondiv');
+	
+				var newoptiondiv=document.createElement('DIV');
+
+				newoptiondiv.setAttribute('id','newoptiondiv');
+				newoptiondiv.onclick=function(i){return function(){NewVideo(i)}}(pcpg);
+				
+
+				var va=document.createElement('A');
+				va.innerHTML='NEW';
+				newoptiondiv.appendChild(va);
+
+				optiondiv.appendChild(newoptiondiv);
+	
+				for(var ia=0; ia<vlist.length; ia++){
+					var prblistdiv=document.createElement('DIV');
+					prblistdiv.setAttribute('class','prblistdiv');
+					prblistdiv.setAttribute('id',vlist[ia][0]);
+					prblistdiv.onclick=function(i,j){return function(){VideoRemove(i,j);};}(vlist[ia][0],pcpg);
+
+
+					var viframe=document.createElement('iframe');
+					viframe.src=vlist[ia][1];
+					viframe.style.width='90%';
+					viframe.style.height='40%';
+					prblistdiv.appendChild(viframe);
+					prblistboard.appendChild(prblistdiv);
+				}
+
+				displayprblist.appendChild(prblistboard);
+				displayprblist.appendChild(optiondiv);
+				
+				displayprblistboard.appendChild(displayprblist);
+			
+			
+			}
+			function showouter(){
+				individualpcpboard=document.getElementById('individualpcpboard');
+				if(!individualpcpboard){
+					var individualpcpboard=document.createElement('DIV');
+					individualpcpboard.setAttribute('individualpcpboard');
+				}
+
+				if(individualpcpboard.style.display=='none' || individualpcpboard.style.display==''){
+					individualpcpboard.style.display='block';
+				}else{
+					individualpcpboard.style.display='none';
+				}
+				document.getElementById('displayindividualpcp').appendChild(individualpcpboard);
+			}
+		
+	body
+		div(id='title')
+			a(href='./pcsclassify?stchk=-1') crPCP Based VideoManagement
+		div(id='cont' onclick='removeElementOfDiv("displayprblistboard",event,this)')
+			div
+				-for(var ia=0; ia<rs.length; ia++){
+					div
+						a(onclick='myfunc("'+rs[ia][0]+'","'+rs[ia][2]+'",event,this)')=rs[ia][1]
+				-}
+			div(id='displaycrpcpbased')
+			div(id='displayindividualpcp')
+				div(id='btnshowpcp' onclick='showouter()')
+					a ShowOuter
+			div(id='displayprblistboard')
+		

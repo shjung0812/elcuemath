@@ -1,0 +1,17 @@
+extends choosecrs
+block coursedetail 
+	div(id='crstable')
+			-for(var ia=0; ia<rele.length; ia++){
+				div(id='r'+ia)
+					a=rele[ia].elenum
+					a=rele[ia].degsnick
+					a=rele[ia].crsname
+					a=rele[ia].pstage
+					a=rele[ia].elepass
+					a=rele[ia].elenpass
+					a=rele[ia].elevideo
+					a=rele[ia].eleprbs
+					a=rele[ia].ele_criteria
+					a=rele[ia].elestatus
+					a=rele[ia].eletime
+			-}

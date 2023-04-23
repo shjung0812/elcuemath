@@ -1,0 +1,22 @@
+html
+	head
+		style.
+			body {
+				background-color:black;
+			}
+			img {
+				width:800px;
+			}
+	body
+		div
+			h2 Screen Image
+		div
+			a=screenlist
+		div(id='screenlist')
+			-for(var ia=0; ia<screenlist.length; ia++){
+				div
+					img(src=currentfolder+screenlist[ia])
+			-}
+		script.
+			var screenlist='#{screenlist}'.split(',');;
+			console.log(screenlist);

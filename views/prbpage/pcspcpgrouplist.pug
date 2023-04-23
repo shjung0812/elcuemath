@@ -1,0 +1,24 @@
+html
+	head
+		style.
+			.pcsinfo a {
+				text-decoration:none;
+				font-size:1.5em;
+				color:black;
+			}
+			#title a {
+				text-decoration:none;
+				font-size:3em;
+				color:black;
+			}
+	body
+		div(id='title')
+			a(href='./pcsclassify?stchk=-1') PCPGrouping PCS List
+			
+		div(id='pcslist')
+			-for(var ia=0; ia<pcs.length; ia++){
+				div(class='pcsinfo')
+					a(href='./pcsclassify?stchk=4&pcsid='+pcs[ia].pcsid)=pcs[ia].pcsinfo
+			-}
+			div(class='pcsinfo')
+				a(href='./pcsclassify?stchk=4') unassproblem

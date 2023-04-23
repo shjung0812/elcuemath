@@ -1,0 +1,597 @@
+html
+	head
+		//script(src='/chartjs/chartjs.js')
+		script(src='/socket.io/socket.io.js')
+		script(src='https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.min.js')
+		script(type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML")
+		
+		style.
+			#userstatisticsdiv {
+				width:100%;
+				height:96%;
+				overflow:auto;
+			}
+		
+			.graphcontainer {
+				width:90%;
+				height:90%;
+				margin:2% 0;
+				overflow:auto;
+			}
+			.drawer0 {
+				width:100%;
+				height:50%;
+			}
+			.drawer1 {
+				width:100%;
+				height:50%;
+			}
+			.drawer0canvas {
+				width:50%;
+				float:left;
+			}
+			.drawer0showup {
+				width:50%;
+				float:left;
+			}
+			.canvascontainer0 {
+				width:48%;
+				display:inline-block;
+				float:left;
+				height:100%;
+				overflow:auto;
+			}
+			.canvascontainer0 canvas {
+				width:90%;
+			}
+			.canvascontainer1 {
+			}
+			.canvascontainer1 canvas {
+				height:40%;
+			}
+			.msgcontainer {
+				display:inline-block;
+				width:48%;
+				height:96%;
+				overflow:auto;
+				padding:1% 0 0 0;
+
+			}
+			.cdcontainer {
+				display:inline-block;
+				font-size:.9em;
+				width:48%;
+				height:96%;
+				overflow:auto;
+				padding:1% 0 0 0;
+				float:left;
+			}
+
+			.prbcontainer {
+				display:inline-block;
+				width:48%;
+				height:100%;
+				overflow:auto;
+			}
+			.prbpicdiv {
+				width:100%;
+			}
+			.prbpicdiv img {
+				width:100%;
+			}
+			
+
+	body
+		div(id='rangediv')
+		div(id='userstatisticsdiv')
+		script.
+			var socket = io('/vdrg',{
+				transports:['websocket'],
+				upgrade:false
+			});
+			var username=!{JSON.stringify(username)};
+			var rlist=[1050,357,200, 120, 91,60,28,14,7,1]
+			var prcperiod=rlist[rlist.length-2];
+			var duplicateallowed=0;
+
+
+
+			var multipack=0;
+			socket.on('userstatisticsprbcallafter',function(a){
+				removeallele('prbcontainer'+a.pcontainernum)
+				for(h of a.plist){
+					var prbbox=document.createElement('div');
+					//	prbbox.id='box'+prbset[ia][0][0]+prbset[ia][2];
+					prbbox.className='prbbox';
+
+					var prbcontent=document.createElement('div');
+					prbcontent.className='prbcontent';
+					var prbcontenta=document.createElement('a');
+					prbcontenta.innerHTML=h[1];
+					prbcontent.appendChild(prbcontenta);
+
+						
+					prbbox.appendChild(prbcontent);
+
+
+					if(h[8]!=null){
+						var prbpicdiv=document.createElement('div');
+						prbpicdiv.className='prbpicdiv';
+						var prbpic=document.createElement('img')
+						prbpic.src=h[8];
+
+						prbpicdiv.appendChild(prbpic);
+						prbbox.appendChild(prbpicdiv);
+					}
+
+
+
+					var prbchoicebox=document.createElement('div');
+					var prbchoice1=document.createElement('div');
+					prbchoice1.innerHTML=h[4];
+					var prbchoice2=document.createElement('div');
+					prbchoice2.innerHTML=h[5];
+					var prbchoice3=document.createElement('div');
+					prbchoice3.innerHTML=h[6];
+					var prbchoiceans=document.createElement('div');
+					prbchoiceans.innerHTML=h[2];
+
+					prbchoicebox.appendChild(prbchoice1);
+					prbchoicebox.appendChild(prbchoice2);
+					prbchoicebox.appendChild(prbchoice3);
+
+					prbbox.appendChild(prbchoicebox);
+
+					document.getElementById('prbcontainer'+a.pcontainernum).appendChild(prbbox);
+				}
+				MathJax.Hub.Queue(["Typeset",MathJax.Hub,"prbcontainer"])	
+
+			});
+
+			socket.emit('userstatistics',{username:username,mode:'r1rhstatistics'})
+
+
+			var r = document.getElementById('rangediv');
+			for(var ia=0; ia<rlist.length; ia++){
+				var fdiv=document.createElement('button');
+
+				if(ia==(rlist.length-2)){
+					fdiv.style.backgroundColor='purple';
+					fdiv.style.color='white';
+				}
+				fdiv.className='periodbutton';
+				fdiv.onclick=function(k){
+					return function(){
+						prcperiod=k;
+						socket.emit('userstatistics',{username:username,mode:'r1rhstatistics'})
+						var u =document.getElementsByClassName('periodbutton');
+						for(var it=0; it<u.length; it++){
+							u[it].style.backgroundColor='';
+							u[it].style.color='';
+						}
+
+						this.style.backgroundColor='purple';
+						this.style.color='white';
+					}
+				}(rlist[ia]);
+				fdiv.innerHTML=rlist[ia];
+				r.appendChild(fdiv);
+			}
+
+			var multipackdiv=document.createElement('button');
+			if(multipack==0){
+				multipackdiv.innerHTML='single';
+			}else{
+				multipackdiv.innerHTML='multi';
+			}
+			multipackdiv.onclick=function(){
+				return function(){
+					if(multipack==0){
+						multipack=1;
+						this.innerHTML='multi';
+					}else{
+						multipack=0;
+						this.innerHTML='single';
+					}
+				}
+			}();
+			r.appendChild(multipackdiv);
+
+
+			var duplicatealloweddiv=document.createElement('button');
+			if(duplicateallowed==0){
+				duplicatealloweddiv.innerHTML='unique';
+			}else{
+				duplicatealloweddiv.innerHTML='duplicate';
+			}
+			duplicatealloweddiv.onclick=function(){
+				return function(){
+					if(duplicateallowed==0){
+						duplicateallowed=1;
+						this.innerHTML='duplicate';
+					}else{
+						duplicateallowed=0;
+						this.innerHTML='unique';
+					}
+				}
+			}();
+			r.appendChild(duplicatealloweddiv);
+
+
+			function removeallele(parentid){
+				var parent=document.getElementById(parentid);
+				while(parent.firstChild){
+					parent.firstChild.remove();
+				}
+			}
+
+
+
+			var limitch=10; // number of r1listinfo character limit set
+			var radiusmultiple=4;
+			socket.on('userstatisticsafter',function(a){	
+
+
+				removeallele('userstatisticsdiv');				
+				var dateofref=new Date('2020-01-06').getTime()/1000/60/60/24; //monday start
+				//don't know about the reason but, the date indicate sunday but dateref indicate monday. so there is difference the written date and result date code. 
+
+
+				//comparion on days
+				var dateoftoday=Math.floor(new Date().getTime()/1000/60/60/24);
+
+				var dateprocessing = dateoftoday;
+				//var dateprocessing = dateofref;
+
+
+				
+				var dayindprblist=[]
+				var daydic={};
+				for(var ia=0; ia<a.a.length; ia++){
+					var dayofprb=Math.floor(new Date(a.a[ia].createdate).getTime()/1000/60/60/24);
+					var chk=0;
+					for(var ib=0; ib<dayindprblist.length; ib++){	
+						if(dayindprblist[ib]==dayofprb){
+							chk=1;
+							break;
+						}
+					}
+					if(chk==0){
+						dayindprblist.push(dayofprb);
+						daydic[dayofprb]=[];
+					}
+					
+				}
+
+				for(var ia=0; ia<dayindprblist.length; ia++){
+					for(ib=0; ib<a.a.length; ib++){
+						var dayofprb=Math.floor(new Date(a.a[ib].createdate).getTime()/1000/60/60/24);
+						if(dayindprblist[ia]==dayofprb){
+
+							if(duplicateallowed==0){
+								if(!daydic[dayindprblist[ia]].includes(a.a[ib].prbid)){
+									daydic[dayindprblist[ia]].push(a.a[ib].prbid)
+								}
+							}else{
+									daydic[dayindprblist[ia]].push(a.a[ib].prbid)
+							}
+							
+						}
+					}
+				}
+
+				
+				var dayprblist=[];
+				for(k in daydic){
+					for(j of daydic[k]){
+						dayprblist.push([k,j])
+					}
+				}
+
+				var dividedtimelist=[];
+				while(dateprocessing > dateofref){
+				
+					var rh_dfprbid=[];
+
+					for(var ia=0; ia<dayprblist.length; ia++){
+						if((dayprblist[ia][0] > dateprocessing-prcperiod)&& (dayprblist[ia][0] <= dateprocessing) ){
+							
+							rh_dfprbid.push([dayprblist[ia][0],dayprblist[ia][1]]);
+						}
+					}
+
+					var datetable=[];
+					var initialdate=dateprocessing;
+					var checkdate=initialdate;
+					while(checkdate > dateprocessing-prcperiod){
+						datetable.push(checkdate)
+						checkdate-=1;
+					}
+					if(rh_dfprbid.length!=0){
+						dividedtimelist.push({uprbid:rh_dfprbid,'datetable':datetable})
+						//dividedtimelist.push({'startdate':dateprocessing,'enddate':dateprocessing+prcperiod-1,uprbid:rh_dfprbid,'datetable':datetable})
+					}
+					dateprocessing -= prcperiod;
+					
+				}
+
+				for(var ij=0; ij < dividedtimelist.length; ij++){
+				
+					var r1_rh_timeseries=[];
+					var r1_rh_temp={};
+					for(let z of a.cpt){
+						var tnum=0;
+						var tempplist=[];
+						var gettingtime=[];
+						for(let i=0; i<dividedtimelist[ij].datetable.length; i++) gettingtime.push(0);
+			
+						for(let k of dividedtimelist[ij].uprbid){
+							if(z.prblist.split(',').includes(k[1])){
+								tnum+=1;
+								tempplist.push(k[1])
+								for(ik=0; ik<dividedtimelist[ij].datetable.length; ik++){
+									if(dividedtimelist[ij].datetable[ik]==k[0]){
+										gettingtime[ik]+=1;
+									}
+								}
+
+							}
+						}
+						if(tnum!=0){
+							//r1_rh_timeseries.push({'r1':z.listinfo,'datetable':dividedtimelist[ij].datetable,'timeseriese':gettingtime});
+							r1_rh_temp[z.listinfo]=[tnum,tempplist,'['+z.r2order+']'+z.r2listinfo,dividedtimelist[ij].datetable,gettingtime];
+						}
+					}
+
+
+					//sort r1 vs count
+					let sortable = [];
+					for (var subject in r1_rh_temp) {
+						sortable.push([subject, r1_rh_temp[subject][0],r1_rh_temp[subject][1],r1_rh_temp[subject][2],r1_rh_temp[subject][3],r1_rh_temp[subject][4]]);
+					}
+
+					sortable.sort(function(a, b) {
+						return b[1] - a[1];
+					});
+
+
+					let r1_rh_sorted = [];
+					let labels=[];
+	
+					//var c=0;
+					var initimechk=dateoftoday;
+					sortable.forEach(function(item){
+							
+						//let r1_rh_time = [];
+
+						r1_rh_sorted.push(item[1])
+						if(item[0].length > limitch){
+							var lch='';
+							for(var im=0; im<limitch; im++){
+								lch+=item[0][im];
+							}
+							lch+='...';
+
+						}else{
+							var lch=item[0];
+						}
+
+						labels.push(lch)
+
+						for(var it=0; it<item[4].length; it++){
+							if((item[4][it] < initimechk) && (item[5][it]!=0)){
+								initimechk=item[4][it];
+							}
+						}
+					});
+
+
+					var graphcontainerdiv=document.createElement('div');
+					var gsdiv=document.createElement('div');
+					var ddiv=document.createElement('div');
+					var pdiv=document.createElement('div');
+					var cddiv=document.createElement('div');
+
+					var drawer0=document.createElement('div');
+					drawer0.className='drawer0'
+					var drawer1=document.createElement('div');
+					drawer1.className='drawer1'
+
+
+					var drawer0showup=document.createElement('div');
+					drawer0showup.className='drawer0showup';
+					drawer0showup.id='drawer0showup'+ij;
+
+
+					console.log(sortable);
+					for(var ik=0; ik<sortable.length; ik++){
+						var udiv=document.createElement('div');
+						udiv.innerHTML=sortable[ik][1]+' : '+ sortable[ik][0]+'-<span style="font-size:.5em;font-weight:bold;color:green; ">'+ sortable[ik][3]+'</span>';
+						udiv.onclick=function(u,w,t,d,g,i){
+							return function(){
+								socket.emit('userstatisticsprbcall',{plist:u,pcontainernum:w});
+								removeallele('drawer0showup'+w);
+
+								let r1_rh_time = [];
+
+								//var ini=0;
+								for(var it=0; it<t[0].length; it++){
+									if(t[0][it] <=  dateoftoday){
+										//if(t[1][it]!=0){ //Most efficient x range
+											//ini=1;
+										//}
+										if(t[0][it] >= i){
+											r1_rh_time.push({y:0,x:t[0][it]-dateoftoday,r:t[1][it]*radiusmultiple})
+										}
+
+									}
+								}
+
+								var gtdiv=document.createElement('div');
+								gtdiv.onclick=function(){
+									return function(){
+									}
+								}();
+								gtdiv.className='canvascontainer1';
+								var canvaset=document.createElement('canvas');
+								gtdiv.appendChild(canvaset);
+								
+								g.appendChild(gtdiv);
+				
+								let ctu=canvaset.getContext('2d');
+
+								var config={
+									type:'bubble',
+									data:{
+										labels:'s',
+										datasets:[{
+											label:d,
+											data:r1_rh_time
+										}]
+									},
+									options:{}
+									
+								};
+								var myChart2=new Chart(ctu,config);
+				
+
+						
+							}
+						}(sortable[ik][2],ij,[sortable[ik][4],sortable[ik][5]],sortable[ik][0],drawer0showup,initimechk)
+						cddiv.appendChild(udiv);
+
+
+						function timeR1display(sorta,container){
+							let r1_rh_time = [];
+
+							for(var it=0; it<sorta[4].length; it++){
+								if(sorta[4][it] <=  dateoftoday){
+									if(sorta[4][it] >= initimechk){
+										r1_rh_time.push({y:0,x:sorta[4][it]-dateoftoday,r:sorta[5][it]*radiusmultiple})
+									}
+
+								}
+							}
+
+							var gtdiv=document.createElement('div');
+							gtdiv.className='canvascontainer1';
+							gtdiv.onclick=function(u,w){
+								return function(){
+									socket.emit('userstatisticsprbcall',{plist:u,pcontainernum:w});
+								}
+							}(sorta[2],ij);
+							var canvaset=document.createElement('canvas');
+							gtdiv.appendChild(canvaset);
+							
+							container.appendChild(gtdiv);
+			
+							let ctu=canvaset.getContext('2d');
+
+							var config={
+								type:'bubble',
+								data:{
+									labels:'s',
+									datasets:[{
+										label:sorta[0],
+										data:r1_rh_time
+									}]
+								},
+								options:{
+									responsive:true,
+									scales:{
+										yAxes:[{
+											display:true,
+											ticks:{
+												//suggestedMin:-0.5,
+												//suggestedMax:0.5	
+											}
+										}]
+									}
+								}
+								
+							};
+							var myChart2=new Chart(ctu,config);
+						}
+			
+
+
+						timeR1display(sortable[ik],gsdiv)
+
+
+
+
+
+
+
+					}
+					ddiv.appendChild(cddiv);
+					ddiv.appendChild(pdiv);
+		
+					graphcontainerdiv.style.border='1px solid black'
+
+					graphcontainerdiv.className='graphcontainer';
+					gsdiv.className='canvascontainer0';
+					ddiv.className='msgcontainer';
+					pdiv.className='prbcontainer';
+					pdiv.id='prbcontainer'+ij;
+					cddiv.className='cdcontainer'; // canvas detail container
+
+					var canvasel=document.createElement('canvas');
+					var drawer0canvas=document.createElement('div');
+					drawer0canvas.className='drawer0canvas';
+					drawer0canvas.appendChild(canvasel);
+					drawer0.appendChild(drawer0canvas);
+					drawer0.appendChild(drawer0showup);
+
+					drawer1.appendChild(gsdiv);
+					drawer1.appendChild(ddiv);
+					graphcontainerdiv.appendChild(drawer0);
+					graphcontainerdiv.appendChild(drawer1);
+
+
+					document.getElementById('userstatisticsdiv').appendChild(graphcontainerdiv);
+					let ctx=canvasel.getContext('2d');
+					var arrDayStr = ['일','월','화','수','목','금','토']
+					var dt = new Date(dividedtimelist[ij].datetable[0]*3600*1000*24);
+					var myChart = new Chart(ctx,{
+						type:'bar',
+						data:{
+							labels:labels,
+							datasets:[{
+								label:username+ ' : '+dt.getFullYear()+'-'+(dt.getMonth()+1)+'-'+dt.getDate()+' '+arrDayStr[dt.getDay()],
+								data:r1_rh_sorted,
+								//backgroundColor:bgcolor,
+								//backgroundColor:[
+									//'rgba(255,99,132,.5)'
+								//],
+								borderWidth:1
+							}]
+						},
+						options:{
+				
+							title:{
+								display:true,
+								fontSize:6
+							},
+							scales:{
+								yAxes:[{
+									ticks: {
+										beginAtZero:true
+									}
+								}]
+								
+							}
+						}
+
+					});
+
+				
+					if(multipack==0){
+						break;
+					}
+
+
+				}
+				MathJax.Hub.Queue(["Typeset",MathJax.Hub,"msgcontainer"])	
+			});
+			

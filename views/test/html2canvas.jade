@@ -1,0 +1,28 @@
+html
+	head
+		script(src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.5.0-beta4/html2canvas.js" type="text/javascript" xml="space")
+		script(type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML")
+		style.
+			h2 {
+				border:solid;
+			}
+			#sss{
+				background-color:red;
+			}
+	body
+		h2 HTML2Canvas
+		div(id='sss') 
+			p one
+			p two
+			p three
+			p \(\alpha+\beta = \gamma^{2}\)
+		div(id='ss')
+		script.
+			setTimeout(tf,3000);
+			function tf(){	
+				html2canvas(document.querySelector('body')).then(function(canvas){
+					var ss=document.getElementById('ss');
+					ss.appendChild(canvas);
+					console.log(canvas);
+				});
+			}

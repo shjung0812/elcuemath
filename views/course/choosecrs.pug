@@ -1,0 +1,82 @@
+html
+	head
+		link(rel='stylesheet' type='text/css' id='link')
+		script(id='js').
+		script.
+			if(/iPhone|Android/i.test(navigator.userAgent)){
+			//if(!(/iPhone|Android/i.test(navigator.userAgent))){
+			}else{
+				document.getElementById('link').href='/design/design2.0/web/defelelist_css.css';
+				
+				document.getElementById('js').src='/design/design2.0/web/defelelist_js.js';
+			}
+	body
+		a(id='back' href='/admin/page') Back To Page
+
+		div(id='courseList')
+			-for(var ia=0; ia<crslist.length; ia++){
+				a(href='/admin/coursadd?stchk=1&gcourse='+crslist[ia]+'&crslist='+packcrslist)=crslist[ia]
+			-}
+		div(id='crscontrol')
+			form(action='./coursadd/edit' method='get')
+				input(type='text' name='elenum')
+				input(type='text' name='degsnick')
+				input(type='text' name='crsname')
+				input(type='text' name='pstage')
+				input(type='text' name='elepass')
+				input(type='text' name='elenpass')
+				input(type='text' name='elevideo')
+				input(type='text' name='eleprbs')
+				input(type='text' name='ele_criteria')
+				input(type='text' name='elestatus')
+				input(type='text' name='eletime')
+				div
+					input(type='radio' name='action' value=0) 
+					span 추가
+					input(type='radio' name='action'  value=1 checked) 
+					span 수정
+					input(type='radio' name='action' value=2 ) 
+					span 삭제
+					input(type='hidden' name='crslist' value=packcrslist)
+					input(type='hidden' name='packrelatedcrs' value=packrelatedcrs)
+					input(type='hidden' name='subcrs' value=rr[0].crsname)
+					input(type='submit' value='Submit')
+		-if(stchk=='2'){
+			div Choose for statistics narrow range
+			-for(var ib=0; ib<relatedcrs.length; ib++){
+				a(class='chstat' href='/admin/coursadd?stchk=3&opt=0&gcourse='+crslist[ia]+'&subcrs='+relatedcrs[ib]+'&crslist='+packcrslist+'&packrelatedcrs='+packrelatedcrs )=relatedcrs[ib]
+			-}
+
+			div Choose for statistics wide range
+			-for(var ib=0; ib<relatedcrs.length; ib++){
+				a(class='chstat' href='/admin/coursadd?stchk=3&opt=1&gcourse='+crslist[ia]+'&subcrs='+relatedcrs[ib]+'&crslist='+packcrslist+'&packrelatedcrs='+packrelatedcrs )=relatedcrs[ib]
+			-}
+			script.
+				var chstat=document.getElementsByClassName('chstat');	
+		-}
+		div(id='relatedCrs')
+			-for(var ib=0; ib<relatedcrs.length; ib++){
+				a(href='/admin/coursadd?stchk=2&gcourse='+crslist[ia]+'&subcrs='+relatedcrs[ib]+'&crslist='+packcrslist+'&packrelatedcrs='+packrelatedcrs )=relatedcrs[ib]
+			-}
+		div(id='crsElement')
+			-for(var ic=0; ic<rr.length; ic++){
+				div(id='r'+ic onclick='contentspaste('+ic+')')
+					a=rr[ic].elenum
+					a=rr[ic].degsnick
+					a=rr[ic].crsname
+					a=rr[ic].pstage
+					a=rr[ic].elepass
+					a=rr[ic].elenpass
+					a=rr[ic].vidaddr
+					a=rr[ic].eleprbs
+					a=rr[ic].ele_criteria
+					a=rr[ic].elestatus
+					a=rr[ic].eletime
+			-}
+		div(onclick='var crsdata="#{crsdata}";var delim="@@@"; repdrawing(crsdata,delim)')
+			canvas(id='canvas' width='500' style='border:1px solid #000000;')
+		div(onclick='var crsdata="#{crsdata}";var delim="@@@"; pointerCompatibilityTest(crsdata,delim)')
+			p JumpCompatibility test
+		block coursedetail
+
+		

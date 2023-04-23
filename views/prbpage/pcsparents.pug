@@ -1,0 +1,215 @@
+html
+	head
+		style.
+			#prtlist {
+				width:100%;
+				overflow:visible;
+				padding:auto 0;
+			}
+			#prtlist a {
+	
+				display:inline-block;
+			}
+			#childlist div a {
+				display:inline-block;
+				margin:0 10px;
+				overflow:auto;
+			}
+			#forming input[type='text']{
+				vertical-position:middle; 
+				line-height:20px;
+				overflow:visible;
+			}
+			#prbcont {
+				margin:30px 10px;
+			}
+			#prbcont div {
+				width:300px;
+				height:100px; 
+				box-shadow: 0px 10px 20px 0px grey;
+				float:left;
+				margin: 5px 5px;
+				padding:2px 2xp;
+				overflow:auto;
+			}
+			#prbcont div a:nth-child(1){
+				font-size:0.8em;
+			}
+			#prbcont div a:nth-child(2){
+				font-size:1.5vh;
+			}
+			
+		script(type='text/javascript' async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML")
+			
+		script.
+			var o1golist='#{golist}';
+			var golist=o1golist.split(',');
+			
+			var colorlist='';
+
+			function putchild(childid,childprb,childinfo,parentsid){
+				removeallcolor();
+				var es=childinfo.replace(/@#/g,'\\\\');
+				document.getElementById('idcateids').value=childid;
+				document.getElementById('idcatelist').value=childprb;
+				document.getElementById('idcateinfo').value=es;
+				//document.getElementById('idcateinfo').value=childinfo;
+				document.getElementById('idcateparents').value=parentsid;
+				document.getElementById('rdcreate').checked='checked';
+			}
+			function fillprbid(childprb){
+				var currprb=document.getElementById('idcatelist').value;
+				var v1chkprbid=chkprbid(childprb);
+				if(v1chkprbid==0){
+					if(currprb==''){
+						document.getElementById('idcatelist').value=childprb;
+						fillcolor(childprb);
+					}else{
+						var prblist=currprb.split(',');
+						var chk=0;
+						var currnum;
+						for(var ia=0; ia<prblist.length; ia++){
+							if(prblist[ia]==childprb){
+								chk=1;
+								currnum=ia;
+							}
+						}
+						var nprblist='';
+						if(chk==0){
+							nprblist=childprb+','+currprb;
+							fillcolor(childprb);
+						}else if(chk==1){
+							prblist.splice(currnum,1);
+							for(var ic=0; ic<prblist.length; ic++){
+								if(prblist.length-1==ic){
+									nprblist=nprblist+prblist[ic];
+								}else{
+									nprblist=nprblist+prblist[ic]+',';
+								}
+				
+							}
+							//alert(childprb+' is removed')
+							removecolor(childprb);
+						}
+						document.getElementById('idcatelist').value=nprblist;
+					}
+				}else{
+					alert('the prbid is already registed');
+				}
+
+			}
+
+			function chkprbid(prbid){
+				var achk=0;
+				for(var ie=0; ie<golist.length; ie++){
+					if(prbid==golist[ie]){
+						achk=1;
+					}
+				}
+				return achk;
+			}
+			function addcolorlist(prbid){
+				if(colorlist==''){
+					colorlist=prbid;
+				}else{
+					colorlist=colorlist+','+prbid;
+				}
+				
+			}
+			function subcolorlist(prbid){
+				var o1colorlist=colorlist.split(',');
+				var ncolorlist='';
+				var nchk=0;
+				var prbnum;
+
+				var idx=o1colorlist.indexOf(prbid);	
+				o1colorlist.splice(idx,1);
+
+				for(var ia=0; ia<o1colorlist.length; ia++){
+					if(o1colorlist.length-1==ia){
+						ncolorlist=ncolorlist+o1colorlist[ia];
+					}else{
+						ncolorlist=ncolorlist+o1colorlist[ia]+',';
+					}
+				}
+				return ncolorlist;
+			}
+			function fillcolor(prbid){
+				var vchkprbid=chkprbid(prbid);
+				if(vchkprbid==0){
+					document.getElementById(prbid).style.backgroundColor='green';	
+					addcolorlist(prbid);
+				}else{
+					alert('the prbid is already registed');
+				}
+			}
+			function removecolor(prbid){
+				document.getElementById(prbid).style.backgroundColor='';
+				colorlist=subcolorlist(prbid);
+			}
+			function removeallcolor(){
+				var o1colorlist=colorlist.split(',');
+				if(colorlist!=''){
+					for(var ia=0; ia<o1colorlist.length; ia++){
+						removecolor(o1colorlist[ia]);
+					}
+					colorlist='';
+				}
+			}
+	body
+		h1 Elcue Point System
+		div(onclick="var inputlist=document.getElementById('idcatelist').value;putchild('auto_filled','','','#{prtids}')")
+			h2=prtinfo
+		a(href='./catecreate?chkprb=0') Back
+		div(id='forming')
+			form(action='/admin/pcsparents',method='get')
+				a category id 
+				input(type='text',id='idcateids',name='cateids')
+				a category list  
+				input(type='text',id='idcatelist',name='catelist')
+				a category info  
+				input(type='text',id='idcateinfo',name='cateinfo')
+				input(type='hidden',id='idcateparents',name='cateparents' value=prtids)
+				input(type='hidden',name='oldcateids', value=prtids)
+				input(type='hidden',name='oldcatelist', value=sprtlist)
+				p update mode
+				input(type='radio',id='rdcreate',name='modimode', value=0 checked)
+				| Create
+				input(type='radio',id='rdupdate',name='modimode', value=1)
+				| Update
+				input(type='radio',id='rddelete',name='modimode', value=2)
+				| Remove
+				input(type='submit', value='submit')
+
+		//div(id='prtlist')
+			//-for(var ib=0; ib<prtlist.length ; ib++){
+				//a(onclick="fillprbid('#{prtlist[ib]}')")=prtlist[ib]
+				//a=prtlist[ib]
+			//-}
+
+		div(id='childlist')
+			h3 child List
+			-for(var ic=0; ic<childlist.length; ic++){
+				div(onclick="putchild('#{childlist[ic][0]}','#{childlist[ic][1]}','#{childlist[ic][2]}','#{childlist[ic][3]}');")
+					-var keyw=childlist[ic][2].replace(/@#/g,'\\')
+					//a=ic+1+' : '+childlist[ic][2]
+					a=ic+1+' : '+keyw
+			-}
+		div(id='prbcont')
+			-for(var ia=0; ia<prbcon.length; ia++){
+				div(onclick="fillprbid('#{prbcon[ia][0]}')", id=prbcon[ia][0])
+					a=prbcon[ia][0]
+					a=prbcon[ia][1]
+			-}
+		script.
+			var o1golist='#{golist}';
+			var golist=o1golist.split(',');
+			for(var ia=0; ia<golist.length; ia++){
+				//document.getElementById(golist[ia]).style.backgroundColor='red';
+				var gol=document.getElementById(golist[ia]).style;
+				gol.backgroundColor='black';
+				gol.color='white';
+				
+			}
+
+

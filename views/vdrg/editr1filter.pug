@@ -1,0 +1,385 @@
+html
+	head
+		title Edit leadfilterR1
+		script(src='/socket.io/socket.io.js')
+		script(type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML")
+		style.
+			#headdiv {
+				width:100%;
+				height:5%;
+				background-color:yellow;
+			}
+			#bodydiv { 
+				width:100%;
+				height:95%;
+			}
+			#filterr1list {
+				width:10%;
+				height:100%;
+				float:left;
+				background-color:aaaaaa;
+			}	
+			#regprbdisplay {
+				width:90%;
+				height:100%;
+				float:left;
+				background-color:aaaaaa;
+				overflow:auto;
+			}
+			.imgdiv img {
+				width:100%;
+			}
+			.imgdiv {
+				width:60%;
+			}
+
+			.regprbdisplay {
+				width:60%;
+				margin:3% auto;
+				cursor:pointer;
+				border: 1px solid;
+			}
+		
+			.choicediv {
+				width:80%;
+				padding:0 10%;
+			}
+	body
+		div(id='headdiv')
+			input(type='text' id='r1varitxt')
+			button(onclick='createR1vari()') Submit to Create
+			button(onclick='updateFr1()') Update
+			button(onclick='emptyChosenlist()') Empty
+		div(id='bodydiv')
+			div(id='filterr1list')
+			div(id='regprbdisplay')
+				
+		script.
+			
+			var socket = io('/vdrg');
+			socket.on('connect',()=>{
+				console.log('connection ready');
+
+			});
+
+
+			var stat={chosencolor:'blue', fontcolor:'white'}
+
+
+
+
+			socket.on('updatefr1after',function(){
+				window.location.reload();
+			});
+
+
+			//cptprblist;
+			function updateFr1(){
+				if(fr1id && chosenlist){
+
+
+				
+					var vcptprblist=cptprblist.split(',');
+					var nchosenlist=[];
+					for(var ia=0; ia<chosenlist.length; ia++){
+						var chk=0;
+						for(var ib=0; ib<vcptprblist.length; ib++){
+							if(vcptprblist[ib]==chosenlist[ia][0]){
+								chk=1;
+								break;
+							}
+						}
+						if(chk==1){
+							nchosenlist.push([chosenlist[ia][0],ib]);
+						}
+					}	
+					
+
+					nchosenlist=sortind(nchosenlist);
+
+					var chosenstr='';
+					for(var ia=0; ia<nchosenlist.length; ia++){
+						if(chosenlist.length-1!=ia){
+							chosenstr=chosenstr+nchosenlist[ia][0]+',';
+						}else{
+							chosenstr=chosenstr+nchosenlist[ia][0];
+						}
+				
+					}
+					socket.emit('updatefr1',{fr1id:fr1id,chosenlist:chosenstr});
+				}else{
+					alert('fr1id or chosenlist is emptry');
+				}
+			}
+
+			function putColoron(classN, idN,colorN){
+				var cn=document.getElementsByClassName(classN);
+				for(var ia=0; ia<cn.length; ia++){	
+					cn[ia].style.color='';
+					cn[ia].style.backgroundColor='';
+				}
+				document.getElementById(idN).style.backgroundColor=colorN[0];
+				document.getElementById(idN).style.color=colorN[1];
+			}
+
+
+			var fr1id='';
+
+			var chosenlist=[];
+			var cptid='#{cptid}';
+
+			function removeItemFromExist(liststr,item){
+				var liststrl=liststr;
+
+				var nlist=[];
+				for(var ia=0; ia<liststrl.length; ia++){
+					if(liststrl[ia][0]==item){
+					}else{
+						nlist.push(liststrl[ia]);
+					}
+				}
+				return nlist;	
+			}
+			function checkItemExist(liststr,item){
+				var liststrl=liststr;
+
+				var chk=0;
+				for(var ia=0; ia<liststrl.length; ia++){
+					if(liststrl[ia][0]==item){
+						chk=1;
+						break;
+					}
+				}
+
+				return chk;
+			}
+
+
+
+			var swap=function(array,i,j){
+				var temp=array[i];
+				array[i]=array[j];
+				array[j]=temp;
+			}
+	
+			var sortind=function(array){
+				for(var i=0; i<array.length; i++){
+					for(var j=1;j<array.length; j++){
+						if(array[j-1][1]>array[j][1]){
+							swap(array,j-1,j);
+						}
+					}
+				}
+				return array;
+			}
+
+
+
+
+			function selectTop(arr){
+				var t=0;
+				for(var ia=0; ia<arr.length; ia++){	
+					if(arr[ia][1]>t){
+						t=arr[ia][1];
+					}
+				}
+				return t;
+			}
+
+
+
+
+
+
+
+			function clickToChosen(item){
+				var chk=checkItemExist(chosenlist,item);
+				if(chk==0){//no exist
+					chosenlist.push([item,selectTop(chosenlist)+1]);
+				}else{
+					chosenlist=removeItemFromExist(chosenlist,item);
+				}
+				chosenlist=sortind(chosenlist);
+
+				chosenRepresent();
+
+			}	
+
+
+
+			function displayPrbset(prbset){
+				chosenlist=[];
+				var prbsetl=prbset.split(',');
+				for(var ia=0; ia<prbsetl.length; ia++){
+					chosenlist[ia]=[prbsetl[ia], ia];
+				}
+				chosenRepresent();
+			}
+
+			function emptyChosenlist(){
+				chosenlist=[];
+				chosenRepresent();
+		
+			}
+			
+
+			callR1filterlist();
+			socket.on('callr1filterlistafter',function(a){
+				var filterr1list=document.getElementById('filterr1list');
+				for(var ia=0; ia<a.a.length; ia++){
+					var fdiv=document.createElement('div');	
+					fdiv.className='r1filter';
+					fdiv.id=a.a[ia].fr1id;
+					fdiv.onclick=function(i,j){
+						return function(){
+							displayPrbset(i);
+							putColoron('r1filter',j,['red','white']);
+							fr1id=j;
+							//function putColoron(classN, idN,colorN){
+
+						}
+					}(a.a[ia].prbset,a.a[ia].fr1id);
+					var fdiva=document.createElement('a');
+					fdiva.innerHTML=a.a[ia].cptinfo;
+					fdiv.appendChild(fdiva);
+					filterr1list.appendChild(fdiv);
+				}
+			});
+			function callR1filterlist(){
+				socket.emit('callr1filterlist',{cptid:cptid})
+			}
+
+
+			socket.on('creater1varifilterafter',function(){
+			});
+
+			function createR1vari(){
+				var r1varitxt=document.getElementById('r1varitxt');
+				if(r1varitxt.value){
+					socket.emit('creater1varifilter',{variinfo:r1varitxt.value, cptid:cptid,prbliststr:cptprblist});
+				}
+			}
+
+			function removeAllRepresent(cname){
+				var rdiv=document.getElementsByClassName(cname);
+				for(var ia=0; ia<rdiv.length; ia++){
+					rdiv[ia].style.backgroundColor='';
+					rdiv[ia].style.color='';
+				}
+			}
+
+
+			function removeallele(parentid){
+				var parent=document.getElementById(parentid);
+				while(parent.firstChild){
+					parent.firstChild.remove();
+				}
+			}
+
+			function chosenRepresent(){
+				removeAllRepresent('regprbdisplay');
+				if(chosenlist.length!=0){
+					var chosenlistl=chosenlist;
+
+					for(var ia=0; ia<chosenlistl.length; ia++){
+						var rpdiv=document.getElementById(chosenlistl[ia][0]);
+						if(rpdiv){
+							rpdiv.style.backgroundColor=stat.chosencolor;
+							rpdiv.style.color=stat.fontcolor;
+						}
+
+					}
+
+					
+
+				}
+		
+			}
+
+
+
+
+
+			var cptprblist='';
+			socket.on('callcptprbforfilterafter',function(r){
+				cptprblist=r.prbliststr;
+				var vdiv;
+				var va0;
+				var va1;
+				removeallele('regprbdisplay');
+				var fdiv=document.getElementById('regprbdisplay');
+				for(var ia=0; ia<r.prbcon.length; ia++){
+
+
+					vdiv=document.createElement('DIV');
+					vdiv.onclick=function(i){
+						return function(){
+							clickToChosen(i);
+						}
+					}(r.prbcon[ia][0]);
+					vdiv.className='regprbdisplay';
+					vdiv.id=r.prbcon[ia][0];
+
+					va0=document.createElement('A');
+					va1=document.createElement('A');
+					//va0.innerHTML=r.prbcon[ia][0];
+					va1.innerHTML=r.prbcon[ia][1];
+					//vdiv.appendChild(va0);
+					vdiv.appendChild(va1);
+
+					if(r.prbcon[ia][8]!=null){
+						var imgdiv=document.createElement('div');
+						imgdiv.className='imgdiv';
+						var imgsrc=document.createElement('img');
+						imgdiv.className='imgdiv';
+						imgsrc.src=r.prbcon[ia][8];
+						imgdiv.appendChild(imgsrc);
+						vdiv.appendChild(imgdiv);
+					}
+
+
+					//choice
+					var choicediv=document.createElement('div');
+					choicediv.className='choicediv';
+
+					var cho0div=document.createElement('div');
+					var cho0diva=document.createElement('a');
+					cho0diva.innerHTML=r.prbcon[ia][4];
+					cho0div.appendChild(cho0diva);
+					choicediv.appendChild(cho0div);
+
+
+					var cho1div=document.createElement('div');
+					var cho1diva=document.createElement('a');
+					cho1diva.innerHTML=r.prbcon[ia][5];
+					cho1div.appendChild(cho1diva);
+					choicediv.appendChild(cho1div);
+
+				
+					var cho2div=document.createElement('div');
+					var cho2diva=document.createElement('a');
+					cho2diva.innerHTML=r.prbcon[ia][6];
+					cho2div.appendChild(cho2diva);
+					choicediv.appendChild(cho2div);
+
+					vdiv.appendChild(choicediv);
+
+
+
+
+					fdiv.appendChild(vdiv);
+				
+					
+				}
+				MathJax.Hub.Queue(["Typeset",MathJax.Hub,regprbdisplay])	
+
+				
+			});
+
+			callcptPrb();
+			function callcptPrb(){
+				socket.emit('callcptprbforfilter',{cptid:cptid});
+			}
+
+				
+		
