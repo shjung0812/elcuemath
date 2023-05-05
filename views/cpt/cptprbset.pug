@@ -1,6 +1,6 @@
 html
 	head
-		title pug]/cpt/cprprbset.pug
+		title pug]/cpt/cptprbset.pug
 		style.
 			#crindexls{
 				margin:20px 10px;
@@ -13,42 +13,60 @@ html
 				//margin:20px 10px;
 				//box-shadow:0px 5px 5px 0px;
 				width:100%;
-				height:6%;
+				height:5%;
 			}
-			#createprbdiv {
+			#divform{
+				width:50%;
+				height:100%;
+				overflow:auto;
 				float:left;
-				padding:0 5%;
+			}
+			#otherbutton {
+				width:40%;	
+				float:left;
 			}
 
+	
+
+			#createprbdiv {
+				width:20%;
+				float:left;
+
+			}
+			#formtag{	
+				width:70%;
+				float:left;
+				font-size:.8em;
+			}	
+
 			#middlewrapdiv {
+				//margin:2% 0 0 0;
 				width:100%;
-				height:94%;
+				height:95%;
 			}
 			#prbproduct {
-				width:50%;
+				width:60%;
 				height:100%;
 				float:left;
 			}
 			#fixeddisplay {
-				width:50%;
+				width:40%;
 				height:100%;
 				float:left;
 			}
 			#chosenprb {
 				width:35%;
 				float:left;
-				//box-shadow:0px 5px 5px 0px;
-				//margin:20px 10px;
 				font-size:.7em;
 				height:100%;
 				overflow:auto;
 			}
 
 			#fcdisplay{
+				width:65%;
 				box-shadow:0px 5px 5px 0px;
 				height:100%;
 				float:left;
-				width:65%;
 				overflow-y:auto;
 			}
 			::-webkit-scrollbar {
@@ -137,10 +155,6 @@ html
 			#otherbutton a {
 				text-decoration:none;
 				margin:0 2%;
-			}
-			#formtag {
-				width:30%;
-				float:left;
 			}
 		script(src='/socket.io/socket.io.js')
 		script(type='text/javascript' src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML")
@@ -447,10 +461,7 @@ html
 	body
 		div(id='formtext')
 
-			//div
-				//div
-					//button(onclick='cptprbdisplay("",80,10,10)') Cpt Prbdisplay
-			div
+			div(id='divform')
 				div(id='createprbdiv')
 					button(onclick='iniFunc(80,10,10)') CreatePrb
 
@@ -467,10 +478,10 @@ html
 					|remove
 					input(type='submit' value='click')
 				iframe(name='dummyframe', id='dummyframe', style='display:none;')
-				div(id='otherbutton')
-					a(href='/admin/cpt?stchk=4') R2Create
-					a(href='/admin/cpt?stchk=6') R1Order
-					a(href='/admin/createcontents') Create Contents option
+			div(id='otherbutton')
+				a(href='/admin/cpt?stchk=4') R2Create
+				a(href='/admin/cpt?stchk=6') R1Order
+				a(href='/admin/createcontents') Create Contents option
 		div(id='middlewrapdiv')
 			div(id='prbproduct')
 				div(id='chosenprb')
