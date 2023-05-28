@@ -6947,6 +6947,7 @@ NUSDpickingFreeprb(callback){
 		}
 
 		var unreglist=[];
+		//module.exports.getinfodb('select * from prb order by prbregi asc',function(b){
 		module.exports.getinfodb('select * from prb where prbregi>20000 order by prbregi desc',function(b){
 			for(var ia=0; ia<b.length; ia++){
 				var chk=0;

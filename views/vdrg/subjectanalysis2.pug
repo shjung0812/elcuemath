@@ -242,26 +242,18 @@ html
 		var givenprblist=[];
 
 
-		/*
-		var username=!{JSON.stringify(username)}
-
-
-
-		var cps=!{JSON.stringify(cps)}
-
-
-
-		function callStdlist(){
-			socket.emit('callstdlist',{username:userinfo.username,mode:'teacherstd'});
-		}*/
-
 
 		var mode=!{JSON.stringify(mode)}
 
 		
 		if(mode=='admin'){
 		}else{
-			var userinfo=!{JSON.stringify(userinfo)}
+			if(!{JSON.stringify(userinfo)}==null){
+				console.log('userinfo error');
+			}else{
+				console.log(!{JSON.stringify(userinfo)});
+				var userinfo=!{JSON.stringify(userinfo)}
+			}
 		}
 
 
@@ -557,7 +549,11 @@ html
 
 		function callStdlist(){
 			if(mode!='admin'){
-				socket.emit('callstdlist',{username:userinfo.username,mode:'teacherstd'});	
+				if(userinfo.position==1){
+					socket.emit('callstdlist',{username:userinfo.username,mode:'teacherstd'});	
+				}else{
+					alert('login again');
+				}
 			}else{
 				socket.emit('callstdlist');	
 			}
