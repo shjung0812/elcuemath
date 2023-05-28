@@ -242,18 +242,26 @@ html
 		var givenprblist=[];
 
 
+		/*
+		var username=!{JSON.stringify(username)}
+
+
+
+		var cps=!{JSON.stringify(cps)}
+
+
+
+		function callStdlist(){
+			socket.emit('callstdlist',{username:userinfo.username,mode:'teacherstd'});
+		}*/
+
 
 		var mode=!{JSON.stringify(mode)}
 
 		
 		if(mode=='admin'){
 		}else{
-			if(!{JSON.stringify(userinfo)}==null){
-				console.log('userinfo error');
-			}else{
-				console.log(!{JSON.stringify(userinfo)});
-				var userinfo=!{JSON.stringify(userinfo)}
-			}
+			var userinfo=!{JSON.stringify(userinfo)}
 		}
 
 
@@ -375,8 +383,11 @@ html
 											for(var ib=0; ib<ordercpt.length; ib++){	
 												ordercpt[ib].style.border='';	
 											}
-		
-											document.getElementById(k+'order').style.border='1px solid red';
+											
+											const targetelement=document.getElementById(k+'order')
+											targetelement.style.border='1px solid red';
+											const targetelementposition=targetelement.getBoundingClientRect();
+											window.scrollTo(0, 1000)
 										}
 									}(cps[ia].prblist,cps[ia].cptid);
 
@@ -549,11 +560,7 @@ html
 
 		function callStdlist(){
 			if(mode!='admin'){
-				if(userinfo.position==1){
-					socket.emit('callstdlist',{username:userinfo.username,mode:'teacherstd'});	
-				}else{
-					alert('login again');
-				}
+				socket.emit('callstdlist',{username:userinfo.username,mode:'teacherstd'});	
 			}else{
 				socket.emit('callstdlist');	
 			}
