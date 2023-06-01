@@ -1854,6 +1854,7 @@ html
 		
 
 				}).catch(e=> {
+					alert('미디어 장비를 찾을 수 없습니다. 카메라 및 마이크를 허용해 주세요. 만약 허용했다면, 다른 프로그램이 카메라와 마이크를 사용하고 있다면 꺼주세요.');
 					socket.emit('fortabletreport',{msglist:'Connection Process[1.5] - error Occurred and Failed at Openning mentee user media ',username:username,modecheck:'webrtc',usertype:'mentee'});
 									
 				});
