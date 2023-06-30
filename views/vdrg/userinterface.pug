@@ -556,8 +556,8 @@ html
 
 
 			div(id='sharepaperoptionbox')
-				//div(id='fullscreendiv')
-					//Button(onclick='toFullscreen();') Full Screen
+				div(id='fullscreendiv')
+					Button(onclick='toFullscreen();') Full Screen
 				div(id='buttondiv')
 					//gtag('js', new Date());
 					Button(id='savebutton' onclick='screenSaveToServer();gtag("event","CapturingBoard")') 저장하기
@@ -576,6 +576,7 @@ html
 					//div(id='eraseallmine' onclick='if(confirm("All things in board are going to be removed")){clearmyRect();gtag("event","clearBoard")};')
 					div(id='pensizelist')
 					div(id='backgroundcolordiv')
+					
 				div(id='mentorvideobox')
 					video(id='selfvideo' autoplay  playsinline controls='false' muted)
 					video(id='mentorvideo' autoplay  playsinline controls='false')
@@ -588,6 +589,7 @@ html
 				div(id='wrssmultiplebox')
 
 		script.
+			
 			var userinfo=!{JSON.stringify(userinfo)};
 			var username=userinfo.username;
 
@@ -1912,14 +1914,40 @@ html
 
 
 			var remoteStream = new MediaStream();
-		
+			var isFullscreen=true;
+
+
+			function toggleFullScreen(element) {
+				if (!document.fullscreenElement) {
+					if (element.requestFullscreen) return element.requestFullscreen()
+					if (element.webkitRequestFullscreen)
+					return element.webkitRequestFullscreen()
+					if (element.mozRequestFullScreen) return element.mozRequestFullScreen()
+					if (element.msRequestFullscreen) return element.msRequestFullscreen()
+				} else {
+					if (document.exitFullscreen) return document.exitFullscreen()
+					if (document.webkitCancelFullscreen)
+					return document.webkitCancelFullscreen()
+					if (document.mozCancelFullScreen) return document.mozCancelFullScreen()
+					if (document.msExitFullscreen) return document.msExitFullscreen()
+				}
+			}
+	
 			function toFullscreen(){
-				document.body.webkitRequestFullscreen();
-
-				//myPics,
-
-
-				let timerid=setTimeout(sizecontrole,1000);
+				//document.body.webkitRequestFullscreen();
+				
+				var result = confirm("모든 필기가 지워집니다. 실행하시겠습니까?");
+				console.log(result);
+				if(result){
+					let timerid=setTimeout(sizecontrole,500);
+					toggleFullScreen(document.body)
+					clearmyRect();
+				}else{
+					
+				}
+        
+				
+			
 				function sizecontrole(){
 			
 					if(widthoriented==0){
@@ -1950,7 +1978,7 @@ html
 
 					rect = myPics.getBoundingClientRect();
 
-					document.getElementById('fullscreendiv').remove();
+					//document.getElementById('fullscreendiv').remove();
 		
 				}
 
