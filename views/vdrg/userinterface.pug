@@ -1798,48 +1798,60 @@ html
 						console.log(audioinputdeviceid)
 
 						const videodeviceid=getCookie('selected_device_video')
-						if(audioinputdeviceid==null){
+
+
+
+						var constraints = {
+							video: videodeviceid ? { deviceId: videodeviceid } : true,
+							audio: audioinputdeviceid ? { deviceId: audioinputdeviceid } : true
+						};
+						
+						//- if(audioinputdeviceid==null){
 
 							
 
 
-							if(videodeviceid==null){
-								var constraints = {
-									'video':true,
-									'audio':true
-								}
+						//- 	if(videodeviceid==null){
+						//- 		var constraints = {
+						//- 			'video':true,
+						//- 			'audio':true
+						//- 		}
 
-							}else{
-								var constraints = {
-									'video':{'deviceId':videodeviceid},
-									'audio':true
-								}
+						//- 	}else{
+						//- 		var constraints = {
+						//- 			'video':{'deviceId':videodeviceid},
+						//- 			'audio':true
+						//- 		}
 
-							}
+						//- 	}
 							
 
 
-						}else{
+						//- }else{
 
 
-							if(videodeviceid==null){
+						//- 	if(videodeviceid==null){
 
-								var constraints = {
-									'video':true,
-									'audio':{'deviceId':audioinputdeviceid},
+						//- 		var constraints = {
+						//- 			'video':true,
+						//- 			'audio':{'deviceId':audioinputdeviceid},
 									
 
-								}
-							}else{
-								var constraints = {
-									'video':{'deviceId':videodeviceid},
-									'audio':{'deviceId':audioinputdeviceid}
-								}
+						//- 		}
+						//- 	}else{
+						//- 		var constraints = {
+						//- 			'video':{'deviceId':videodeviceid},
+						//- 			'audio':{'deviceId':audioinputdeviceid}
+						//- 		}
 
-							}
+						//- 	}
 
 
-						}
+						//- }
+
+
+						console.log('constraints');
+						console.log(constraints);
 
 
 					}
@@ -1847,22 +1859,31 @@ html
 					audioinputdeviceid=getCookie('selected_device_audioinput')
 					console.log('audioinputdeviceid')
 					console.log(audioinputdeviceid)
-					if(audioinputdeviceid==null){
-						var constraints = {
+
+
+					var constraints = {
 						'video':false,
-						'audio':true
-							}
-
-
-					}else{
-						var constraints = {
-							'video':false,
-							'audio':{'deviceId':audioinputdeviceid},
-							//'deviceId':audioinputdevice
-
-						}
-
+						'audio':audioinputdeviceid?{'deviceId':audioinputdeviceid}:true
 					}
+
+
+
+					//- if(audioinputdeviceid==null){
+					//- 	var constraints = {
+					//- 	'video':false,
+					//- 	'audio':true
+					//- 		}
+
+
+					//- }else{
+					//- 	var constraints = {
+					//- 		'video':false,
+					//- 		'audio':{'deviceId':audioinputdeviceid},
+					//- 		//'deviceId':audioinputdevice
+
+					//- 	}
+
+					//- }
 
 
 				}
