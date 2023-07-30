@@ -522,6 +522,15 @@ html
 				display:inline-block;
 				padding:35% 0;
 			}
+			#communicationdiv {
+				float:left;
+			}
+			#communicationdiv div {
+				font-size:.4em;
+			}
+			#communicationdiv div button{
+				font-size:.4em;
+			}
 
 	body(onselectstart = "return false" ondragstart = "return false" oncontextmenu="return false")
 
@@ -564,18 +573,17 @@ html
 				//div
 				//a(href='./savedscreen?username='+userinfo.username target='_blank') Check Saved Screen
 				div(id='penswitchingbox')
-					//div(id='penbox0' onclick='switchtoPen(0);')
-					//a Pen <br> White
-					//div(id='penbox1' onclick='switchtoPen(1);')
-					//a Pen <br> Black
 					div(id='eraserbox' onclick='switchtoEraser();')
 						a Eraser
 					div(id='penboxlist')
 					div(id='eraseallmine' onclick='clearmyRect();gtag("event","clearBoard");')
 						a 내필기 모두 지우기
-					//div(id='eraseallmine' onclick='if(confirm("All things in board are going to be removed")){clearmyRect();gtag("event","clearBoard")};')
 					div(id='pensizelist')
 					div(id='backgroundcolordiv')
+					div(id='communicationdiv')
+						div(id='communicationaudioinput') 오디오입력 리스트
+						div(id='communicationaudiooutput') 오디오출력 리스트
+						div(id='communicationvideo') 비디오 리스트
 
 				div(id='mentorvideobox')
 					video(id='selfvideo' autoplay  playsinline controls='false' muted)
@@ -593,14 +601,14 @@ html
 			var userinfo=!{JSON.stringify(userinfo)};
 			var username=userinfo.username;
 
+
+
 			gtag('event','InClassRoom',{'event_label':username});
 			var origin=window.location.origin;
 			var socket = io('/vdrg',{
 				transports:['websocket'],
 				upgrade:false
 			});
-
-
 
 
 			var gratio=.61804;
@@ -1679,39 +1687,91 @@ html
 			};
 
 
+			let selected_device_video='';
+			let selected_device_autioinput='';
+			let selected_device_autiooutput='';
 			async function selectDevices(){
-				const devices = await navigator.mediaDevices.enumerateDevices();
+				const devicelist = await navigator.mediaDevices.enumerateDevices();
+				console.log(devicelist)
+				var comunicationaudioinputdiv=document.getElementById('communicationaudioinput');
+				var comunicationaudiooutputdiv=document.getElementById('communicationaudiooutput');
+				var comunicationvideodiv=document.getElementById('communicationvideo');
 
-				var webrtcbuttonbar=document.getElementById('webrtcbuttonbar');
+				//- console.log(devicelist)
+
+				//- for(let it of deviceslist){
 
 
-					/*var vc=document.getElementsByClassName('videoinput');
-					if(vc!=null){
-						for(let i of vc){	
-							i.remove();
+				//- 	if(it.kind=='videoinput'){
+
+				//- 	}
+				//- }
+
+				const videoDeviceList=devicelist.filter(item=>item.kind=='videoinput');
+				videoDeviceList.forEach(videodevice=>{
+					selected_device_video=videodevice.deviceId;
+
+					var fdiv=document.createElement('button');
+					fdiv.innerHTML=videodevice.label;
+					fdiv.className='videoinput';
+					comunicationvideodiv.appendChild(fdiv);
+					fdiv.onclick=function(k){	
+						return function(){
+							selected_device_video=k;
+							document.cookie='selected_device_video='+k;
 						}
-					}*/
+					}(videodevice.deviceId)
 
+				})
 
-				for(let it of devices){
+				const audioinputDeviceList=devicelist.filter(item=>item.kind=='audioinput');
+				audioinputDeviceList.forEach(audioinputdevice=>{
+					selected_device_audioinput=audioinputdevice.deviceId;
 
+					var fdiv=document.createElement('button');
+					fdiv.innerHTML=audioinputdevice.label;
+					fdiv.className='videoinput';
+					comunicationaudioinputdiv.appendChild(fdiv);
+					fdiv.onclick=function(k){	
+						return function(){
+							selected_device_audioinput=k;
+							document.cookie='selected_device_audioinput='+k;
 
-					if(it.kind=='videoinput'){
-						selected_device=it.deviceId;
-						var fdiv=document.createElement('button');
-						fdiv.innerHTML=it.label;
-						fdiv.className='videoinput';
-						webrtcbuttonbar.appendChild(fdiv);
-						fdiv.onclick=function(k){	
-							return function(){
-								selected_device=k;
-							}
-						}(it.deviceId)
-					}
-				}
+						}
+					}(audioinputdevice.deviceId)
+
+				})
+
+				const audiooutputDeviceList=devicelist.filter(item=>item.kind=='audiooutput');
+				audiooutputDeviceList.forEach(audiooutputdevice=>{
+					selected_device_audiooutput=audiooutputdevice.deviceId;
+
+					var fdiv=document.createElement('button');
+					fdiv.innerHTML=audiooutputdevice.label;
+					fdiv.className='videoinput';
+					comunicationaudiooutputdiv.appendChild(fdiv);
+					fdiv.onclick=function(k){	
+						return function(){
+							selected_device_audiooutput=k;
+							document.cookie='selected_device_audiooutput='+k;
+						}
+					}(audiooutputdevice.deviceId)
+
+				})
+
 			}
 			selectDevices();
-
+			function getCookie(cookieName) {
+				const cookieString = document.cookie;
+				const cookies = cookieString.split("; ");
+				for (const cookie of cookies) {
+					const [name, value] = cookie.split("=");
+					if (name === cookieName) {
+						return value;
+					}
+				}
+				return null; // 해당하는 쿠키가 없을 경우 null 반환
+			}
 
 
 
@@ -1720,6 +1780,7 @@ html
 			async function RTCGo(iceservers){
 				const fset = await everythingReady();
 				if(fset.equipcheck[2]){// if video is allowed
+
 					if(username=='eupium'){
 						var constraints = {
 							'video':false,
@@ -1727,17 +1788,83 @@ html
 						}
 
 					}else{
-						var constraints = {
-							'video':true,
-							'audio':true
+						//- 	var constraints = {
+						//- 	'video':true,
+						//- 	'audio':true
+						//- }
+
+						const audioinputdeviceid=getCookie('selected_device_audioinput')
+						console.log('audioinputdeviceid')
+						console.log(audioinputdeviceid)
+
+						const videodeviceid=getCookie('selected_device_video')
+						if(audioinputdeviceid==null){
+
+							
+
+
+							if(videodeviceid==null){
+								var constraints = {
+									'video':true,
+									'audio':true
+								}
+
+							}else{
+								var constraints = {
+									'video':{'deviceId':videodeviceid},
+									'audio':true
+								}
+
+							}
+							
+
+
+						}else{
+
+
+							if(videodeviceid==null){
+
+								var constraints = {
+									'video':true,
+									'audio':{'deviceId':audioinputdeviceid},
+									
+
+								}
+							}else{
+								var constraints = {
+									'video':{'deviceId':videodeviceid},
+									'audio':{'deviceId':audioinputdeviceid}
+								}
+
+							}
+
+
 						}
+
 
 					}
 				}else{ //if video is not allowed
-					var constraints = {
+					audioinputdeviceid=getCookie('selected_device_audioinput')
+					console.log('audioinputdeviceid')
+					console.log(audioinputdeviceid)
+					if(audioinputdeviceid==null){
+						var constraints = {
 						'video':false,
 						'audio':true
+							}
+
+
+					}else{
+						var constraints = {
+							'video':false,
+							'audio':{'deviceId':audioinputdeviceid},
+							//'deviceId':audioinputdevice
+
+						}
+
 					}
+
+
 				}
 
 
@@ -1884,6 +2011,25 @@ html
 						remoteStream.addTrack(event.track);
 						console.log(remoteStream,'remoteStream')
 						socket.emit('fortabletreport',{msglist:'Connection Process[10] - Mentor Track Arrived',username:username,modecheck:'webrtc',usertype:'mentee'});
+
+
+						const audiooutputdeviceid=getCookie('selected_device_audiooutput')
+						console.log('audiooutputdeviceid')
+						console.log(audiooutputdeviceid)
+						console.log(remoteStream.getAudioTracks())
+						if(audiooutputdeviceid==null){
+
+						}else{
+							console.log('here in audiooutputdeviceid')
+							remoteStream.getAudioTracks()[0].applyConstraints({ audioOutput: {deviceId:audiooutputdeviceid} });
+
+						}
+					
+
+
+
+
+
 						remoteStream.getAudioTracks()[0].onended=function(){
 							socket.emit('fortabletreport',{msglist:'remoteStream ended',username:username,modecheck:'webrtc',usertype:'mentee'});
 						}

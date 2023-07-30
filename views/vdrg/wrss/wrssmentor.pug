@@ -151,7 +151,7 @@ html
 				left:0;
 				z-index:3;
 				background-color:yellow;
-				
+
 			}
 			#ranknavidiv {
 				width:70%;
@@ -195,7 +195,7 @@ html
 				overflow:auto;
 			}
 
-		
+
 			#cptprblistdiv div:hover {
 				cursor:pointer;
 
@@ -287,7 +287,7 @@ html
 			.r2divadiv {
 				width:80%;
 				float:left;
-				
+
 			}
 
 			.r2resultdisplaydiv {
@@ -343,26 +343,26 @@ html
 				width:25%;
 				height:30%;
 				float:left;
-				
+
 			}
 			.hwprb {
 				width:25%;
 				height:30%;
 				float:left;
-				
+
 			}
 			.glprb {
 				width:25%;
 				height:30%;
 				float:left;
-				
+
 			}
 
 			.insprb {
 				width:25%;
 				height:30%;
 				float:left;
-				
+
 			}
 
 
@@ -399,7 +399,7 @@ html
 				div(id='displayedprb')
 				div(id='monitoringprb')
 			div(id='userwrsswriting')
-							
+
 			div(id='rankcalldiv')
 				div
 					button(onclick='IGVcontrol(1)') IGVon
@@ -412,7 +412,7 @@ html
 					button(onclick='webRTCcomm("connect");' id='speaktouser') WebRTC SpeakToUser
 					button(onclick='webRTCcomm("disconnect")') WebRTC All stop
 					//button(onclick='webRTCcomm("pcobjectreload")') WebRTC PC Object reload
-					button(onclick='webRTCcomm("reload")', id='userreload') WebRTC UserReload
+					button(onclick='webRTCcomm("reload")' id='userreload') WebRTC UserReload
 				div
 					button(onclick='mentorLevelControl(0)') Level Down
 					button(onclick='mentorLevelControl(1)') Level Up
@@ -421,11 +421,11 @@ html
 					audio(id='sound1' src='/sounds/beep-07.mp3' autoplay='false')
 
 
-		
+
 		div(id='rankcall')
 
 			div(id='ranknavidiv')
-	
+
 				div(id='setdiv')
 					div(id='buttondiv')
 						button(onclick='rankCall();')  RankCall
@@ -458,11 +458,11 @@ html
 				div(id='mentorvideobox')
 					video(id='mentorvideo' autoplay  playsinline controls='false' muted)
 				div(id='webrtclog' onclick='getWebRTClog()')
-					
+
 				div(id='menteevideobox')
 					video(id='menteevideo' autoplay  playsinline controls='false')
 			div(id='switchbox')
-					
+
 
 
 		script.
@@ -481,7 +481,7 @@ html
 			});
 
 
-		
+
 
 			socket.on('callwrsswritingpicafter',function(a){
 				removeallele('userwrsswriting');
@@ -538,7 +538,7 @@ html
 			floatingElement(switchnum%3);
 			document.onkeydown = function(e){
 				if(e.shiftKey && e.which==70){
-					
+
 					switchnum+=1;
 					floatingElement(switchnum%3);
 				}
@@ -555,7 +555,7 @@ html
 					rankcall.style.zIndex=1;
 					webrtcdiv.style.zIndex=2;
 					container1.style.zIndex=3;
-				
+
 				}else if(ele==1){//rankcallfloating
 					rankcall.style.zIndex=3;
 					container1.style.zIndex=1;
@@ -606,7 +606,7 @@ html
 
 				//}
 
-				
+
 
 			}
 
@@ -647,7 +647,7 @@ html
 						stastar.innerHTML='&#9956';
 						stastar.className='stastar';
 						stadiv.appendChild(stastar);
-				
+
 						if(ic<userstory[ia].numsta.length){
 							stastar.style.backgroundColor='blue';
 							stastar.style.color='white';
@@ -752,7 +752,7 @@ html
 					}
 					userdiv.appendChild(prbsolvelistbox);
 
-				
+
 					userlistdiv.appendChild(userdiv);
 				}
 					if(displayusername!=''){		
@@ -803,7 +803,7 @@ html
 							if(chk==1){
 								rcika[ia][1]+=1;
 								rcika[ia][2].unshift([numikaset[ib][0],numikaset[ib][1]]);
-						
+
 							}
 						}
 					}					
@@ -832,7 +832,7 @@ html
 					for(var ia=0; ia<uprbnum.length; ia++){
 						solvedprbset[ia]=[uprbnum[ia][0].split(',').length,0,[]];
 						for(var ib=0; ib<allowednumprbset.length; ib++){
-		
+
 							var chk=0;					
 							var plist=uprbnum[ia][0].split(',');
 							for(var ic=0; ic<plist.length; ic++){
@@ -844,13 +844,13 @@ html
 							if(chk==1){
 								solvedprbset[ia][1]+=1;
 								solvedprbset[ia][2].unshift([allowednumprbset[ib][0],allowednumprbset[ib][1]])
-						
+
 							}
 						}
 					}
 
 					userstory[uidx].prbsolve=solvedprbset;
-					
+
 				}else if(opt=='sta'){
 					var numsta=[];
 					var indsta=[];
@@ -869,7 +869,7 @@ html
 							if(chk==0){
 								indsta.push(uhistory.rdcthis[ia].prbid)
 							}
-						
+
 						}
 					}
 
@@ -924,26 +924,26 @@ html
 			var userstory={username:userinfo.username};
 			socket.on('wrssmonitorfromservertomentor',function(a){
 				//for(var ia=0; ia<userstory.length; ia++){
-					//if(userstory[ia].username==a.username){
-						//iknowitalready
-						//calcProgress(a,ia,hourTime,'ika')
+				//if(userstory[ia].username==a.username){
+				//iknowitalready
+				//calcProgress(a,ia,hourTime,'ika')
 
-						//solved problem within time
-						//calcProgress(a,ia,hourTime,'solvedprb')
+				//solved problem within time
+				//calcProgress(a,ia,hourTime,'solvedprb')
 
-						//number of save to ask
-						//calcProgress(a,ia,hourTime,'sta')
+				//number of save to ask
+				//calcProgress(a,ia,hourTime,'sta')
 
-						//prblist result with series time; srt
-						calcProgress(a,hourTime,'srt');
+				//prblist result with series time; srt
+				calcProgress(a,hourTime,'srt');
 
-					//}
+				//}
 				//}
 
 
 				//updateUserrecord();		
 				showresultprb(userinfo.username);	
-							
+
 			});
 
 
@@ -954,7 +954,7 @@ html
 
 
 			socket.on('monitoringprbresultafter',function(a){
-				
+
 				const date= new Date();
 				const ctime=date.getHours()+':'+date.getMinutes()+':'+date.getSeconds();
 
@@ -974,7 +974,7 @@ html
 				for(var ia=0; ia<rset.length; ia++){
 					var fdiv=document.createElement('div');
 
-					
+
 					fdiv.onclick=function(j){
 						return function(){
 							var sharebox=document.createElement('div');
@@ -1092,7 +1092,7 @@ html
 							}else{
 								track.enabled=true;
 							}
-							
+
 						}else{
 							track.enabled=true;
 						}
@@ -1114,7 +1114,7 @@ html
 
 				}else if(opt=='reload'){
 				}
-			
+
 				socket.emit('wrssgetconnect',{conoption:opt,usersocketid:userinfo.socketid});
 
 			}
@@ -1128,17 +1128,17 @@ html
 				var webrtcbuttonbar=document.getElementById('webrtcbuttonbar');
 
 
-						/*var vc=document.getElementsByClassName('videoinput');
-						if(vc!=null){
-							for(let i of vc){	
-								i.remove();
-							}
-						}*/
+					/*var vc=document.getElementsByClassName('videoinput');
+					if(vc!=null){
+						for(let i of vc){	
+							i.remove();
+						}
+					}*/
 
 
 				for(let it of devices){
 
-					
+
 					if(it.kind=='videoinput'){
 						selected_device=it.deviceId;
 						var fdiv=document.createElement('button');
@@ -1163,7 +1163,7 @@ html
 				var webrtcbuttonbar=document.getElementById('webrtcbuttonbar');
 
 				for(let it of devices){
-					
+
 					if(it.kind=='videoinput'){
 						selected_device=it.deviceId;
 						var fdiv=document.createElement('button');
@@ -1198,8 +1198,8 @@ html
 				if(navimedia !== undefined){
 					equipChecklist.push(1);
 					msglist.push('navigator.mediaDevices ok')
-	
-					
+
+
 					const audios= await getConnectedDevices('audioinput');
 					if(audios && audios.length>0){
 						equipChecklist.push(1);
@@ -1208,7 +1208,7 @@ html
 						equipChecklist.push(0);
 						msglist.push('audio input FAILED')
 					}
-				
+
 					const videos= await getConnectedDevices('videoinput');
 					if(videos && videos.length>0){
 						equipChecklist.push(1);
@@ -1219,14 +1219,14 @@ html
 					}
 
 
-	
+
 				}else{
 					equipChecklist.push(0);
 					equipChecklist.push(0);
 					const msg = 'navigator.mediaDevices is not found'
 					msglist.push(msg)
 				}
-		
+
 
 					// 카메라와 마이크 리스트
 
@@ -1241,11 +1241,11 @@ html
 								}else{
 									destr=destr+device.kind + ": " + device.label+',';
 								}
-			
+
 								count+=1;
 
 							});
-						
+
 
 							socket.emit('fortabletreport',{msglist:'Connection Process[1] - statuscheck: '+equipChecklist+', explanation: '+destr,username:userinfo.username,modecheck:'webrtc',usertype:'wrssmentor'});
 						})
@@ -1257,7 +1257,7 @@ html
 
 						});
 
-	
+
 				return {equipcheck:equipChecklist, msglist:msglist}
 
 			}
@@ -1269,13 +1269,13 @@ html
 				stream.getTracks().forEach(track=>{
 					track.enabled=false;
 				});
-	
+
 			});
 
 
 
 
-		
+
 			async function audioConntouser(iceservers,opt){
 				const equipCheck= await everythingReady();
 
@@ -1292,11 +1292,11 @@ html
 
 					if(opt==1 || opt==2){
 						var constraints={video:{
-									//width:1280, 
-									//height:720,
-									deviceId:{
-										exact:selected_device
-									}
+							//width:1280, 
+							//height:720,
+							deviceId:selected_device
+
+
 
 								},audio:true}
 					}else{
@@ -1308,10 +1308,10 @@ html
 						stream = s;
 						const configuration = {iceServers:iceservers};
 						peerConnection = new RTCPeerConnection(configuration);
-					
 
 
-					
+
+
 						stream.getTracks().forEach(track=>{
 							/*if(!onvideo){
 								if(track.kind=='video'){
@@ -1362,12 +1362,12 @@ html
 							return async function(){
 							const offer = await i.createOffer({iceRestart:true});
 							socket.emit('webrtccallertoserver',{offer:offer,usersocketid:userinfo.socketid,mentormode:'wrss',wrssmentorsocketid:socket.id});
-		
+
 							}
 						}(peerConnection);
 						restartbuttondiv.appendChild(restartbutton);
 						webrtcdiv.appendChild(restartbuttondiv);
-						
+
 
 
 						peerConnection.onconnectionstatechange=function(event){
@@ -1400,10 +1400,10 @@ html
 								case "failed":
 									socket.emit('fortabletreport',{msglist:'onconnectionstatechange - failed',username:'wrss-'+mentor.mentorid,modecheck:'webrtc',usertype:'wrssmentor'});
 									console.log('failed');
-							
+
 									break;
-								
-								
+
+
 							}
 						}
 
@@ -1458,10 +1458,10 @@ html
 
 					}).catch(e=> {
 					socket.emit('fortabletreport',{msglist:'Connection Process[1.5] - error Occurred and Failed at Openning Mentor Media ',username:userinfo.username,modecheck:'webrtc',usertype:'wrssmentor'});
-									
+
 					});
 
-	
+
 			}
 
 			const remoteStream = new MediaStream();
@@ -1492,10 +1492,10 @@ html
 			});
 
 			function webRTCconnect(opt){
-				 socket.emit('vdrggetusersocketid',{opt:opt});
-				
+				socket.emit('vdrggetusersocketid',{opt:opt});
+
 			}
-			
+
 
 			socket.on('vdrggetusersocketidafter',function(a){
 				audioConntouser(a.iceservers,a.opt);
@@ -1526,7 +1526,7 @@ html
 
 			function instantPrb(){
 				var fslotlist=[];
-			
+
 				for(var ia=0; ia<fcptlist.length; ia++){
 					var pstr='';
 					for(var ib=0; ib<fcptlist[ia].prblist.length; ib++){
@@ -1535,11 +1535,11 @@ html
 						}else{
 							pstr=pstr+fcptlist[ia].prblist[ib][0];
 						}
-				
+
 					}
 					fslotlist[ia]=['','','','',fcptlist[ia].fcptname,'',pstr];
 				}
-	
+
 
 				socket.emit('callmyrcon',{slotlist:fslotlist,state:'instantprb',username:userinfo.username,menteesocketid:userinfo.socketid,mentorid:mentor.mentorid});
 			}
@@ -1561,7 +1561,7 @@ html
 			wrssuser1mypics.height=gratio*wrssuser1canvaswidth;
 			wrssuser1mypics.style.width=wrssuser1canvaswidth+'px';
 			wrssuser1mypics.style.height=gratio*wrssuser1canvaswidth+'px';
-				
+
 			const wrssuser1context = wrssuser1mypics.getContext('2d');
 
 
@@ -1633,7 +1633,7 @@ html
 
 			function sketchpad_touchMove(e){
 				getTouchPos(e);
-				
+
 				WRSSuser1drawLine(wrssuser1context, wuser1x, wuser1y, touchX, touchY,wrssuser1stat,0);
 
 				wuser1x=touchX;
@@ -1642,7 +1642,7 @@ html
 				event.preventDefault();	
 			}
 
-			
+
 			wrssuser1mypics.addEventListener('touchstart',sketchpad_touchStart, false);
 			wrssuser1mypics.addEventListener('touchmove',sketchpad_touchMove,false);
 
@@ -1812,7 +1812,7 @@ html
 					displayedprb.appendChild(fdiv);
 
 				}
-			
+
 				MathJax.Hub.Queue(["Typeset",MathJax.Hub,displayedprb])	
 
 			});
@@ -1829,23 +1829,23 @@ html
 
 
 				if(ma.username==userinfo.username){
-						var cuser1x=ma.pos[0]*(wrssuser1rect.right-wrssuser1rect.left);
-						var cuser1y=ma.pos[1]*(wrssuser1rect.bottom-wrssuser1rect.top);
+					var cuser1x=ma.pos[0]*(wrssuser1rect.right-wrssuser1rect.left);
+					var cuser1y=ma.pos[1]*(wrssuser1rect.bottom-wrssuser1rect.top);
 
 
-						if(ma.mousestat==='move'){
-							WRSSuser1drawLine(wrssuser1context,puser1x,puser1y, cuser1x, cuser1y,ma.statoption,1);
-							puser1x = cuser1x;
-							puser1y = cuser1y;
-						}else if(ma.mousestat==='up'){
-							WRSSuser1drawLine(wrssuser1context,puser1x,puser1y, cuser1x, cuser1y,ma.statoption,1);
-							puser1x = 0;
-							puser1y = 0;
+					if(ma.mousestat==='move'){
+						WRSSuser1drawLine(wrssuser1context,puser1x,puser1y, cuser1x, cuser1y,ma.statoption,1);
+						puser1x = cuser1x;
+						puser1y = cuser1y;
+					}else if(ma.mousestat==='up'){
+						WRSSuser1drawLine(wrssuser1context,puser1x,puser1y, cuser1x, cuser1y,ma.statoption,1);
+						puser1x = 0;
+						puser1y = 0;
 
-						}else if(ma.mousestat==='down'){
-							puser1x = cuser1x;
-							puser1y = cuser1y;
-						}
+					}else if(ma.mousestat==='down'){
+						puser1x = cuser1x;
+						puser1y = cuser1y;
+					}
 
 
 
@@ -1864,7 +1864,7 @@ html
 
 			function popupUsermode(username){
 				var usermodebox= document.createElement('div');
-				
+
 			}
 
 
@@ -1928,7 +1928,7 @@ html
 				var width=a.imgobj.width;
 				var height=a.imgobj.height;
 				var buffer = new Uint8ClampedArray(Math.floor(wrssuser1canvaswidth)*Math.floor(wrssuser1canvaswidth*gratio)*4);
-			
+
 				for(var ia=0; ia<a.imgobj.imgsupp.length; ia++){
 					var qpos=a.imgobj.imgsupp[ia][0]/4;
 					//extract x,y
@@ -1947,7 +1947,7 @@ html
 				var canvashg=wrssuser1rect.bottom-wrssuser1rect.top;
 				var nx=rx/canvaswt;
 				var ny=ry/canvashg;
-				
+
 				return [nx,ny];
 			}
 
@@ -1955,7 +1955,7 @@ html
 			socket.on('rankcallafter',function(a){
 				removeallele('r2set');
 				var r2setdiv = document.getElementById('r2set');
-			
+
 				var indr2set=[];
 				for(var ia=0; ia<a.a.length; ia++){
 					var chk=0;
@@ -1970,7 +1970,7 @@ html
 					}
 				}
 
-				
+
 				r2obj=[];
 				for(var ia=0; ia<indr2set.length; ia++){
 					r2obj[ia]={r2id:indr2set[ia][0],r2listinfo:indr2set[ia][1],r1set:[]}
@@ -1985,7 +1985,7 @@ html
 					var r2div=document.createElement('div');
 					r2div.className='r2div';
 					r2div.id=r2obj[ia].r2id;
-			
+
 					var r2divadiv=document.createElement('div');
 					r2divadiv.className='r2divadiv';
 					var r2diva=document.createElement('a');
@@ -2008,7 +2008,7 @@ html
 
 					r2div.setAttribute('data-prblist',r2prblist)
 
-					
+
 
 
 					var resultdisplaydiv=document.createElement('div');
@@ -2034,7 +2034,7 @@ html
 
 				}		
 				MathJax.Hub.Queue(["Typeset",MathJax.Hub,"r2set"])	
-				
+
 			});
 
 
@@ -2051,7 +2051,7 @@ html
 					socket.emit('showuserdataresult',{username:userinfo.username, time:t});
 				}
 			}           
-	
+
 
 			socket.on('showuserdataresultafter',function(a){
 
@@ -2085,7 +2085,7 @@ html
 
 
 				var indprbhw=[];
-				
+
 				for(var ia=0; ia<a.hw.length; ia++){
 					var chk=0;
 					for(var ib=0; ib<indprbhw.length; ib++){
@@ -2098,8 +2098,8 @@ html
 						indprbhw.push(a.hw[ia].prbid)
 					}
 				}
-		
-		
+
+
 				var hwprbpic=[];
 				for(var ia=0; ia<indprbhw.length; ia++){
 					hwprbpic[ia]={prbid:indprbhw[ia],pic:[]}
@@ -2113,7 +2113,7 @@ html
 
 
 				var indprbgl=[];
-				
+
 				for(var ia=0; ia<a.glpic.length; ia++){
 					var chk=0;
 					for(var ib=0; ib<indprbgl.length; ib++){
@@ -2126,8 +2126,8 @@ html
 						indprbgl.push(a.glpic[ia].prbid)
 					}
 				}
-		
-		
+
+
 				var glprbpic=[];
 				for(var ia=0; ia<indprbgl.length; ia++){
 					glprbpic[ia]={prbid:indprbgl[ia],pic:[],ans:[]}
@@ -2151,7 +2151,7 @@ html
 				var r2setdiv=document.getElementsByClassName('r2div');
 				for(var ia=0; ia<r2setdiv.length; ia++){
 					var prblist=r2setdiv[ia].getAttribute('data-prblist').split(',');
-					
+
 					var wrnum= 0;
 					var wrssresult =[];
 					for(var ib=0; ib<prblist.length; ib++){
@@ -2167,10 +2167,10 @@ html
 							wrnum+=1;
 						}
 					}
-			
+
 					if(wrnum!=0){
 						r2setdiv[ia].getElementsByTagName('div')[1].getElementsByTagName('div')[0].innerHTML=wrnum;
-					
+
 					}else{
 						r2setdiv[ia].getElementsByTagName('div')[1].getElementsByTagName('div')[0].innerHTML='';
 					}
@@ -2330,11 +2330,11 @@ html
 						r1divadiv.appendChild(r1diva);
 						r1div.appendChild(r1divadiv);
 
-						
+
 
 						var resultdisplaydiv=document.createElement('div');
 						resultdisplaydiv.className='r1resultdisplaydiv';
-					
+
 						var wrssresultdiv=document.createElement('div');
 						wrssresultdiv.className='wrsscount';
 						resultdisplaydiv.appendChild(wrssresultdiv);
@@ -2368,7 +2368,7 @@ html
 								wrnum+=1;
 							}
 						}
-				
+
 						if(wrnum!=0){
 							wrssresultdiv.innerHTML=wrnum;
 						}else{
@@ -2447,15 +2447,15 @@ html
 
 
 
-						
+
 
 						r1div.onclick=function(i,j){return function(){callprblist(i,j);putColoron('r1divadiv','rd'+j,['purple','white'])}}(r1obj[ia].r1prb,r1obj[ia].r1id);
-						
+
 
 
 						tempr1set.appendChild(r1div);
 						//r1set.appendChild(r1div);
-						
+
 					}
 
 					var refnode=document.getElementById(r2id);
@@ -2482,10 +2482,10 @@ html
 					r1div.appendChild(r1diva);
 					r1div.onclick=function(i,j){return function(){callprblist(i,j);putColoron('r1div',j,['blue','white'])}}(r1obj[ia].r1prb,r1obj[ia].r1id);
 					r1set.appendChild(r1div);
-					
+
 				}
 				MathJax.Hub.Queue(["Typeset",MathJax.Hub,"r1set"])	*/
-				
+
 			}	
 
 			function callprblist(plist,cptid){
@@ -2540,7 +2540,7 @@ html
 
 
 					if(p.prbcon[ia][8]!=null){
-		
+
 						var cptprbpicdiv=document.createElement('div');
 						cptprbpicdiv.className='cptprbpicdiv';
 						var cptprbpic=document.createElement('img');
@@ -2588,7 +2588,7 @@ html
 					cptprbdivmultipleaansdiv.appendChild(cptprbdivmultipleaans);
 					cptprbdivmultiple.appendChild(cptprbdivmultipleaansdiv);
 					cptprbdiv.appendChild(cptprbdivmultiple);
-				
+
 
 
 
@@ -2598,7 +2598,7 @@ html
 						}
 					}(p.prbcon[ia]);
 
-	
+
 					//chosenlist.push([item,selectTop(chosenlist)+1,ls]);
 					cptprbdiv.className='prblistset';
 					cptprbdiv.id=p.prbcon[ia][0];
@@ -2608,14 +2608,14 @@ html
 							clickToChosen(i[0],i);
 						}
 					}(p.prbcon[ia]);
-		
+
 
 
 
 
 					var resultdisplaydiv=document.createElement('div');
 					resultdisplaydiv.className='prbresultdisplaydiv';
-				
+
 					var wrssresultdiv=document.createElement('div');
 					wrssresultdiv.className='wrssprb';
 					resultdisplaydiv.appendChild(wrssresultdiv);
@@ -2662,7 +2662,7 @@ html
 
 						var pullwrsspic=document.createElement('div');
 						pullwrsspic.onclick=function(){
-				
+
 							var displaypic=document.getElementsByClassName('displaypic');
 							while(displaypic.length!=0){
 								displaypic[0].remove();
@@ -2689,10 +2689,10 @@ html
 							tmppullhwpic.remove();
 						}else{
 
-					
+
 						}*/
 
-						
+
 					}
 
 
@@ -2732,7 +2732,7 @@ html
 						}*/
 						var pullhwpic=document.createElement('div');
 						pullhwpic.onclick=function(){
-				
+
 							var displaypic=document.getElementsByClassName('displaypic');
 							while(displaypic.length!=0){
 								displaypic[0].remove();
@@ -2752,7 +2752,7 @@ html
 							pullhwpic.appendChild(picdiv);
 						}
 						refnode.parentNode.insertBefore(pullhwpic,refnode.nextSibling);
-						
+
 					}
 
 
@@ -2793,7 +2793,7 @@ html
 						}*/
 						var pullglpic=document.createElement('div');
 						pullglpic.onclick=function(){
-				
+
 							var displaypic=document.getElementsByClassName('displaypic');
 							while(displaypic.length!=0){
 								displaypic[0].remove();
@@ -2813,7 +2813,7 @@ html
 							pullglpic.appendChild(picdiv);
 						}
 						refnode.parentNode.insertBefore(pullglpic,refnode.nextSibling);
-						
+
 					}
 
 
@@ -2833,7 +2833,7 @@ html
 					if(chk==1){
 						insresultdiv.style.backgroundColor='#7af0ed';
 						insresultdiv.onclick=function(){
-				
+
 							var displaypic=document.getElementsByClassName('displaypic');
 							while(displaypic.length!=0){
 								displaypic[0].remove();
@@ -2892,10 +2892,10 @@ html
 					}
 					MathJax.Hub.Queue(["Typeset",MathJax.Hub,chd])	
 
-					
+
 
 				}
-		
+
 			}
 
 
@@ -2940,7 +2940,7 @@ html
 				array[j]=temp;
 			}
 
-	
+
 			var sortind=function(array){
 				for(var i=0; i<array.length; i++){
 					for(var j=1;j<array.length; j++){
@@ -3011,7 +3011,7 @@ html
 						pdiv.appendChild(pdiva);
 						fdiv.appendChild(pdiv);
 					}
-			
+
 					fdiv.onclick=function(i){
 						return function(){
 							removeFcptlist(i);
@@ -3025,7 +3025,7 @@ html
 
 			function removeFcptlist(operationid){
 				var nfcptlist=[];
-				
+
 				for(var ia=0; ia<fcptlist.length; ia++){
 					if(fcptlist[ia].fcptname!=operationid){
 						nfcptlist.push(fcptlist[ia])
@@ -3067,8 +3067,8 @@ html
 			function turnpagetoNumber(){
 
 				var sendnum=document.getElementById('sendnum');
-	
-	
+
+
 				if(sendnum.value!=''){
 					var strlist='abcdefghijklmnopqrstuvwxyz!@#$%^&*()-=?><,.{}[]"/';
 					for(var ia=0; ia<sendnum.value.length; ia++){
@@ -3090,7 +3090,7 @@ html
 					}else{	
 						alert('it is not a integer only, Plz Insert integer only')
 					}
-					
+
 				}else{
 					alert('fill in the sendnum input');
 				}
@@ -3114,7 +3114,7 @@ html
 				console.log('socket.io is in connect_error')
 				socket.connect();
 				socket.emit('fortabletreport',{a:'connect_error',username:'wrss-'+mentor.mentorid,modecheck:'socketcheck'});
-				
+
 			})
 
 			socket.on('connect_timeout',(timeout)=>{
