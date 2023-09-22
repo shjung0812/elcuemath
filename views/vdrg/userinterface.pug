@@ -2048,9 +2048,6 @@ html
 					
 
 
-
-
-
 						remoteStream.getAudioTracks()[0].onended=function(){
 							socket.emit('fortabletreport',{msglist:'remoteStream ended',username:username,modecheck:'webrtc',usertype:'mentee'});
 						}

@@ -2968,10 +2968,22 @@ html
 						environdefine.layer.color=pencolorlist[5];
 					}
 
+				}else if(e.shiftKey && e.which==32){
+					if(isLining){
+				isLining=false;
+
+					}else{
+				isLining=true;
+
+					}
+
+
+				}else if(e.shiftKey && e.which==32){
 
 
 				}
 			}
+
 
 
 			var optionpanelfolding=0;
@@ -3261,21 +3273,36 @@ html
 			var stat={color:environdefine.firstpen[0], size:environdefine.firstpen[1],code:environdefine.firstpen[2]};
 
 
+
+
 			//The x and y offset of the canvas from the edge of the page
 			const rect = myPics.getBoundingClientRect();
+			let isLining=false
 
 			//Add the event listeners for mousedown, mousemove, and mouseup
 			myPics.addEventListener('mousedown',e=>{
 				x = e.clientX-rect.left;
 				y = e.clientY-rect.top;
-				isDrawing = true;
 				if(typeof chosenusersocketid !=='undefined'){
 					socket.emit('mentortomenteedraw',{pos:convertToratio(x,y),mousestat:'down',usersocketid:chosenusersocketid,statoption:stat})
+				}
+				if(isLining){
+					console.log('downdown')
+
+					context.beginPath()
+
+						context.moveTo(x,y)
+
+
+				}else{
+					isDrawing = true;
+
 				}
 			});
 
 			myPics.addEventListener('mousemove',e=>{
 				if(isDrawing===true){
+					console.log('mousemove')
 					drawLine(context,x,y,e.clientX-rect.left, e.clientY-rect.top,stat,0);
 					x = e.clientX - rect.left;
 					y = e.clientY - rect.top;
@@ -3294,6 +3321,16 @@ html
 					if(typeof chosenusersocketid !=='undefined'){
 						socket.emit('mentortomenteedraw',{pos:convertToratio(x,y),mousestat:'up',usersocketid:chosenusersocketid,statoption:stat})
 					}
+				}
+				if(isLining){
+					console.log('upup')
+						const xl = e.clientX - rect.left;
+						const yl = e.clientY - rect.top;
+
+						context.lineTo(xl, yl)
+						context.stroke()
+						context.closePath()
+
 				}
 			});
 
@@ -3333,7 +3370,10 @@ html
 
 			function sketchpad_touchMove(e){
 				getTouchPos(e);
-				drawLine(context, x, y, touchX, touchY,stat,0);
+				if(!isLining){
+					drawLine(context, x, y, touchX, touchY,stat,0);
+
+				}
 
 				if(stat.code=='eraser'){
 					indcon.strokeStyle='#000000';
@@ -3380,33 +3420,59 @@ html
 						indcon.clearRect(0,0,indicatepic.width,indicatepic.height)
 					},100);
 				}
+				if(isLining){
+					console.log('pendowninisLining')
+					x = e.clientX-rect.left;
+					y = e.clientY-rect.top;
+					context.lineTo(x, y);
+
+					context.stroke();
+					context.closePath();
+							
+
+				}
 
 
 			}, false);
 
 			myPics.addEventListener('pointerdown', function(e) {
-				pointerdown=1;
-				if(e.pointerType=='pen'){
-					if(stat.code!='eraser' && stat.code!='tusereraser' && stat.code!=environdefine.layereraser[2]){
-						if(stat.size>(stdpensize+maxstdpensize)){
+					if(e.pointerType=='pen'){
+						if(isLining){	
+							pointerdown=0
+							console.log('pointerDown')			
+							x = e.clientX-rect.left;
+							y = e.clientY-rect.top;
+							context.beginPath()
+							context.moveTo(x,y)
+
 						}else{
-							stat.size=stdpensize*beginningoffset+maxstdpensize*e.pressure;
+							pointerdown=1;
+
+							if(stat.code!='eraser' && stat.code!='tusereraser' && stat.code!=environdefine.layereraser[2]){
+								if(stat.size>(stdpensize+maxstdpensize)){
+									}else{
+										stat.size=stdpensize*beginningoffset+maxstdpensize*e.pressure;
+									}
+
+								}else{
+									stat.size=stdpensize*16
+								}
+						}
+						
+
+					}else{
+						if(stat.code!='eraser' && stat.code!='tusereraser' && stat.code!=environdefine.layereraser[2]){
+							stat.size=stdpensize;
+						}else{
+							stat.size=stdpensize*16
 						}
 
-					}else{
-						stat.size=stdpensize*16
 					}
-				}else{
-					if(stat.code!='eraser' && stat.code!='tusereraser' && stat.code!=environdefine.layereraser[2]){
-						stat.size=stdpensize;
-					}else{
-						stat.size=stdpensize*16
-					}
-
-				}
 			}, false);
 			myPics.addEventListener('pointermove', function(e) {
 				if(pointerdown==1){
+					console.log('pointermov')
+					console.log(pointerdown)
 					if(e.pointerType=='pen'){
 						if(stat.code!='eraser' && stat.code!='tusereraser' && stat.code!=environdefine.layereraser[2]){
 

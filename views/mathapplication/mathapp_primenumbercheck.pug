@@ -1,0 +1,96 @@
+doctype html
+html
+  head
+    title 소수 체크
+    style.
+      body {
+        font-family: Arial, sans-serif;
+        text-align: center;
+        margin: 0;
+        padding: 0;
+        background-color: #f0f0f0;
+      }
+
+      #container {
+        max-width: 400px;
+        margin: 0 auto;
+        padding: 20px;
+        background-color: #ffffff;
+        border-radius: 5px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+      }
+
+      h1 {
+        color: #333;
+      }
+
+      p {
+        color: #666;
+      }
+
+      input[type="number"] {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+      }
+
+      button {
+        padding: 10px 20px;
+        background-color: #007bff;
+        color: #fff;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+
+      button:hover {
+        background-color: #0056b3;
+      }
+
+      #loader {
+        display: none;
+      }
+
+      #result {
+        font-weight: bold;
+        margin-top: 10px;
+      }
+  body
+    #container
+      h1 소수 체크
+      p 소수를 체크해보세요.
+      input(type="number" id="numberInput" placeholder="숫자를 입력하세요")
+      button(onclick="checkPrime()") 체크
+      #loader 계산 중...
+      p#result
+script.
+  function checkPrime() {
+    // 이전 메시지 삭제
+    document.getElementById("result").textContent = "";
+
+    // 로딩 아이콘 표시
+    document.getElementById("loader").style.display = "block";
+
+    setTimeout(function() {
+      let testNumber = parseInt(document.getElementById("numberInput").value);
+      let isPrimeNumber = true;
+
+      if (testNumber <= 1) {
+        isPrimeNumber = false;
+      } else {
+        for (let i = 2; i <= Math.sqrt(testNumber); i++) {
+          if (testNumber % i === 0) {
+            isPrimeNumber = false;
+            break;
+          }
+        }
+      }
+
+      // 결과를 표시하고 로딩 아이콘 숨기기
+      const resultMessage = isPrimeNumber ? '소수입니다.' : '소수가 아닙니다.';
+      document.getElementById("result").textContent = resultMessage;
+      document.getElementById("loader").style.display = "none";
+    }, 2000); // 2초 후에 실행
+  }
