@@ -425,6 +425,17 @@ html
 				float:left;
 				width:75%;
 			}
+			.circle-cursor {
+				width: 5px;
+				height: 5px;
+				background-color: #000;
+				border-radius: 50%;
+				position: absolute;
+				pointer-events: none; /* 커서 요소를 클릭할 수 없도록 설정 */
+				z-index:100;
+				display: none; /* 초기에는 숨김 상태 */
+
+			}
 	body(onselectstart = "return false" ondragstart = "return false" oncontextmenu="return false")
 		div(id='bodypanel')
 			div(id='drawdiv')
@@ -2828,6 +2839,9 @@ html
 					stat.size=environdefine.firstpen[1];
 					stat.code='firstpen';
 					eraserCursorRaise('off');
+					drawingFigure.line.isLining=false
+					changeCursor(drawingFigure.line.isLining)
+
 				}else if(e.shiftKey && e.which==81){//eraser;
 					if(stat.code=='layer'){
 						stat.color=environdefine.layereraser[0];
@@ -2840,6 +2854,9 @@ html
 						stat.code=environdefine.eraser[2];
 					}
 					eraserCursorRaise('onbig');
+					drawingFigure.line.isLining=false;
+					changeCursor(drawingFigure.line.isLining)
+
 				}else if(e.shiftKey && e.which==82){
 					stat.color=environdefine.secondpen[0];
 					stat.size=environdefine.secondpen[1];
@@ -2871,6 +2888,9 @@ html
 					stat.size=environdefine.tusereraser[1];
 					stat.code=environdefine.tusereraser[2];
 					eraserCursorRaise('onbig');
+					drawingFigure.line.isLining=false;
+					changeCursor(drawingFigure.line.isLining)
+
 				}else if(e.shiftKey && e.which==49){
 					if(stat.code=='firstpen'){
 						//environdefine.firstpen[0]=pencolorlist[0];
@@ -2936,11 +2956,15 @@ html
 					}
 
 				}else if(e.shiftKey && e.which==32){
-					if(isLining){
-				isLining=false;
+					if(drawingFigure.line.isLining){
+				drawingFigure.line.isLining=false;
+					changeCursor(drawingFigure.line.isLining)
+
 
 					}else{
-				isLining=true;
+				drawingFigure.line.isLining=true;
+					changeCursor(drawingFigure.line.isLining)
+
 
 					}
 

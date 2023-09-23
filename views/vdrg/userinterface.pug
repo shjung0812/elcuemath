@@ -1372,7 +1372,7 @@ html
 				}
 				socket.emit('wrssshareprbobj',{prbobj:currprbobj,sendmode:0,username:username,wrssmentorsocketid:mentorinfo.wrssmentorsocketid,prblist:prblist})
 
-				
+
 
 
 			}
@@ -1739,8 +1739,8 @@ html
 							video: videodeviceid ? { deviceId: videodeviceid } : true,
 							audio: audioinputdeviceid ? { deviceId: audioinputdeviceid } : true
 						};
-						
-					
+
+
 
 
 					}
@@ -1916,7 +1916,7 @@ html
 							remoteStream.getAudioTracks()[0].applyConstraints({ audioOutput: {deviceId:audiooutputdeviceid} });
 
 						}
-					
+
 
 
 						remoteStream.getAudioTracks()[0].onended=function(){
@@ -2807,12 +2807,12 @@ html
 					mentorinfo.wrssmentorconnectionstate=a.wrssmentorconnectionstate;
 				}
 			});
-			
+
 
 
 			//SHORT CUT KEY
 			document.onkeydown = function(e){
-				if(e.shiftKey && e.which==32){//first pen
+				if(e.shiftKey && e.which==83){//first pen
 					//clearLcon();
 					stat.color=environdefine.firstpen[0];
 					stat.size=environdefine.firstpen[1];
@@ -2837,7 +2837,15 @@ html
 					stat.size=stat.size*2;
 				}else if(e.shiftKey && e.which==189){
 					stat.size=stat.size*(.5);
+
+				}else if(e.shiftKey && e.which==32){
+					if(drawingFigure.line.isLining){
+						drawingFigure.line.isLining=false
+					}else{
+						drawingFigure.line.isLining=true
+					}
 				}
+
 			}
 
 			socket.on('wrssigvcontrolafter',function(a){

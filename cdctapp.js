@@ -5817,6 +5817,13 @@ vdrg.on('connection',function(socket){
 	socket.on('menteetomentordraw',function(ma){
 		socket.broadcast.to(ma.mentorsocketid).emit('copypicsofmentee',{pos:[ma.pos[0],ma.pos[1]],mousestat:ma.mousestat,statoption:ma.statoption,username:ma.username});
 	});
+	socket.on('menteetomentordrawobject',function(ma){
+		
+		
+		socket.broadcast.to(ma.mentorsocketid).emit('drawobjecttomentor',{originvar:ma});
+
+
+	})
 
 	socket.on('wrssscreenaction',function(a){
 		socket.broadcast.to(a.wrssmentorsocketid).emit('wrssscreenactionafter',{action:a.action,username:a.username});

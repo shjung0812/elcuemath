@@ -74,6 +74,8 @@ const context = myPics.getContext('2d');
 
 
 //self
+var drawingFigure = { line: { start: { x: 0, y: 0 }, end: { x: 0, y: 0 }, isLining: false } }
+
 let isDrawing = false;
 let x = 0;
 let y = 0;
@@ -86,8 +88,16 @@ var rect = myPics.getBoundingClientRect();
 myPics.addEventListener('mousedown', e => {
     x = e.clientX - rect.left;
     y = e.clientY - rect.top;
-    isDrawing = true;
-    socket.emit('menteetomentordraw', { pos: convertToratio(x, y), mousestat: 'down', mentorsocketid: mentorinfo.mentorsocketid, username: username })
+    if (!drawingFigure.line.isLining) {
+
+        isDrawing = true;
+        socket.emit('menteetomentordraw', { pos: convertToratio(x, y), mousestat: 'down', mentorsocketid: mentorinfo.mentorsocketid, username: username })
+
+    } else {
+        drawingFigure.line.start.x = x
+        drawingFigure.line.start.y = y
+    }
+
 });
 
 myPics.addEventListener('mousemove', e => {
@@ -100,14 +110,40 @@ myPics.addEventListener('mousemove', e => {
 });
 
 window.addEventListener('mouseup', e => {
-    if (isDrawing === true) {
-        drawLine(context, x, y, e.clientX - rect.left, e.clientY - rect.top, stat, 0);
-        //x = 0;
-        //y = 0;	
-        x = null;
-        y = null;
-        isDrawing = false;
+    if (!drawingFigure.line.isLining) {
+        if (isDrawing === true) {
+            drawLine(context, x, y, e.clientX - rect.left, e.clientY - rect.top, stat, 0);
+            //x = 0;
+            //y = 0;	
+            x = null;
+            y = null;
+            isDrawing = false;
+        }
+
+    } else {
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        drawingFigure.line.end.x = x
+        drawingFigure.line.end.y = y
+        context.beginPath()
+        context.strokeStyle = stat.color;
+        context.lineWidth = apppensize * stat.size;
+        context.moveTo(drawingFigure.line.start.x, drawingFigure.line.start.y)
+        context.lineTo(drawingFigure.line.end.x, drawingFigure.line.end.y)
+        context.stroke()
+        context.closePath()
+
+        socket.emit('menteetomentordrawobject', {
+            positionInfo:
+            {
+                startPosition: convertToratio(drawingFigure.line.start.x, drawingFigure.line.start.y),
+                endPosition: convertToratio(drawingFigure.line.end.x, drawingFigure.line.end.y)
+            }, drawobjectmode: 'object_line', mentorsocketid: mentorinfo.mentorsocketid, statoption: stat
+        })
+
+
     }
+
 });
 
 
@@ -278,52 +314,90 @@ function getTouchPos(e) {
 
 
 
-function sketchpad_touchStart() {
-    getTouchPos();
+function sketchpad_touchStart(e) {
+    getTouchPos(e);
     x = touchX;
     y = touchY;
-    drawLine(context, x, y, touchX, touchY, stat, 0);
-    socket.emit('menteetomentordraw', { pos: convertToratio(x, y), mousestat: 'down', statoption: stat, mentorsocketid: mentorinfo.mentorsocketid, username: username })
-    event.preventDefault();
-}
+    if (!drawingFigure.line.isLining) {
+        drawLine(context, x, y, touchX, touchY, stat, 0);
+        socket.emit('menteetomentordraw', { pos: convertToratio(x, y), mousestat: 'down', statoption: stat, mentorsocketid: mentorinfo.mentorsocketid, username: username })
+        event.preventDefault();
 
-function sketchpad_touchMove(e) {
-    getTouchPos(e);
-
-    drawLine(context, x, y, touchX, touchY, stat, 0);
-
-
-    if (stat.code == 'eraser') {
-        //indcon.fillStyle='#4AA5f1';
-        //indcon.font='0.7vw Arial';
-        //indcon.fillText(String.fromCodePoint(emojis[getRandomInt(0,emojis.length)]),x,y);
-        //indcon.fillText('o',x,y);
-        indcon.strokeStyle = '#000000';
-        indcon.beginPath();
-        indcon.arc(x, y, 10, 0, 2 * Math.PI, true)
-        indcon.closePath();
-        indcon.stroke();
-        indcon.fill();
-        //setTimeout(function(){
-        //indcon.clearRect(0,0,indicatepic.width,indicatepic.height)
-        //},1500);
-
+    } else {
+        drawingFigure.line.start.x = x
+        drawingFigure.line.start.y = y
 
     }
 
-
-
-    x = touchX;
-    y = touchY;
-    socket.emit('menteetomentordraw', { pos: convertToratio(x, y), mousestat: 'move', statoption: stat, mentorsocketid: mentorinfo.mentorsocketid, username: username })
-    event.preventDefault();
 }
 
-function sketchpad_touchEnd() {
+function sketchpad_touchMove(e) {
+    
+    getTouchPos(e);
+
+    if (!drawingFigure.line.isLining) {
+        
+
+        drawLine(context, x, y, touchX, touchY, stat, 0);
+
+
+        if (stat.code == 'eraser') {
+
+            indcon.strokeStyle = '#000000';
+            indcon.beginPath();
+            indcon.arc(x, y, 10, 0, 2 * Math.PI, true)
+            indcon.closePath();
+            indcon.stroke();
+            indcon.fill();
+
+
+        }
+
+        x = touchX;
+        y = touchY;
+
+        socket.emit('menteetomentordraw', { pos: convertToratio(x, y), mousestat: 'move', statoption: stat, mentorsocketid: mentorinfo.mentorsocketid, username: username })
+        event.preventDefault();
+    }
+}
+
+function sketchpad_touchEnd(e) {
     if (stat.code == 'eraser') {
         setTimeout(function () {
             indcon.clearRect(0, 0, indicatepic.width, indicatepic.height)
         }, 100);
+    }
+    if (drawingFigure.line.isLining) {
+        getTouchPos(e);
+        console.log('drawingFigure  touch pad')
+        console.log(drawingFigure)
+
+        const x = touchX;
+        const y = touchY;
+        drawingFigure.line.end.x = x
+        drawingFigure.line.end.y = y
+
+
+
+        context.beginPath()
+        context.strokeStyle = stat.color;
+        context.lineWidth = apppensize * stat.size;
+        context.moveTo(drawingFigure.line.start.x, drawingFigure.line.start.y)
+        context.lineTo(drawingFigure.line.end.x, drawingFigure.line.end.y)
+        
+        context.lineCap = 'round';
+        context.lineJoin = 'round';
+        context.stroke()
+        context.closePath()
+
+        socket.emit('menteetomentordrawobject', {
+            positionInfo:
+            {
+                startPosition: convertToratio(drawingFigure.line.start.x, drawingFigure.line.start.y),
+                endPosition: convertToratio(drawingFigure.line.end.x, drawingFigure.line.end.y)
+            }, drawobjectmode: 'object_line', mentorsocketid: mentorinfo.mentorsocketid, statoption: stat
+        })
+
     }
 
 }
@@ -367,19 +441,20 @@ socket.on('copypicsofmentor', function (ma) {
     }
 });
 socket.on('drawobjecttomentee', function (m) {
-    if(m.originvar.drawobjectmode=='object_line'){
-        console.log(m)
+    if (m.originvar.drawobjectmode == 'object_line') {
         tcon.beginPath();
-        if(m.originvar.statoption.code=='secondpen'){
+        if (m.originvar.statoption.code == 'secondpen') {
             tcon.strokeStyle = m.originvar.statoption.color;
 
-        }else{
+        } else {
             tcon.strokeStyle = environdefine.tuser[0];
         }
-        
-        tcon.lineWidth = apppensize * stat.size;
-        tcon.moveTo(m.originvar.positionInfo.startPosition[0]* (rect.right - rect.left),m.originvar.positionInfo.startPosition[1]* (rect.bottom - rect.top))
-        tcon.lineTo(m.originvar.positionInfo.endPosition[0]*(rect.right - rect.left),m.originvar.positionInfo.endPosition[1]* (rect.bottom - rect.top))
+
+        tcon.lineWidth = apppensize * m.originvar.statoption.size;
+        tcon.moveTo(m.originvar.positionInfo.startPosition[0] * (rect.right - rect.left), m.originvar.positionInfo.startPosition[1] * (rect.bottom - rect.top))
+        tcon.lineTo(m.originvar.positionInfo.endPosition[0] * (rect.right - rect.left), m.originvar.positionInfo.endPosition[1] * (rect.bottom - rect.top))
+        tcon.lineCap = 'round';
+        tcon.lineJoin = 'round';
         tcon.stroke()
         tcon.closePath()
 
