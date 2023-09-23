@@ -2883,6 +2883,9 @@ html
 					eraserCursorRaise('off');
 				}else if(e.shiftKey && e.which==70){
 					switchFolding();
+					drawingFigure.line.isLining=false;
+					changeCursor(drawingFigure.line.isLining)
+
 				}else if(e.shiftKey && e.which==84){
 					stat.color=environdefine.tusereraser[0];
 					stat.size=environdefine.tusereraser[1];
