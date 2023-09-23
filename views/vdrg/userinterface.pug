@@ -1806,52 +1806,7 @@ html
 							audio: audioinputdeviceid ? { deviceId: audioinputdeviceid } : true
 						};
 						
-						//- if(audioinputdeviceid==null){
-
-							
-
-
-						//- 	if(videodeviceid==null){
-						//- 		var constraints = {
-						//- 			'video':true,
-						//- 			'audio':true
-						//- 		}
-
-						//- 	}else{
-						//- 		var constraints = {
-						//- 			'video':{'deviceId':videodeviceid},
-						//- 			'audio':true
-						//- 		}
-
-						//- 	}
-							
-
-
-						//- }else{
-
-
-						//- 	if(videodeviceid==null){
-
-						//- 		var constraints = {
-						//- 			'video':true,
-						//- 			'audio':{'deviceId':audioinputdeviceid},
-									
-
-						//- 		}
-						//- 	}else{
-						//- 		var constraints = {
-						//- 			'video':{'deviceId':videodeviceid},
-						//- 			'audio':{'deviceId':audioinputdeviceid}
-						//- 		}
-
-						//- 	}
-
-
-						//- }
-
-
-						console.log('constraints');
-						console.log(constraints);
+					
 
 
 					}
@@ -1866,24 +1821,6 @@ html
 						'audio':audioinputdeviceid?{'deviceId':audioinputdeviceid}:true
 					}
 
-
-
-					//- if(audioinputdeviceid==null){
-					//- 	var constraints = {
-					//- 	'video':false,
-					//- 	'audio':true
-					//- 		}
-
-
-					//- }else{
-					//- 	var constraints = {
-					//- 		'video':false,
-					//- 		'audio':{'deviceId':audioinputdeviceid},
-					//- 		//'deviceId':audioinputdevice
-
-					//- 	}
-
-					//- }
 
 
 				}
@@ -2088,17 +2025,6 @@ html
 
 				}else if(a.signalkind=='reload'){
 					console.log('reload');
-
-					//peerConnection.removeTrack(peerConnection.getReceivers());
-					//peerConnection.removeTrack();
-					//peerConnection.removeTrack(sender);
-					//peerConnection.close();
-					//peerConnection = null
-					//peerConnection = new RTCPeerConnection(configuration);
-
-					//socket.emit('communicationready');
-					//peerConnection.setConfiguration(configuration)
-					//peerConnection.restartIce();
 
 					location.reload(true);
 
@@ -2530,18 +2456,7 @@ html
 						ctext.lineTo(x2, y2);
 						ctext.stroke();
 						ctext.closePath();
-					/*
-					}else if(stat.code=='secondpen'){
-						ctext.beginPath();
-						ctext.globalCompositeOperation='source-over';
-						ctext.strokeStyle = environdefine[stat.code][0];
-						//ctext.strokeStyle = environdefine[stat.code][0];
-						ctext.lineWidth = apppensize*stat.size;
-						ctext.lineCap='round';
-						ctext.moveTo(x1, y1);
-						ctext.lineTo(x2, y2);
-						ctext.stroke();
-						ctext.closePath();*/
+				
 
 
 					}else{
@@ -2742,8 +2657,6 @@ html
 			//copycanvas
 			var prvx=0, prvy=0;
 			socket.on('copypicsofmentor',function(ma){
-				//drawDot(copycontext,ma.pos[0],ma.pos[1]);
-
 
 				var cx=ma.pos[0]*(rect.right-rect.left);
 				var cy=ma.pos[1]*(rect.bottom-rect.top);
@@ -2762,27 +2675,10 @@ html
 					prvx = null;
 					prvy = null;
 
-
-					//indcon.fillStyle='#0000ff';
-					//indcon.font='3vw Arial';
-					//indcon.fillText(String.fromCodePoint(emojis[getRandomInt(0,emojis.length)]),prvx,prvy);
-
-					//setTimeout(function(){
-					//indcon.clearRect(0,0,indicatepic.width,indicatepic.height)
-					//},300);
-
-
 				}else if(ma.mousestat==='down'){
 					prvx = cx;
 					prvy = cy;
-					//indcon.fillStyle='#4AA5f1';
-					//indcon.font='4vw Arial';
-					//indcon.fillText(String.fromCodePoint(emojis[getRandomInt(0,emojis.length)]),cx,cy);
-					//indcon.fillText('o',cx,cy);
-
-					//setTimeout(function(){
-					//indcon.clearRect(0,0,indicatepic.width,indicatepic.height)
-					//},300);
+				
 
 				}
 			});
@@ -3151,54 +3047,6 @@ html
 							prbanspanel[ia][1]=a.mycon[ia].prbcon[3];
 
 
-							/*
-							var prbmulti1=document.createElement('div');
-							var prbmulti2=document.createElement('div');
-							var prbmulti3=document.createElement('div');
-							var prbmulti4=document.createElement('div');
-							var prbmulti5=document.createElement('div');
-
-							prbmulti1.onclick=function(i,j,k){return function(){checkAns(i,j,k);}}(ia,1,a.mycon[ia].cptid);
-							prbmulti2.onclick=function(i,j,k){return function(){checkAns(i,j,k);}}(ia,2,a.mycon[ia].cptid);
-							prbmulti3.onclick=function(i,j,k){return function(){checkAns(i,j,k);}}(ia,3,a.mycon[ia].cptid);
-							prbmulti4.onclick=function(i,j,k){return function(){checkAns(i,j,k);}}(ia,4,a.mycon[ia].cptid);
-							prbmulti5.onclick=function(i,j,k){return function(){checkAns(i,j,k);}}(ia,5,a.mycon[ia].cptid);
-
-							prbmulti1.className='prbmulti';
-							prbmulti2.className='prbmulti';
-							prbmulti3.className='prbmulti';
-							prbmulti4.className='prbmulti';
-							prbmulti5.className='prbmulti';
-
-
-							var prbmulti1a=document.createElement('a');
-							var prbmulti2a=document.createElement('a');
-							var prbmulti3a=document.createElement('a');
-							var prbmulti4a=document.createElement('a');
-							var prbmulti5a=document.createElement('a');
-
-
-							prbmulti1a.innerHTML=a.mycon[ia].prbcon[4];
-							prbmulti2a.innerHTML=a.mycon[ia].prbcon[5];
-							prbmulti3a.innerHTML=a.mycon[ia].prbcon[6];
-							prbmulti4a.innerHTML='보기에 정답이 없습니다.';
-							prbmulti5a.innerHTML='Dont Know';
-
-							prbmulti1.appendChild(prbmulti1a);
-							prbmulti2.appendChild(prbmulti2a);
-							prbmulti3.appendChild(prbmulti3a);
-							prbmulti4.appendChild(prbmulti4a);
-							prbmulti5.appendChild(prbmulti5a);
-
-
-
-							prbchoicediv.appendChild(prbmulti1);
-							prbchoicediv.appendChild(prbmulti2);
-							prbchoicediv.appendChild(prbmulti3);
-							prbchoicediv.appendChild(prbmulti4);
-
-							prbboxdiv.appendChild(prbchoicediv);
-							*/
 						}else{
 							prbanspanel[ia][1]='';
 						}
@@ -3213,35 +3061,6 @@ html
 					MathJax.Hub.Queue(["Typeset",MathJax.Hub,prblistdiv])	
 				}
 
-				/*
-				var vlist=[];
-				for(var ia=0; ia<a.mycon.length; ia++){
-					for(var ib=0; ib<a.mycon[ia].vidinfo.length; ib++){
-						var chk=0;
-						for(var ic=0; ic<vlist.length; ic++){
-							if(vlist[ic][0]==a.mycon[ia].vidinfo[ib][0]){
-								chk=1;
-								break;
-							}
-						}
-						if(chk==0){
-							vlist.push(a.mycon[ia].vidinfo[ib]);
-						}
-					}
-				}
-
-				var videolistdiv=document.getElementById('videolistdiv');
-				for(var ia=0; ia<vlist.length; ia++){
-					var videoboxdiv=document.createElement('div');
-
-					videoboxdiv.className='videolistclass';
-					videoboxdiv.id=vlist[ia][0];
-					var videoboxvid=document.createElement('iframe');
-					videoboxvid.src=vlist[ia][1];
-					videoboxdiv.appendChild(videoboxvid);
-					videolistdiv.appendChild(videoboxdiv);
-				}
-				*/
 				callSavetoasklist();
 
 				indicateSolvedprb();	
