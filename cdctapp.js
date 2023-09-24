@@ -15,7 +15,6 @@ var client  = require('twilio')(
 	accountSid, authToken
 );
 
-
 var fs = require('fs');
 const options = {
 	key: fs.readFileSync('./keys/2308aielcue/ai_elcue_org_SHA256WITHRSA.key'),
@@ -4844,6 +4843,8 @@ vdrg.on('connection',function(socket){
 				socket.emit('vdrggetusersocketidafter',{usersocketid:vdrgmanage.userlist[ia].socketid,userstate:0});
 				console.log('user is not exist');
 			}*/
+			console.log('vdrggtusername')
+			console.log('client')
 			client.tokens.create().then(token=>{
 				console.log(token);
 				socket.emit('vdrggetusersocketidafter',{iceservers:token.iceServers,opt:a.opt});

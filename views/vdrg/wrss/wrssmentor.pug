@@ -1493,11 +1493,13 @@ html
 
 			function webRTCconnect(opt){
 				socket.emit('vdrggetusersocketid',{opt:opt});
+				
 
 			}
 
 
 			socket.on('vdrggetusersocketidafter',function(a){
+				console.log(a)
 				audioConntouser(a.iceservers,a.opt);
 				getWebRTClog();
 			});
