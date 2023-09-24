@@ -94,6 +94,8 @@ myPics.addEventListener('mousedown', e => {
         socket.emit('menteetomentordraw', { pos: convertToratio(x, y), mousestat: 'down', mentorsocketid: mentorinfo.mentorsocketid, username: username })
 
     } else {
+        isDrawing = false;
+
         drawingFigure.line.start.x = x
         drawingFigure.line.start.y = y
     }
@@ -128,6 +130,8 @@ window.addEventListener('mouseup', e => {
         context.beginPath()
         context.strokeStyle = stat.color;
         context.lineWidth = apppensize * stat.size;
+        context.globalCompositeOperation = 'source-over';
+
         context.moveTo(drawingFigure.line.start.x, drawingFigure.line.start.y)
         context.lineTo(drawingFigure.line.end.x, drawingFigure.line.end.y)
         context.stroke()
@@ -312,6 +316,13 @@ function getTouchPos(e) {
 }
 
 
+const cursor = document.createElement('div');
+cursor.classList.add('circle-cursor');
+document.body.appendChild(cursor);
+
+const cursorStart = document.createElement('div');
+cursorStart.classList.add('circle-cursor');
+document.body.appendChild(cursorStart);
 
 
 function sketchpad_touchStart(e) {
@@ -326,6 +337,12 @@ function sketchpad_touchStart(e) {
     } else {
         drawingFigure.line.start.x = x
         drawingFigure.line.start.y = y
+
+        
+        cursorStart.style.display = 'block'
+        cursorStart.style.left = drawingFigure.line.start.x
+        cursorStart.style.top = drawingFigure.line.start.y
+        cursor.style.display = 'block';
 
     }
 
@@ -353,12 +370,18 @@ function sketchpad_touchMove(e) {
 
         }
 
-        x = touchX;
-        y = touchY;
-
+ 
         socket.emit('menteetomentordraw', { pos: convertToratio(x, y), mousestat: 'move', statoption: stat, mentorsocketid: mentorinfo.mentorsocketid, username: username })
         event.preventDefault();
+
+    
+    } else {
+        cursor.style.left = touchX + 'px';
+        cursor.style.top = touchY + 'px';
     }
+    x = touchX;
+    y = touchY;
+
 }
 
 function sketchpad_touchEnd(e) {
@@ -380,13 +403,17 @@ function sketchpad_touchEnd(e) {
 
 
         context.beginPath()
-        context.strokeStyle = stat.color;
-        context.lineWidth = apppensize * stat.size;
+
         context.moveTo(drawingFigure.line.start.x, drawingFigure.line.start.y)
         context.lineTo(drawingFigure.line.end.x, drawingFigure.line.end.y)
         
         context.lineCap = 'round';
         context.lineJoin = 'round';
+        context.globalCompositeOperation = 'source-over';
+        
+        context.strokeStyle = stat.color;
+        context.lineWidth = apppensize * stat.size;
+
         context.stroke()
         context.closePath()
 
@@ -398,12 +425,33 @@ function sketchpad_touchEnd(e) {
             }, drawobjectmode: 'object_line', mentorsocketid: mentorinfo.mentorsocketid, statoption: stat
         })
 
+        
+        cursor.style.display = 'none';
+        cursor.style.left = 0 + 'px';
+        cursor.style.top = 0 + 'px';
+
+        cursorStart.style.display = 'none';
+        cursorStart.style.left = 0 + 'px';
+        cursorStart.style.top = 0 + 'px';
+
     }
 
 }
 myPics.addEventListener('touchstart', sketchpad_touchStart, false);
 myPics.addEventListener('touchmove', sketchpad_touchMove, false);
 myPics.addEventListener('touchend', sketchpad_touchEnd, false);
+
+// 커서 모양 변경 함수를 정의합니다.
+function changeCursor(isChange) {
+    if (isChange) {
+        // isChange이 true인 경우 다른 커서 모양을 사용합니다.
+        canvas.style.cursor = 'default';
+    } else {
+        // isChange이 false인 경우 원래 커서 모양을 사용합니다.
+        canvas.style.cursor = 'url(/cursor/Dot.cur), default';
+    }
+}
+
 
 
 function getRandomInt(min, max) {
@@ -455,6 +503,11 @@ socket.on('drawobjecttomentee', function (m) {
         tcon.lineTo(m.originvar.positionInfo.endPosition[0] * (rect.right - rect.left), m.originvar.positionInfo.endPosition[1] * (rect.bottom - rect.top))
         tcon.lineCap = 'round';
         tcon.lineJoin = 'round';
+        tcon.globalCompositeOperation = 'source-over';
+
+
+;
+
         tcon.stroke()
         tcon.closePath()
 

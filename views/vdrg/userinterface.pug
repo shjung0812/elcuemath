@@ -531,6 +531,17 @@ html
 			#communicationdiv div button{
 				font-size:.4em;
 			}
+			.circle-cursor {
+				width: 5px;
+				height: 5px;
+				background-color: #000;
+				border-radius: 50%;
+				position: absolute;
+				pointer-events: none; /* 커서 요소를 클릭할 수 없도록 설정 */
+				z-index:100;
+				display: none; /* 초기에는 숨김 상태 */
+
+			}
 
 	body(onselectstart = "return false" ondragstart = "return false" oncontextmenu="return false")
 
@@ -2820,6 +2831,9 @@ html
 					wrssstat.color=wrssenvirondefine.firstpen[0];
 					wrssstat.size=wrssenvirondefine.firstpen[1];
 					wrssstat.code=wrssenvirondefine.firstpen[2];
+					drawingFigure.line.isLining=false
+					changeCursor(drawingFigure.line.isLining)
+
 				}else if(e.shiftKey && e.which==81){//eraser;
 					stat.color=environdefine.eraser.color;
 					stat.size=environdefine.eraser.size;

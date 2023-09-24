@@ -536,6 +536,8 @@ socket.on('drawobjecttomentor', function (m) {
         tcon.lineWidth = apppensize * stat.size;
         tcon.moveTo(m.originvar.positionInfo.startPosition[0] * (rect.right - rect.left), m.originvar.positionInfo.startPosition[1] * (rect.bottom - rect.top))
         tcon.lineTo(m.originvar.positionInfo.endPosition[0] * (rect.right - rect.left), m.originvar.positionInfo.endPosition[1] * (rect.bottom - rect.top))
+        tcon.globalCompositeOperation = 'source-over';
+
         tcon.lineCap = 'round';
         tcon.lineJoin = 'round';
         tcon.stroke()
