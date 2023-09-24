@@ -1,6 +1,8 @@
 var express = require('express');
 var app = express();
 
+require('dotenv').config(); // .env 파일을 로드
+
 var path=require('./prismpath.json');
 var sf=require(path.prismbin+'serverflow');
 
@@ -8,12 +10,18 @@ var md5=require('md5');
 var https=require('https');
 
 
-const accountSid = 'ACcbc0e7f44f62464de70540c81b142aef';
-const authToken = "e2940eb8fa849a2ec5f344cfcfe8b2cf";
-//const authToken = '4035795400a662b3a53f7be86c71d0bc';
-var client  = require('twilio')(
-	accountSid, authToken
-);
+//const accountSid = 'ACcbc0e7f44f62464de70540c81b142aef';
+//const authToken = "e2940eb8fa849a2ec5f344cfcfe8b2cf";
+//var client  = require('twilio')(
+//	accountSid, authToken
+//);
+
+
+
+const accountSid = process.env.TWILIO_ACCOUNT_SID;
+const authToken = process.env.TWILIO_AUTH_TOKEN;
+var client = require('twilio')(accountSid, authToken);
+
 
 
 var fs = require('fs');
@@ -4844,6 +4852,9 @@ vdrg.on('connection',function(socket){
 				socket.emit('vdrggetusersocketidafter',{usersocketid:vdrgmanage.userlist[ia].socketid,userstate:0});
 				console.log('user is not exist');
 			}*/
+			console.log('vdrggtusername')
+			console.log('client')
+			console.log(client)
 			client.tokens.create().then(token=>{
 				console.log(token);
 				socket.emit('vdrggetusersocketidafter',{iceservers:token.iceServers,opt:a.opt});
