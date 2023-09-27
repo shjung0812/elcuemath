@@ -1530,8 +1530,6 @@ html
 
 				const navimedia=await navigator.mediaDevices;
 
-				//msglist.push(await navimedia.enumerateDevices());
-				//console.log(await navimedia.enumerateDevices());
 				if(navimedia !== undefined){
 
 
@@ -1637,7 +1635,6 @@ html
 			let selected_device_autiooutput='';
 			async function selectDevices(){
 				const devicelist = await navigator.mediaDevices.enumerateDevices();
-				console.log(devicelist)
 				var comunicationaudioinputdiv=document.getElementById('communicationaudioinput');
 				var comunicationaudiooutputdiv=document.getElementById('communicationaudiooutput');
 				var comunicationvideodiv=document.getElementById('communicationvideo');
@@ -1718,13 +1715,12 @@ html
 				return null; // 해당하는 쿠키가 없을 경우 null 반환
 			}
 
-
-
 			var ices;
 			var stream;
+			var peerConnection
 			async function RTCGo(iceservers){
-				const fset = await everythingReady();
-				if(fset.equipcheck[2]){// if video is allowed
+				const equipmentSettingStatus = await everythingReady();
+				if(equipmentSettingStatus.equipcheck[2]){// if video is allowed
 
 					if(username=='eupium'){
 						var constraints = {
@@ -1733,41 +1729,20 @@ html
 						}
 
 					}else{
-						//- 	var constraints = {
-						//- 	'video':true,
-						//- 	'audio':true
-						//- }
-
 						const audioinputdeviceid=getCookie('selected_device_audioinput')
-						console.log('audioinputdeviceid')
-						console.log(audioinputdeviceid)
-
 						const videodeviceid=getCookie('selected_device_video')
-
-
-
 						var constraints = {
 							video: videodeviceid ? { deviceId: videodeviceid } : true,
 							audio: audioinputdeviceid ? { deviceId: audioinputdeviceid } : true
 						};
-
-
-
-
 					}
 				}else{ //if video is not allowed
 					audioinputdeviceid=getCookie('selected_device_audioinput')
-					console.log('audioinputdeviceid')
-					console.log(audioinputdeviceid)
-
 
 					var constraints = {
 						'video':false,
 						'audio':audioinputdeviceid?{'deviceId':audioinputdeviceid}:true
 					}
-
-
-
 				}
 
 
@@ -1777,7 +1752,7 @@ html
 					socket.emit('fortabletreport',{msglist:'Connection Process[2] - Successful user media play',username:username,modecheck:'webrtc',usertype:'mentee'});
 
 					var configuration = {iceServers:iceservers};
-					var peerConnection = new RTCPeerConnection(configuration);
+					peerConnection = new RTCPeerConnection(configuration);
 
 					stream.getTracks().forEach(track=>{
 						peerConnection.addTrack(track,stream);
@@ -1876,11 +1851,7 @@ html
 
 
 
-							}else{/*
-								peerConnection.setRemoteDescription(new RTCSessionDescription(message.offer));
-								const answer = await peerConnection.createAnswer();
-								await peerConnection.setLocalDescription(answer);
-								socket.emit('webrtcrespondertoserver',{answer:answer,mentorsocketid:mentorinfo.mentorsocketid});*/
+							}else{
 							}
 
 						}
@@ -1949,9 +1920,7 @@ html
 
 
 
-
 			socket.on('wrssgetconnectafter',function(a){
-				console.log(a);
 				if(a.signalkind=='go'){
 					console.log('go');
 
