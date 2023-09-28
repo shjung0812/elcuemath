@@ -1307,6 +1307,7 @@ html
 					//navigator.mediaDevices.getUserMedia(constraints).then(async stream =>{
 						stream = s;
 						const configuration = {iceServers:iceservers};
+						//- peerConnection = new RTCPeerConnection(null);
 						peerConnection = new RTCPeerConnection(configuration);
 
 
@@ -1408,23 +1409,6 @@ html
 						}
 
 
-						const offer = await peerConnection.createOffer({iceRestart:true});
-						socket.emit('fortabletreport',{msglist:'Connection Process[3] - Mentor offer created',username:userinfo.username,modecheck:'webrtc',usertype:'wrssmentor'});
-						//const offer = await peerConnection.createOffer();
-						await peerConnection.setLocalDescription(offer);
-						socket.emit('webrtccallertoserver',{offer:offer,usersocketid:userinfo.socketid,mentormode:'wrss',wrssmentorsocketid:socket.id,username:userinfo.username});
-						socket.emit('fortabletreport',{msglist:'Connection Process[4] - Mentor Offer Setted and Sended to Mentee',username:userinfo.username,modecheck:'webrtc',usertype:'wrssmentor'});
-						//outoffer=offer;
-
-						socket.on('webrtcservertocaller', async message => {
-							if(message.answer){
-								//const remoteDesc = new RTCSessionDescription(message.answer);
-								socket.emit('fortabletreport',{msglist:'Connection Process[5] - Mentee Offer Arrived',username:userinfo.username,modecheck:'webrtc',usertype:'wrssmentor'});
-								await peerConnection.setRemoteDescription(message.answer)
-								socket.emit('fortabletreport',{msglist:'Connection Process[6] - Mentee Offer Setted',username:userinfo.username,modecheck:'webrtc',usertype:'wrssmentor'});
-							}
-						});	
-
 
 
 						peerConnection.onicecandidate = (e) => {	
@@ -1454,6 +1438,33 @@ html
 							remoteVideo.srcObject = remoteStream;
 
 						});
+
+
+						const offerOptions = {
+						offerToReceiveAudio: 1,
+						offerToReceiveVideo: 1
+						};
+						//- const offer = await peerConnection.createOffer({iceRestart:true});
+						const offer = await peerConnection.createOffer(offerOptions);
+						//- socket.emit('fortabletreport',{msglist:'mentor created SDP : '+offer.sdp,username:'wrss-'+mentor.mentorid,modecheck:'webrtc',usertype:'wrssmentor'});
+
+						socket.emit('fortabletreport',{msglist:'Connection Process[3] - Mentor offer created',username:userinfo.username,modecheck:'webrtc',usertype:'wrssmentor'});
+						//const offer = await peerConnection.createOffer();
+						await peerConnection.setLocalDescription(offer);
+						socket.emit('webrtccallertoserver',{offer:offer,usersocketid:userinfo.socketid,mentormode:'wrss',wrssmentorsocketid:socket.id,username:userinfo.username});
+						socket.emit('fortabletreport',{msglist:'Connection Process[4] - Mentor Offer Setted and Sended to Mentee',username:userinfo.username,modecheck:'webrtc',usertype:'wrssmentor'});
+						//outoffer=offer;
+
+						socket.on('webrtcservertocaller', async message => {
+							if(message.answer){
+								//const remoteDesc = new RTCSessionDescription(message.answer);
+								socket.emit('fortabletreport',{msglist:'Connection Process[5] - Mentee Offer Arrived',username:userinfo.username,modecheck:'webrtc',usertype:'wrssmentor'});
+								await peerConnection.setRemoteDescription(message.answer)
+								socket.emit('fortabletreport',{msglist:'Connection Process[6] - Mentee Offer Setted',username:userinfo.username,modecheck:'webrtc',usertype:'wrssmentor'});
+							}
+						});	
+
+
 
 
 					}).catch(e=> {
