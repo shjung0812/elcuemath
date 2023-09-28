@@ -8,15 +8,7 @@ var sf=require(path.prismbin+'serverflow');
 
 var md5=require('md5');
 var https=require('https');
-
-
-//const accountSid = 'ACcbc0e7f44f62464de70540c81b142aef';
-//const authToken = "e2940eb8fa849a2ec5f344cfcfe8b2cf";
-//var client  = require('twilio')(
-//	accountSid, authToken
-//);
-
-
+const {WebRTCLogger} = require('./winston/logger'); // 위에서 설정한 Winston 인스턴스 가져오기
 
 const accountSid = process.env.TWILIO_ACCOUNT_SID;
 const authToken = process.env.TWILIO_AUTH_TOKEN;
@@ -752,11 +744,17 @@ app.get('/log/login',function(req,res){
 
 });
 
+app.get('/log/webrtclog',function(req,res){
+	fs.readFile('./log/WebRTCLog/WebRTCLog.log','utf8',function(err,data){
+		res.render('log/webrtclog',{data:data.split('\n')});
+	});
+});
 app.get('/log/pagerefresh',function(req,res){
 	fs.readFile('./log/userpagerefresh.log','utf8',function(err,data){
 		res.render('log/pagerefresh',{data:data.split('\n')});
 	});
 });
+
 
 app.get('/log/mmcphomework',function(req,res){
 	fs.readFile('./log/usermmcphomework.log','utf8',function(err,data){
@@ -4504,11 +4502,13 @@ vdrg.on('connection',function(socket){
 
 	socket.on('fortabletreport',function(a){
 		if(a.modecheck=='webrtc'){
-			var msg=sf.nodetime()+' WebRTC Log - usertype: '+a.usertype+', username: '+a.username+', msglist : '+a.msglist+'\n';
-			fs.appendFile('./log/userpagerefresh.log',msg,function(err){
-				if(err) throw err;
-				console.log('Saved');
-			});
+			var webrtcmsg=sf.nodetime()+',  usertype: '+a.usertype+', username: '+a.username+', msglist : '+a.msglist+'\n';
+			WebRTCLogger.info(webrtcmsg)
+
+			// fs.appendFile('./log/userpagerefresh.log',msg,function(err){
+			// 	if(err) throw err;
+			// 	console.log('Saved');
+			// });
 		}else if(a.modecheck=='getstatecheck'){
 			var msg=sf.nodetime()+' State Log - username: '+a.username+', statuscheck : '+a.a+'\n';
 			fs.appendFile('./log/socketlog.log',msg,function(err){

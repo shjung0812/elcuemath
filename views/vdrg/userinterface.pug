@@ -1753,8 +1753,7 @@ html
 
 					var configuration = {iceServers:iceservers};
 					peerConnection = new RTCPeerConnection(configuration);
-
-					stream.getTracks().forEach(track=>{
+					stream.getTracks().forEach((track)=>{
 						peerConnection.addTrack(track,stream);
 					});
 
@@ -1818,37 +1817,65 @@ html
 						}
 					}
 
+					function stringifyRTCPeerConnection(rtcPeerConnection) {
+						const properties = [];
+						for (const prop in rtcPeerConnection) {
+						if (rtcPeerConnection.hasOwnProperty(prop)) {
+							properties.push(`${prop}: ${rtcPeerConnection[prop]}`);
+						}
+						}
+						return `{ ${properties.join(', ')} }`;
+					}
 
 
-
-					//mentorinfo.wrssmentorconnectionstate=a.wrssmentorconnectionstate;
-					socket.on('webrtcservertoresponder', (message) =>{
+					socket.on('webrtcservertoresponder',async (message) =>{
 						if(message.offer){
 							socket.emit('fortabletreport',{msglist:'Connection Process[3] - Mentor offer arrived',username:username,modecheck:'webrtc',usertype:'mentee'});
 							if(message.mentormode=='wrss'){
-								peerConnection.setRemoteDescription(message.offer)
-									.then(function(){
-										socket.emit('fortabletreport',{msglist:'Connection Process[4] - Mentor Offer  Setted',username:username,modecheck:'webrtc',usertype:'mentee'});
-										return peerConnection.createAnswer()
+								 try {
+									
+									//- await peerConnection.setRemoteDescription(new RTCSessionDescription(message.offer));
+									try {
+										await peerConnection.setRemoteDescription(new RTCSessionDescription(message.offer));
+											// 원격 설명을 성공적으로 설정한 경우에 수행할 작업
+									} catch (error) {
+										if (error instanceof RTCError) {
+											if (error.errorDetail === 'sdp-syntax-error') {
+												console.error('SDP syntax error detected on line ' + error.sdpLineNumber);
+												// 해당 SDP에 구문 오류가 있을 때 처리할 내용
+									socket.emit('fortabletreport', { msglist: 'Connection Process[4] - Mentor Offer Setted '+error.sdpLineNumber, username: username, modecheck: 'webrtc', usertype: 'mentee' });
 
-									})
-									.then(function(answer){
-										socket.emit('fortabletreport',{msglist:'Connection Process[5] - Mentee Offer Created',username:username,modecheck:'webrtc',usertype:'mentee'});
-										peerConnection.setLocalDescription(answer)
-										socket.emit('fortabletreport',{msglist:'Connection Process[6] - Mentee Offer Setted',username:username,modecheck:'webrtc',usertype:'mentee'});
-										return answer
-									})
-									.then(function(answer) {
-										socket.emit('webrtcrespondertoserver',{answer:answer,mentorsocketid:mentorinfo.wrssmentorsocketid});
-										socket.emit('fortabletreport',{msglist:'Connection Process[7] - Mentee Offer Sended to Mentor',username:username,modecheck:'webrtc',usertype:'mentee'});
-										//socket.emit('fortabletreport',{msglist:'remoteDescription departed',username:username,modecheck:'webrtc',usertype:'mentee'});
+											} else {
+												console.error('An RTCError occurred: ' + error.message);
+									socket.emit('fortabletreport', { msglist: 'Connection Process[4] - Mentor Offer Setted '+error.message, username: username, modecheck: 'webrtc', usertype: 'mentee' });
 
-									})
-									.catch(e=> {
-										socket.emit('fortabletreport',{msglist:'Connection Process[3.5] - Error Occurred in Setting RemoteDescription',username:username,modecheck:'webrtc',usertype:'mentee'});
+												// 다른 RTCError 상황에 대한 처리
+											}
+										} else if (error instanceof DOMException && error.name === 'TypeError') {
+											console.error('TypeError: ' + error.message);
+									socket.emit('fortabletreport', { msglist: 'Connection Process[4] - Mentor Offer Setted '+error.message, username: username, modecheck: 'webrtc', usertype: 'mentee' });
 
-									});
+											// RTCSessionDescription 객체를 생성할 때 발생한 TypeError 처리
+										} else {
+											console.error('An unexpected error occurred: ' + error.message);
+									socket.emit('fortabletreport', { msglist: 'Connection Process[4] - Mentor Offer Setted '+error.message, username: username, modecheck: 'webrtc', usertype: 'mentee' });
 
+											// 다른 예외 상황에 대한 처리
+										}
+									}
+
+
+									const answer = await peerConnection.createAnswer();
+									socket.emit('fortabletreport', { msglist: 'Connection Process[5] - Mentee Offer Created', username: username, modecheck: 'webrtc', usertype: 'mentee' });
+
+									await peerConnection.setLocalDescription(answer);
+									socket.emit('fortabletreport', { msglist: 'Connection Process[6] - Mentee Offer Setted', username: username, modecheck: 'webrtc', usertype: 'mentee' });
+
+									socket.emit('webrtcrespondertoserver', { answer: answer, mentorsocketid: mentorinfo.wrssmentorsocketid });
+									socket.emit('fortabletreport', { msglist: 'Connection Process[7] - Mentee Offer Sended to Mentor', username: username, modecheck: 'webrtc', usertype: 'mentee' });
+								} catch (e) {
+									socket.emit('fortabletreport', { msglist: 'Error Occurred: ' + e.message, username: username, modecheck: 'webrtc', usertype: 'mentee' });
+								}
 
 
 							}else{
@@ -1856,6 +1883,43 @@ html
 
 						}
 					});
+
+					//- socket.on('webrtcservertoresponder', (message) =>{
+					//- 	if(message.offer){
+					//- 		socket.emit('fortabletreport',{msglist:'Connection Process[3] - Mentor offer arrived',username:username,modecheck:'webrtc',usertype:'mentee'});
+					//- 		if(message.mentormode=='wrss'){
+							//- peerConnection.setRemoteDescription(message.offer)
+							//- 		.then(function(){
+							//- 			socket.emit('fortabletreport',{msglist:'Connection Process[4] - Mentor Offer  Setted',username:username,modecheck:'webrtc',usertype:'mentee'});
+
+
+							//- 			//- return peerConnection.createAnswer()
+
+							//- 		})
+							//- 		.then(function(answer){
+							//- 			socket.emit('fortabletreport',{msglist:'Connection Process[5] - Mentee Offer Created',username:username,modecheck:'webrtc',usertype:'mentee'});
+							//- 			//- peerConnection.setLocalDescription(answer)
+							//- 			socket.emit('fortabletreport',{msglist:'Connection Process[6] - Mentee Offer Setted',username:username,modecheck:'webrtc',usertype:'mentee'});
+							//- 			return answer
+							//- 		})
+							//- 		.then(function(answer) {
+							//- 			socket.emit('webrtcrespondertoserver',{answer:answer,mentorsocketid:mentorinfo.wrssmentorsocketid});
+							//- 			socket.emit('fortabletreport',{msglist:'Connection Process[7] - Mentee Offer Sended to Mentor',username:username,modecheck:'webrtc',usertype:'mentee'});
+							//- 			//socket.emit('fortabletreport',{msglist:'remoteDescription departed',username:username,modecheck:'webrtc',usertype:'mentee'});
+
+							//- 		})
+							//- 		.catch(e=> {
+							//- 			socket.emit('fortabletreport',{msglist:'Connection Process[7.5] - Error Occurred in Setting RemoteDescription',username:username,modecheck:'webrtc',usertype:'mentee'});
+
+							//- 		});
+
+
+
+					//- 		}else{
+					//- 		}
+
+					//- 	}
+					//- });
 
 					peerConnection.onicecandidate=(e) => {
 						console.log('onicecandidate ',e);
@@ -2742,23 +2806,6 @@ html
 			socket.emit('studentconcentrationcheck',{socketid:socket.id,username:username,mentorsocketid:mentorinfo.mentorsocketid,constatus:'focused'});
 			}; 
 
-
-			/*
-			var isTabActive;
-
-			window.onfocus = function () { 
-				isTabActive = true; 
-			}; 
-
-			window.onblur = function () { 
-				isTabActive = false; 
-
-			}; 
-
-			// test
-			setInterval(function () { 
-				console.log(window.isTabActive ? 'active' : 'inactive'); 
-			}, 1000);*/
 
 			const getState = () => {
 				if(document.visibilityState==='hidden'){
