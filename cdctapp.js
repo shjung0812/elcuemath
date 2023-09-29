@@ -3379,27 +3379,8 @@ mmcp.on('connection',function(socket){
 
 
 	socket.on('briefmmcphomeworkcall',function(a){
-		sf.getinfodb('select ps.ratingdetail, hw.numid,hw.prbid, hw.mpicid, hw.createdate, hw.mmcpconid, hw.username, hw.mpicorder, hw.timepassed, hw.operationid, hw.timeallocated, hw.roundnum, mmcphwconnect.mmcplistinfo, mmcphwconnect.mmcpprblist from mmcphomework as hw left join mmcphwconnect on hw.mmcpconid=mmcphwconnect.mmcpconid left join psreconnect as ps on ps.solvepic=hw.mpicid where hw.username="'+a.username+'" and hw.createdate >= "2021-01-01" order by hw.createdate desc',function(b){
-
-		/*
-		var mcpidv=a.mcpid.split(',');
-		var whclause='';
-		for(var ia=0; ia<mcpidv.length; ia++){
-			if(ia!=mcpidv.length-1){
-				whclause=whclause+'mmcpid="'+mcpidv[ia]+'" or '		
-			}else{
-				whclause=whclause+'mmcpid="'+mcpidv[ia]+'"'		
-			}
-		}
-
-		sf.getinfodb('select m.mmcpid,p.prbkorean,m.solutiontime,p.prbid,p.prbpickor from mmcpprb as m join prb as p on m.prbid = p.prbid where '+whclause,function(b){
-			socket.emit('prbcallfrommcpidafter',{a:b});
-		});*/
-	
-
-
-
-
+		sf.getinfodb('select ps.ratingdetail, hw.numid,hw.prbid, hw.mpicid, hw.createdate, hw.mmcpconid, hw.username, hw.mpicorder, hw.timepassed, hw.operationid, hw.timeallocated, hw.roundnum, mmcphwconnect.mmcplistinfo, mmcphwconnect.mmcpprblist from mmcphomework as hw left join mmcphwconnect on hw.mmcpconid=mmcphwconnect.mmcpconid left join psreconnect as ps on ps.solvepic=hw.mpicid where hw.username="'+a.username+'" and hw.createdate >= DATE_SUB(NOW(),INTERVAL '+a.xdayagofromnow+' DAY) order by hw.createdate desc',function(b){
+		// sf.getinfodb('select ps.ratingdetail, hw.numid,hw.prbid, hw.mpicid, hw.createdate, hw.mmcpconid, hw.username, hw.mpicorder, hw.timepassed, hw.operationid, hw.timeallocated, hw.roundnum, mmcphwconnect.mmcplistinfo, mmcphwconnect.mmcpprblist from mmcphomework as hw left join mmcphwconnect on hw.mmcpconid=mmcphwconnect.mmcpconid left join psreconnect as ps on ps.solvepic=hw.mpicid where hw.username="'+a.username+'" and hw.createdate >= "2021-01-01" order by hw.createdate desc',function(b){
 
 
 
@@ -3413,7 +3394,7 @@ mmcp.on('connection',function(socket){
 					mmcpobj[ia]={ratingdetail:b[ia].ratingdetail,username:b[ia].username,numid:b[ia].numid,mmcpprb:prb[ia],timepassed:b[ia].timepassed,prbid:b[ia].prbid,createdate:b[ia].createdate, timeallocated:b[ia].timeallocated, mmcpconid:b[ia].mmcpconid,mpicid:b[ia].mpicid,listinfo:b[ia].mmcplistinfo, mmcpprblist:b[ia].mmcpprblist}
 					//mmcpobj[ia]={username:b[ia].username,comment:b[ia].comment,numid:b[ia].numid,mmcpprb:prb[ia],timepassed:b[ia].timepassed,prbid:b[ia].prbid,createdate:b[ia].createdate, timeallocated:b[ia].timeallocated, mmcpconid:b[ia].mmcpconid,mpicid:b[ia].mpicid,listinfo:b[ia].mmcplistinfo, mmcpprblist:b[ia].mmcpprblist}
 				}
-				sf.getinfodb('select mmcphwconnect.mmcpconid, mmcplistinfo, mmcphwconnect.mmcpprblist from mmcphwassign join mmcphwconnect on mmcphwconnect.mmcpconid=mmcphwassign.mmcpconid where mmcphwassign.userid="'+a.username+'"',function(b){
+				sf.getinfodb('select mmcphwconnect.mmcpconid, mmcplistinfo, mmcphwconnect.mmcpprblist, mmcphwconnect.createdate from mmcphwassign join mmcphwconnect on mmcphwconnect.mmcpconid=mmcphwassign.mmcpconid where mmcphwassign.userid="'+a.username+'" and mmcphwconnect.createdate >= Date_sub(now(), INTERVAL '+a.xdayagofromnow+' day)',function(b){
 					socket.emit('briefmmcphomeworkcallafter',{a:mmcpobj,b:b});
 				});
 			});

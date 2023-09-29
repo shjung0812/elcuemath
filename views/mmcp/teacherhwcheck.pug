@@ -77,12 +77,14 @@ html
 		script.
 			var socket = io('/mmcp');
 			var socket2 = io('/vdrg');
+			const HomwWorkSearchPeriodInDays=30
+
 			socket.on('connect',()=>{
 				console.log('mmcp connection ready');
 			});
 			var username='#{username}';
 			var userinfo=!{JSON.stringify(userinfo)};
-			socket.emit('briefmmcphomeworkcall',{username:username});
+			socket.emit('briefmmcphomeworkcall',{username:username,xdayagofromnow:HomwWorkSearchPeriodInDays});
 
 
 
@@ -94,6 +96,7 @@ html
 				var msglist=['coversta','instructprb','sharehwresult'];
 				socket2.emit('vdrgwriterecord',{username:chosenusername,hisopt:msglist[2],prbid:prbid,cptid:cptid});
 			}
+
 
 
 
@@ -159,6 +162,8 @@ html
 
 
 			socket.on('briefmmcphomeworkcallafter',function(a){
+				console.log('briefMMcpHomeworkcallafter')
+				console.log(a)
 				var mmcpind=[];
 				for(var ia=0; ia<a.a.length; ia++){
 					var chk=0;
