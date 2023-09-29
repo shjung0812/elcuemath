@@ -2556,6 +2556,13 @@ qprb.on('connection',function(socket){
 	});
 });	
 
+
+app.get('/admin/webrtctest',function(req,res){
+	res.render('webrtcTest/webrtctest');
+
+})
+
+
 //mmcp
 app.get('/mmcp/mmcphome',function(req,res){
 	res.render('mmcp/mmcphome');

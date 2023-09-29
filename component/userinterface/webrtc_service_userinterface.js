@@ -77,10 +77,12 @@ function getCookie(cookieName) {
     return null; // 해당하는 쿠키가 없을 경우 null 반환
 }
 
+
+
 var ices;
 var stream;
-var peerConnection
-async function RTCGo(iceservers) {
+
+async function RTCGo() {
     const equipmentSettingStatus = await everythingReady();
     if (equipmentSettingStatus.equipcheck[2]) {// if video is allowed
 
@@ -122,14 +124,6 @@ async function RTCGo(iceservers) {
 
 
 
-
-    var configuration = { iceServers: iceservers };
-    peerConnection = new RTCPeerConnection(configuration);
-    stream.getTracks().forEach((track) => {
-        peerConnection.addTrack(track, stream);
-    });
-
-
     stream.getAudioTracks()[0].onended = function (event) {
         socket.emit('fortabletreport', { msglist: 'stream - onended', username: username, modecheck: 'webrtc', usertype: 'mentee' });
     };
@@ -150,12 +144,38 @@ async function RTCGo(iceservers) {
         });
     }
 
+
+    function stringifyRTCPeerConnection(rtcPeerConnection) {
+        const properties = [];
+        for (const prop in rtcPeerConnection) {
+            if (rtcPeerConnection.hasOwnProperty(prop)) {
+                properties.push(`${prop}: ${rtcPeerConnection[prop]}`);
+            }
+        }
+        return `{ ${properties.join(', ')} }`;
+    }
+
+}
+
+
+var peerConnection;
+socket.emit('communicationready');
+socket.on('communicationreadyafter', async function (a) {
+    await RTCGo();
+    var configuration = { iceServers: a.iceservers };
+    peerConnection = new RTCPeerConnection(configuration);
+
+
+    stream.getTracks().forEach((track) => {
+        peerConnection.addTrack(track, stream);
+    });
+
     peerConnection.onconnectionstatechange = function (event) {
         switch (peerConnection.connectionState) {
             case "connected":
                 console.log('connected');
                 socket.emit('fortabletreport', { msglist: 'onconnectionstatechange - connected', username: username, modecheck: 'webrtc', usertype: 'mentee' });
-                videoRaising('sharepaperoptionbox')
+                // videoRaising('sharepaperoptionbox')
                 break;
             case "disconnected":
                 console.log('disconnected');
@@ -189,15 +209,72 @@ async function RTCGo(iceservers) {
         }
     }
 
-    function stringifyRTCPeerConnection(rtcPeerConnection) {
-        const properties = [];
-        for (const prop in rtcPeerConnection) {
-            if (rtcPeerConnection.hasOwnProperty(prop)) {
-                properties.push(`${prop}: ${rtcPeerConnection[prop]}`);
-            }
+    peerConnection.onicecandidate = (e) => {
+        console.log('onicecandidate ', e);
+        if (mentorinfo.wrssmentorconnectionstate == 1) {//wrssmentor first;
+            socket.emit('webrtctoservernewicecandidate', { destination: 'tocaller', newicecandidate: e.candidate, mentorsocketid: mentorinfo.wrssmentorsocketid });
+            socket.emit('fortabletreport', { msglist: 'Connection Process[8] - ICE Exchange', username: username, modecheck: 'webrtc', usertype: 'mentee' });
+        } else {
+            socket.emit('webrtctoservernewicecandidate', { destination: 'tocaller', newicecandidate: e.candidate, mentorsocketid: mentorinfo.mentorsocketid });
+            socket.emit('fortabletreport', { msglist: 'Connection Process[8] - ICE Exchange', username: username, modecheck: 'webrtc', usertype: 'mentee' });
         }
-        return `{ ${properties.join(', ')} }`;
-    }
+    };
+
+    socket.on('webrtctorespondernewicecandidate', async function (a) {
+        if (a.newicecandidate) {
+            console.log(a.newicecandidate, 'responder');
+            await peerConnection.addIceCandidate(a.newicecandidate);
+            socket.emit('fortabletreport', { msglist: 'Connection Process[9] - ICE Exchange', username: username, modecheck: 'webrtc', usertype: 'mentee' });
+        }
+    });
+
+
+    const remoteVideo = document.getElementById('mentorvideo');
+    peerConnection.addEventListener('track', (event) => {
+        remoteStream.addTrack(event.track);
+
+
+        // const remoteVideo = document.getElementById('mentorvideo');
+        // console.log(remoteVideo.style.visibility);
+        // if (remoteVideo.style.visibility == 'hidden' || remoteVideo.style.visibility == '') {
+        //     remoteVideo.style.visibility = 'visible';
+        // }
+    
+        // remoteVideo.srcObject = remoteStream;
+
+        // const selfVideo = document.getElementById('selfvideo');
+        // if (selfVideo.style.visibility == 'hidden' || selfVideo.style.visibility == '') {
+        //     selfVideo.style.visibility = 'visible';
+        // }
+        // selfVideo.srcObject = stream;
+
+
+        videoRaising('sharepaperoptionbox')
+        console.log(remoteStream, 'remoteStream')
+        socket.emit('fortabletreport', { msglist: 'Connection Process[10] - Mentor Track Arrived', username: username, modecheck: 'webrtc', usertype: 'mentee' });
+
+
+        const audiooutputdeviceid = getCookie('selected_device_audiooutput')
+        console.log('audiooutputdeviceid')
+        console.log(audiooutputdeviceid)
+        console.log(remoteStream.getAudioTracks())
+        if (audiooutputdeviceid == null) {
+
+        } else {
+            console.log('here in audiooutputdeviceid')
+            remoteStream.getAudioTracks()[0].applyConstraints({ audioOutput: { deviceId: audiooutputdeviceid } });
+
+        }
+
+
+
+        remoteStream.getAudioTracks()[0].onended = function () {
+            socket.emit('fortabletreport', { msglist: 'remoteStream ended', username: username, modecheck: 'webrtc', usertype: 'mentee' });
+        }
+
+    });
+
+
 
 
     socket.on('webrtcservertoresponder', async (message) => {
@@ -216,10 +293,12 @@ async function RTCGo(iceservers) {
 
                         // 원래 형식인 CRLF로 복구한 SDP 데이터
                         const sdpDataRestored = { ...message.offer, sdp: webrtcsdp };
-                        // socket.emit('fortabletreport', { msglist: 'received sdp : ' + webrtcsdp, username: username, modecheck: 'webrtc', usertype: 'mentee' });
+                        socket.emit('fortabletreport', { msglist: 'received sdp : ' + webrtcsdp.length, username: username, modecheck: 'webrtc', usertype: 'mentee' });
 
-                        //- await peerConnection.setRemoteDescription(new RTCSessionDescription(sdpDataRestored));
+                        // await peerConnection.setRemoteDescription(new RTCSessionDescription(sdpDataRestored));
                         await peerConnection.setRemoteDescription(sdpDataRestored);
+                        socket.emit('fortabletreport', { msglist: 'Connection Process[4] mentor sdp Setted', username: username, modecheck: 'webrtc', usertype: 'mentee' });
+
                         // 원격 설명을 성공적으로 설정한 경우에 수행할 작업
                     } catch (error) {
                         if (error instanceof RTCError) {
@@ -270,60 +349,74 @@ async function RTCGo(iceservers) {
         }
     });
 
-    peerConnection.onicecandidate = (e) => {
-        console.log('onicecandidate ', e);
-        if (mentorinfo.wrssmentorconnectionstate == 1) {//wrssmentor first;
-            socket.emit('webrtctoservernewicecandidate', { destination: 'tocaller', newicecandidate: e.candidate, mentorsocketid: mentorinfo.wrssmentorsocketid });
-            socket.emit('fortabletreport', { msglist: 'Connection Process[8] - ICE Exchange', username: username, modecheck: 'webrtc', usertype: 'mentee' });
-        } else {
-            socket.emit('webrtctoservernewicecandidate', { destination: 'tocaller', newicecandidate: e.candidate, mentorsocketid: mentorinfo.mentorsocketid });
-            socket.emit('fortabletreport', { msglist: 'Connection Process[8] - ICE Exchange', username: username, modecheck: 'webrtc', usertype: 'mentee' });
+
+
+
+});
+
+function videoRaising(container) {
+    /*	
+    var mentorvideobox = document.getElementById('mentorvideobox');
+
+    if(mentorvideobox!== null ){
+        mentorvideobox.remove();
+    }*/
+
+
+    removeByclassname("videobutton")
+    var mentorvideocontroltop = document.createElement('div');
+    mentorvideocontroltop.id = 'mentorvideocontroltop';
+    mentorvideocontroltop.className = 'videobutton'
+    var topbutton = document.createElement('button');
+    topbutton.innerHTML = '비디오를 위로 이동';
+    topbutton.onclick = function () { moveVideobox("up") };
+    mentorvideocontroltop.appendChild(topbutton);
+    var sharepaperoptionbox = document.getElementById('sharepaperoptionbox');
+    // sharepaperoptionbox.appendChild(mentorvideocontroltop); //ios에서 이 기능을 실행하면 아예 다운되는 지점.
+
+
+    var mentorvideocontroldown = document.createElement('div');
+    mentorvideocontroldown.id = 'mentorvideocontroldown';
+    mentorvideocontroldown.className = 'videobutton';
+    var downbutton = document.createElement('button');
+    downbutton.innerHTML = '비디오를 아래로 이동';
+    downbutton.onclick = function () { moveVideobox("down") };
+    mentorvideocontroldown.appendChild(downbutton);
+    // sharepaperoptionbox.appendChild(mentorvideocontroldown);
+
+
+
+
+    const remoteVideo = document.getElementById('mentorvideo');
+    console.log(remoteVideo.style.visibility);
+    if (remoteVideo.style.visibility == 'hidden' || remoteVideo.style.visibility == '') {
+        remoteVideo.style.visibility = 'visible';
+    }
+
+    remoteVideo.srcObject = remoteStream;
+    console.log('video up and sender stream is connected');
+
+
+
+
+    //only show mentee self video when mentor video connected
+    var rtrack = remoteStream.getTracks();
+    console.log(rtrack);
+    var chk = 0;
+    for (var ia = 0; ia < rtrack.length; ia++) {
+        if (rtrack[ia].kind == 'video') {
+            chk = 1;
+            break;
         }
-    };
-
-
-
-    socket.on('webrtctorespondernewicecandidate', async function (a) {
-        if (a.newicecandidate) {
-            console.log(a.newicecandidate, 'responder');
-            await peerConnection.addIceCandidate(a.newicecandidate);
-            socket.emit('fortabletreport', { msglist: 'Connection Process[9] - ICE Exchange', username: username, modecheck: 'webrtc', usertype: 'mentee' });
-        }
-    });
-
-
-    //const remoteVideo = document.getElementById('mentorvideo');
-    peerConnection.addEventListener('track', (event) => {
-        videoRaising('sharepaperoptionbox')
-        remoteStream.addTrack(event.track);
-        console.log(remoteStream, 'remoteStream')
-        socket.emit('fortabletreport', { msglist: 'Connection Process[10] - Mentor Track Arrived', username: username, modecheck: 'webrtc', usertype: 'mentee' });
-
-
-        const audiooutputdeviceid = getCookie('selected_device_audiooutput')
-        console.log('audiooutputdeviceid')
-        console.log(audiooutputdeviceid)
-        console.log(remoteStream.getAudioTracks())
-        if (audiooutputdeviceid == null) {
-
-        } else {
-            console.log('here in audiooutputdeviceid')
-            remoteStream.getAudioTracks()[0].applyConstraints({ audioOutput: { deviceId: audiooutputdeviceid } });
-
+    }
+    if (chk == 1) {
+        const selfVideo = document.getElementById('selfvideo');
+        if (selfVideo.style.visibility == 'hidden' || selfVideo.style.visibility == '') {
+            selfVideo.style.visibility = 'visible';
         }
 
-
-
-        remoteStream.getAudioTracks()[0].onended = function () {
-            socket.emit('fortabletreport', { msglist: 'remoteStream ended', username: username, modecheck: 'webrtc', usertype: 'mentee' });
-        }
-
-    });
-
-
-
-
+        selfVideo.srcObject = stream;
+    }
 
 }
-
 

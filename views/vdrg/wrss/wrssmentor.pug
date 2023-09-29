@@ -1444,12 +1444,12 @@ html
 						offerToReceiveAudio: 1,
 						offerToReceiveVideo: 1
 						};
-						//- const offer = await peerConnection.createOffer({iceRestart:true});
-						const offer = await peerConnection.createOffer(offerOptions);
+						const offer = await peerConnection.createOffer({iceRestart:true});
+						//- const offer = await peerConnection.createOffer(offerOptions);
 						//- socket.emit('fortabletreport',{msglist:'mentor created SDP : '+offer.sdp,username:'wrss-'+mentor.mentorid,modecheck:'webrtc',usertype:'wrssmentor'});
 
 						socket.emit('fortabletreport',{msglist:'Connection Process[3] - Mentor offer created',username:userinfo.username,modecheck:'webrtc',usertype:'wrssmentor'});
-						//const offer = await peerConnection.createOffer();
+						//- const offer = await peerConnection.createOffer();
 						await peerConnection.setLocalDescription(offer);
 						socket.emit('webrtccallertoserver',{offer:offer,usersocketid:userinfo.socketid,mentormode:'wrss',wrssmentorsocketid:socket.id,username:userinfo.username});
 						socket.emit('fortabletreport',{msglist:'Connection Process[4] - Mentor Offer Setted and Sended to Mentee',username:userinfo.username,modecheck:'webrtc',usertype:'wrssmentor'});

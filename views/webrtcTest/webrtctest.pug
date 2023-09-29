@@ -1,0 +1,44 @@
+doctype html
+// Copyright (c) 2015 The WebRTC project authors. All Rights Reserved.
+// Use of this source code is governed by a BSD-style license
+// that can be found in the LICENSE file in the root of the source
+// tree.
+
+html
+  head
+    meta(charset="utf-8")
+    meta(name="description", content="WebRTC code samples")
+    meta(name="viewport", content="width=device-width, user-scalable=yes, initial-scale=1, maximum-scale=1")
+    meta(itemprop="description", content="Client-side WebRTC code samples")
+    meta(itemprop="image", content="../../../images/webrtc-icon-192x192.png")
+    meta(itemprop="name", content="WebRTC code samples")
+    meta(name="mobile-web-app-capable", content="yes")
+    meta(id="theme-color", name="theme-color", content="#ffffff")
+    base(target="_blank")
+    title Peer connection
+    link(rel="icon", sizes="192x192", href="../../../images/webrtc-icon-192x192.png")
+    link(href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700", rel="stylesheet", type="text/css")
+    //- link(rel="stylesheet", href="../../../css/main.css")
+    link(rel="stylesheet", href="/component/webrtctest/webrtc.css")
+  body
+    #container
+      h1
+        a(href="//webrtc.github.io/samples/" title="WebRTC samples homepage") WebRTC samples
+        span Peer connection
+      p This sample shows how to setup a connection between two peers using
+        a(href="https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection") RTCPeerConnection.
+      video#localVideo(playsinline, autoplay, muted)
+      video#remoteVideo(playsinline, autoplay)
+      .box
+        button#startButton Start
+        button#callButton Call
+        button#hangupButton Hang Up
+      p View the console to see logging. The code MediaStream object localStream, and the RTCPeerConnection
+        objects pc1 and pc2 are in global scope, so you can inspect them in the console as well.
+      p For more information about RTCPeerConnection, see
+        a(href="http://www.html5rocks.com/en/tutorials/webrtc/basics/" title="HTML5 Rocks article about WebRTC by Sam Dutton") Getting
+        Started With WebRTC.
+      a(href="https://github.com/webrtc/samples/tree/gh-pages/src/content/peerconnection/pc1" title="View source for this page on GitHub" id="viewSource") View source on GitHub
+      button#test click me
+    script(src="https://webrtc.github.io/adapter/adapter-latest.js")
+    script(src="/component/webrtctest/webrtctest.js", async)
