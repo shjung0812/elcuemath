@@ -486,7 +486,10 @@ html
 			div(id='prbproduct')
 				div(id='chosenprb')
 					div(class='chosenprbs')
-						a(onclick='callUnassprb()', id='clunass') UnassignedProblem
+						a(onclick='callUnassprb(50)', id='clunass') UnassPrb_50
+						a(onclick='callUnassprb(500)', id='clunass')  UnassPrb_500
+						a(onclick='callUnassprb(2000)', id='clunass')  UnassPrb_2000
+						a(onclick='callUnassprb(10000)', id='clunass')  UnassPrb_10000
 					div
 						input(type='text', id='schtext')
 						button(onclick="searchByWord()") Search
@@ -526,8 +529,8 @@ html
 			socket.on('callunassprbafter',function(a){
 				socket.emit('cpt',{pcsid:a.fl,opt:1});
 			});
-			function callUnassprb(){
-				socket.emit('callunassprb');
+			function callUnassprb(searchDuration){
+				socket.emit('callunassprb',{searchDuration:searchDuration});
 			}
 			function putColoron(classN, idN,colorN){
 				var cn=document.getElementsByClassName(classN);

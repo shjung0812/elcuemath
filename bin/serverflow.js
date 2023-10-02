@@ -6936,7 +6936,9 @@ LoginCheck(user,pos,callback){
 		callback(msg)
 	}	
 },
-NUSDpickingFreeprb(callback){
+NUSDpickingFreeprb(searchDuration,callback){
+	
+
 	module.exports.getinfodb('select * from cptproblemset',function(a){
 		var reglist=[];
 		for(var ia=0; ia<a.length; ia++){
@@ -6948,7 +6950,8 @@ NUSDpickingFreeprb(callback){
 
 		var unreglist=[];
 		//module.exports.getinfodb('select * from prb order by prbregi asc',function(b){
-		module.exports.getinfodb('select * from prb where prbregi>20000 order by prbregi desc',function(b){
+		module.exports.getinfodb('select * from prb order by prbregi desc limit 0, '+searchDuration,function(b){
+		// module.exports.getinfodb('select * from prb where prbregi >= '+searchDuration+' order by prbregi desc',function(b){
 			for(var ia=0; ia<b.length; ia++){
 				var chk=0;
 				for(var ib=0; ib<reglist.length; ib++){
@@ -6961,6 +6964,7 @@ NUSDpickingFreeprb(callback){
 					unreglist.push(b[ia].prbid)
 				}
 			}
+
 			callback(unreglist);
 		});	
 	});

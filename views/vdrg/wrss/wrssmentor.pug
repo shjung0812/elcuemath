@@ -1106,16 +1106,22 @@ html
 					stream.getTracks().forEach(track=>{
 						track.enabled=true;
 					});
+				socket.emit('wrssgetconnect',{conoption:opt,usersocketid:userinfo.socketid});
+
 
 				}else if(opt=='disconnect'){
 					stream.getTracks().forEach(track=>{
 						track.enabled=false;
 					});
 
+				socket.emit('wrssgetconnect',{conoption:opt,usersocketid:userinfo.socketid});
+
+
 				}else if(opt=='reload'){
+					socket.emit('wrssgetconnect',{conoption:opt,usersocketid:userinfo.socketid});
+
 				}
 
-				socket.emit('wrssgetconnect',{conoption:opt,usersocketid:userinfo.socketid});
 
 			}
 
@@ -1274,6 +1280,10 @@ html
 
 
 
+			const offerOptions = {
+			offerToReceiveAudio: 1,
+			offerToReceiveVideo: 1
+			};
 
 
 			async function audioConntouser(iceservers,opt){
@@ -1314,15 +1324,7 @@ html
 
 
 						stream.getTracks().forEach(track=>{
-							/*if(!onvideo){
-								if(track.kind=='video'){
-									track.enabled=false;
-								}else{
-									track.enabled=true;
-								}
-							}else{
-								track.enabled=true;
-							}*/
+
 							peerConnection.addTrack(track,stream);
 						});
 
@@ -1361,10 +1363,15 @@ html
 						restartbutton.innerHTML='ICE_Restart';
 						restartbutton.onclick=function(i){
 							return async function(){
-							const offer = await i.createOffer({iceRestart:true});
-							socket.emit('webrtccallertoserver',{offer:offer,usersocketid:userinfo.socketid,mentormode:'wrss',wrssmentorsocketid:socket.id});
+								const offerOptions = {
+							//- offerToReceiveAudio: 1, // 오디오 스트림을 받을 것을 요청
+							//- offerToReceiveVideo: 1, // 비디오 스트림을 받을 것을 요청
+							iceRestart:true
+							};
+						const offer = await i.createOffer(offerOptions);
+						socket.emit('webrtccallertoserver',{offer:offer,usersocketid:userinfo.socketid,mentormode:'wrss',wrssmentorsocketid:socket.id});
 
-							}
+					}
 						}(peerConnection);
 						restartbuttondiv.appendChild(restartbutton);
 						webrtcdiv.appendChild(restartbuttondiv);
@@ -1440,11 +1447,7 @@ html
 						});
 
 
-						const offerOptions = {
-						offerToReceiveAudio: 1,
-						offerToReceiveVideo: 1
-						};
-						const offer = await peerConnection.createOffer({iceRestart:true});
+						const offer = await peerConnection.createOffer();
 						//- const offer = await peerConnection.createOffer(offerOptions);
 						//- socket.emit('fortabletreport',{msglist:'mentor created SDP : '+offer.sdp,username:'wrss-'+mentor.mentorid,modecheck:'webrtc',usertype:'wrssmentor'});
 
@@ -1460,6 +1463,9 @@ html
 								//const remoteDesc = new RTCSessionDescription(message.answer);
 								socket.emit('fortabletreport',{msglist:'Connection Process[5] - Mentee Offer Arrived',username:userinfo.username,modecheck:'webrtc',usertype:'wrssmentor'});
 								await peerConnection.setRemoteDescription(message.answer)
+
+								//- peerConnection.setRemoteDescription(message.answer).then(() => {});
+
 								socket.emit('fortabletreport',{msglist:'Connection Process[6] - Mentee Offer Setted',username:userinfo.username,modecheck:'webrtc',usertype:'wrssmentor'});
 							}
 						});	

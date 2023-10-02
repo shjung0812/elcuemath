@@ -1726,8 +1726,8 @@ cpt.on('connection',function(socket){
 		});
 	});
 
-	socket.on('callunassprb',function(){
-		sf.NUSDpickingFreeprb(function(fl){
+	socket.on('callunassprb',function(a){
+		sf.NUSDpickingFreeprb(a.searchDuration,function(fl){
 		
 			socket.emit('callunassprbafter',{fl:fl});
 		});
@@ -5995,7 +5995,7 @@ vdrg.on('connection',function(socket){
 	socket.on('addanscallunassigned',function(a){
 	
 		//sf.PCSPickingFreePrbcon(function(unassprbcon,unassprbidstr){
-		sf.NUSDpickingFreeprb(function(fl){
+		sf.NUSDpickingFreeprb(100,function(fl){
 			if(a.multiopt==0){
 				sf.prbsetv4(fl,function(plist){
 					socket.emit('callprblistansafter',{plist:plist});
