@@ -1650,6 +1650,12 @@ app.get('/r2tor1/form',function(req,res){
 	res.redirect('/admin/cpt?stchk=4');
 });
 
+app.get('/content/voicetest',function(req,res){
+	console.log('here')
+	res.render('voiceforcontent/voiceforcontent');
+
+	
+})
 
 app.get('/admin/cpt/form',function(req,res){
 	var rd=req.query.rd;

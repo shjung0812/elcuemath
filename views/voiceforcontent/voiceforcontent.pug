@@ -1,0 +1,108 @@
+doctype html
+html
+	head
+		title 엑셀 스크립트 음성 출력
+		style.
+			.script-item
+				cursor: pointer
+			.speaking
+				background-color: #FFFF00
+				animation: speakingAnimation 1s infinite;
+			@keyframes speakingAnimation
+				0%
+					opacity: 1
+				50%
+					opacity: 0.5
+				100%
+					opacity: 1
+	body
+		input(type='file', id='fileInput', accept='.xlsx')
+		input(type='range', id='speedControl', min='0.1', max='3', step='0.1', value='2')
+		div#scriptsList
+		audio#audioPlayer(controls)
+			source(src='', type='audio/mpeg')
+		script(src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.2/xlsx.full.min.js')
+		script.
+			const fileInput = document.getElementById('fileInput');
+			const speedControl = document.getElementById('speedControl');
+			const scriptsList = document.getElementById('scriptsList');
+			const audioPlayer = document.getElementById('audioPlayer');
+			let scripts = [];
+			let speaking = false;
+
+			fileInput.addEventListener('change', (event) => {
+				const file = event.target.files[0];
+				if (file) {
+					const reader = new FileReader();
+					reader.onload = (e) => {
+						const data = new Uint8Array(e.target.result);
+						const workbook = XLSX.read(data, { type: 'array' });
+						const sheetName = workbook.SheetNames[0];
+						const sheet = workbook.Sheets[sheetName];
+						scripts = XLSX.utils.sheet_to_json(sheet);
+						displayScripts();
+					};
+					reader.readAsArrayBuffer(file);
+				}
+			});
+
+			speedControl.addEventListener('input', (event) => {
+				const rate = parseFloat(event.target.value);
+				setSpeechRate(rate);
+			});
+
+			function displayScripts() {
+				scriptsList.innerHTML = "";
+				scripts.forEach((script, index) => {
+					const scriptItem = document.createElement('div');
+					scriptItem.textContent = script.speakerA;
+					scriptItem.className = "script-item";
+					scriptItem.addEventListener('click', () => {
+						if (!speaking) {
+							speakScript(index);
+						}
+					});
+					scriptsList.appendChild(scriptItem);
+				});
+			}
+
+			function speakScript(index) {
+				if (index < scripts.length) {
+					const script = scripts[index].speakerA;
+
+					fetch(`https://ai.elcue.org:3000/generate_audio2`, {
+						method: 'POST',
+						body: JSON.stringify({ text: 'script' }),
+						//- body: JSON.stringify({ text: script }),
+						headers: {
+							'Content-Type': 'application/json'
+						}
+					})
+					.then(response => {
+						if (response.ok) {
+							return response.text();
+						} else {
+							throw new Error('오류 발생');
+						}
+					})
+					.then(audioUrl => {
+						audioPlayer.src = audioUrl;
+						audioPlayer.play();
+					})
+					.catch(error => {
+						console.error(error);
+					});
+				}
+			}
+
+			function setSpeechRate(rate) {
+				speechSynthesis.getVoices();
+				const voices = speechSynthesis.getVoices();
+				const selectedVoice = voices.find(voice => voice.lang === 'ko-KR');
+				if (selectedVoice) {
+					const speech = new SpeechSynthesisUtterance();
+					speech.voice = selectedVoice;
+					speech.rate = rate;
+					speechSynthesis.speak(speech);
+				}
+			}
