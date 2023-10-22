@@ -79,9 +79,56 @@
                 });
                 scriptsList.appendChild(scriptItem);
             });
+            const scriptItem = document.createElement('div');
+            scriptItem.textContent = '전체한번에';
 
+            scriptItem.className = "script-item";
+            scriptItem.addEventListener('click', () => {
+                if (!speaking) {
+
+                    speakAllScript();
+                }
+            });
+            scriptsList.appendChild(scriptItem);
 
         }
+        function speakAllScript() {
+            let scriptAll = ''
+            scripts.forEach((script,index) => {
+                scriptAll += script.speakerA + ' '
+
+
+            })
+
+            fetch(`http://ai.elcue.org:3000/generate_audio_all`, {
+                method: 'POST',
+                body: JSON.stringify({ text: scriptAll}),
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+                .then(response => {
+                    if (response.ok) {
+                        console.log('response')
+                        console.log(response)
+                        return response.text();
+                    } else {
+                        throw new Error('오류 발생');
+                    }
+                })
+                .then(audioUrl => {
+                    console.log('audioUrl')
+                    console.log(audioUrl)
+                    const audiofilepath = JSON.parse(audioUrl).filepath
+                    console.log(audioUrl.filepath)
+                    audioPlayer.src = '/' + audiofilepath;
+                    audioPlayer.play();
+                })
+                .catch(error => {
+                    console.error(error);
+                })
+        }
+
 
 
         function speakScript(index) {

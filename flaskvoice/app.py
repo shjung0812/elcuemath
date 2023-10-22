@@ -32,6 +32,12 @@ def voicetest():
     print('voicetesthi')
 
     return render_template('voicetest/voicetest.html')
+
+
+@app.route('/content/singlevoice')
+def voicefile():
+    return render_template('voicetest/singlevoicefile.html')
+
 @app.route('/')
 def hello():
     return 'Hello, Worl22d!'
@@ -51,7 +57,21 @@ def generate_audio():
     # return send_from_directory(output_dir, 'output.mp3')
     return {'result':'success','filepath':output_path}
 
+@app.route('/generate_audio_all', methods=['POST'])
+def generate_audio_all():
+    
+    data = request.get_json()
+    text = data['text']
+    tts = gTTS(text, lang='ko')
+    output_path = f"{output_dir}/output_scriptAll.mp3"
+    
+    tts.save(output_path)  # 음성 파일을 저장
+
+    # return send_from_directory(output_dir, 'output.mp3')
+    return send_from_directory(output_dir, 'output_scriptAll.mp3', as_attachment=True)
+
 if __name__ == '__main__':
     if not os.path.exists(output_dir):
+        os.rmdir(output_dir)
         os.makedirs(output_dir)
     app.run(host='0.0.0.0',port='3000')
