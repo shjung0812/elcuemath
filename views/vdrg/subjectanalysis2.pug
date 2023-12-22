@@ -4,9 +4,9 @@ html
 		script(src='/socket.io/socket.io.js')
 		script(type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML")
 		style.
-		link(rel='stylesheet', href='/css/subjectanalysis2.css')
+		link(rel='stylesheet' href='/css/subjectanalysis2.css')
 
-		
+
 
 	div(id='main')
 		div(id='createtopicbox')
@@ -23,7 +23,7 @@ html
 		div(id='confirmedlist')
 	div(id='containerbox3')
 	div(id='stdlist')
-	
+
 	script.
 		var socket = io('/vdrg',{
 			transports:['websocket'],
@@ -40,7 +40,7 @@ html
 
 		var mode=!{JSON.stringify(mode)}
 
-		
+
 		if(mode=='admin'){
 		}else{
 			var userinfo=!{JSON.stringify(userinfo)}
@@ -49,7 +49,7 @@ html
 
 		if(mode=='admin'){
 			var username='songarim1029';
-	
+
 		}else{
 			var username=!{JSON.stringify(username)}
 			removeallele('main');
@@ -97,7 +97,7 @@ html
 		}*/
 
 
-		
+
 
 		// Subject List Navigation area
 
@@ -111,7 +111,7 @@ html
 						break;
 					}
 				}
-				
+
 				if(chk==0){
 					var fdiv=document.createElement('div');
 					indr2.push(cps[ic])
@@ -121,13 +121,13 @@ html
 					fdiv.appendChild(fdiva);
 					fdiva.className='r2change';
 
-					
+
 					fdiva.onclick=function(i){	
 						return function(){
 							var sb=document.getElementsByClassName('pconadiv');
 							for(var ib=0; ib<sb.length; ib++){
 								if(sb[ib].getAttribute('data-r2id')==i){
-						
+
 									sb[ib].parentNode.style.backgroundColor='#06ff51';
 								}else{
 									sb[ib].parentNode.style.backgroundColor='';
@@ -138,9 +138,8 @@ html
 							var tempbox=document.getElementById('tempr1box');
 							if(tempbox){
 								tempbox.remove();
-								console.log('ssclicked') 
-							}
-							var r1setdiv=document.createElement('div');
+							}else{
+								var r1setdiv=document.createElement('div');
 							r1setdiv.id='tempr1box';
 
 
@@ -148,9 +147,9 @@ html
 
 							var num=0;
 							for(var ia=0; ia<cps.length; ia++){
-							
+
 								if(cps[ia].r2id==i){
-				
+
 									num+=1;						
 									var r1div=document.createElement('div');
 									r1div.id=cps[ia].cptid+'panel';				
@@ -166,7 +165,7 @@ html
 											for(var ib=0; ib<ordercpt.length; ib++){	
 												ordercpt[ib].style.border='';	
 											}
-											
+
 											const targetelement=document.getElementById(k+'order')
 											targetelement.style.border='1px solid red';
 											//const targetelementposition=targetelement.getBoundingClientRect();
@@ -196,7 +195,7 @@ html
 										var r1divshow=document.createElement('a');
 										r1diva.className='r1diva';
 										r1divshow.className='r1divshow';
-	
+
 										if(mode=='admin'){
 											r1divshow.innerHTML='|S|';
 
@@ -210,17 +209,21 @@ html
 											}(cps[ia].cptid);
 										}
 										r1div.appendChild(r1divshow);
-		
+
 
 									}else{
 										r1div.style.backgroundColor='black';
 									}
-	
+
 								}
 							}
 
-								
+
 							this.appendChild(r1setdiv);
+
+							}
+
+
 
 
 
@@ -292,7 +295,7 @@ html
 							if(cps[ib].cptid == r1obj[ia].r1id && chk1==0){
 								chk=1;
 								break;
-								
+
 							}
 						}
 
@@ -317,12 +320,12 @@ html
 
 
 
-	
+
 						r1div.appendChild(r1divadiv);
 
-					
+
 						tempr1set.appendChild(r1div);
-						
+
 					}
 
 					var refnode=document.getElementById('rankcall'+r2id);
@@ -330,7 +333,7 @@ html
 					MathJax.Hub.Queue(["Typeset",MathJax.Hub,tempr1set])	
 				}
 
-				
+
 			}	
 
 
@@ -350,7 +353,7 @@ html
 			}
 			document.getElementById('chosen'+username).style.backgroundColor='#DDF2BF';
 			//document.getElementById('chosen'+username).childNodes[0].style.color='black';
-			
+
 		}
 
 
@@ -389,7 +392,7 @@ html
 			var sb=document.getElementsByClassName('pconadiv');
 			for(var ib=0; ib<sb.length; ib++){
 				if(sb[ib].getAttribute('data-r2id')==r2id){
-		
+
 					sb[ib].parentNode.style.backgroundColor='#06ff51';
 				}else{
 					sb[ib].parentNode.style.backgroundColor='';
@@ -428,7 +431,7 @@ html
 				msg=msg+includeList[ic]+'<br>';
 			}
 			tempAlert(msg,3000,['purple','white']);				
-			
+
 		}
 
 
@@ -439,7 +442,7 @@ html
 		function resultDisplay(uname,t){
 			if(uname){
 				const date=new Date();
-				
+
 				let day = date.getDate();
 				let month = date.getMonth() + 1;
 				let year = date.getFullYear();
@@ -452,8 +455,8 @@ html
 				let byear = timebefore.getFullYear();
 				let btoday=byear+'-'+bmonth+'-'+bday;
 
-				
-				
+
+
 				socket.emit('showuserdataresult',{username:uname, time:btoday,timestart:today});
 			}
 		}           
@@ -495,7 +498,7 @@ html
 
 
 				var indprbhw=[];
-				
+
 				for(var ia=0; ia<a.hw.length; ia++){
 					var chk=0;
 					for(var ib=0; ib<indprbhw.length; ib++){
@@ -508,9 +511,9 @@ html
 						indprbhw.push(a.hw[ia].prbid)
 					}
 				}
-		
-	
-		
+
+
+
 				var hwprbpic=[];
 				for(var ia=0; ia<indprbhw.length; ia++){
 					hwprbpic[ia]={prbid:indprbhw[ia],pic:[]}
@@ -536,7 +539,7 @@ html
 						indprbgl.push(a.glpic[ia].prbid)
 					}
 				}
-		
+
 				var glprbpic=[];
 				for(var ia=0; ia<indprbgl.length; ia++){
 					glprbpic[ia]={prbid:indprbgl[ia],pic:[],ans:[],createdate:[],timepassed:[]}
@@ -561,7 +564,7 @@ html
 				for(var ia=0;ia<subjectbox.length; ia++){
 
 					var prblist=subjectbox[ia].getAttribute('data-prblist').split(',');
-					
+
 					var wrnum= 0;
 					var wrssresult =[];
 					for(var ib=0; ib<prblist.length; ib++){
@@ -577,11 +580,11 @@ html
 							wrssresult.push([prbpic[ic].prbid, prbpic[ic].pic]);
 						}
 					}
-			
+
 					if(wrnum!=0){
 						subjectbox[ia].getElementsByClassName('r1resultdisplaydiv')[0].childNodes[0].innerHTML=wrnum;
 						//r2setdiv[ia].getElementsByTagName('div')[1].getElementsByTagName('div')[0].innerHTML=wrnum;
-					
+
 					}else{
 						subjectbox[ia].getElementsByClassName('r1resultdisplaydiv')[0].childNodes[0].innerHTML='';
 						//r2setdiv[ia].getElementsByTagName('div')[1].getElementsByTagName('div')[0].innerHTML='';
@@ -699,7 +702,7 @@ html
 			}else if(activescene==1){
 				activescene=0;
 				socket.emit('subjectanalysis2',{mode:'getdata'});
-				
+
 			}else{
 				activescene=0;
 				socket.emit('subjectanalysis2',{mode:'getdata'});
@@ -750,7 +753,7 @@ html
 				//wdiva.innerHTML='['+(ia+1)+'] '+waiting[ia][0];
 				wdivadiv.appendChild(wdiva);
 
-			
+
 				wdiv.id='waiting'+waiting[ia][1];
 				wdiv.className='chosenprb'
 				wdiv.onclick=function(i){return function(){rgprb(i);}}(waiting[ia]);
@@ -799,7 +802,7 @@ html
 			var idx=idxOf(rgprblist,ele);
 			if(idx>-1){
 				rgprblist.splice(idx,1);
-		
+
 			}else{
 				alert('error from remove rglist');
 			}
@@ -814,7 +817,7 @@ html
 			var idx=idxOf(rgprblist,ele);
 			if(idx>-1){
 				rgprblist.splice(idx,1);
-		
+
 			}else{
 				alert('error from remove rglist');
 			}
@@ -830,15 +833,15 @@ html
 
 			if(chosenprb!=''){
 				rgprblist.splice(ord,0,givenprblist[idx]);
-				
+
 				chosenprb='';
 				prbOrder();
 				callPrbwaiting(givenprblist);
-			
+
 			}else{
 				alert('the prb is not chosen');
 			}
-			
+
 		}	
 
 		function prbOrder(){	
@@ -864,7 +867,7 @@ html
 
 						var pordera=document.createElement('A');
 						var pcona=document.createElement('A');
-	
+
 						pordera.innerHTML='porder'+ia;
 						var pconadiv=document.createElement('div');
 
@@ -874,7 +877,7 @@ html
 						var findr2id;
 						var findr2listinfo;
 						for(var ic=0; ic<cps.length; ic++){
-				
+
 							if(cps[ic].cptid==rgprblist[ia][1] && cps[ic].parent==r3id){	
 								findr2id=cps[ic].r2id;
 								findr2listinfo=cps[ic].r2listinfo;
@@ -906,17 +909,17 @@ html
 						pconadiv.appendChild(pconnum);
 						pconadiv.appendChild(pcona);
 
-					
+
 
 						pcona.onclick=function(i){return function(){removeFromrglist(i);}}(rgprblist[ia]);
 						pordera.onclick=function(i){return function(){putOrderon(i);}}(ia);
 
-						
+
 						porder.appendChild(pordera);
 
-		
+
 						pcon.appendChild(pconadiv);
-					
+
 
 						prblistboard.appendChild(porder);
 						prblistboard.appendChild(pcon);
@@ -926,7 +929,7 @@ html
 
 
 						var pordera=document.createElement('A');
-	
+
 						pordera.innerHTML='porder'+ia;
 
 						pordera.onclick=function(i){return function(){putOrderon(i);}}(ia);
@@ -961,35 +964,35 @@ html
 
 
 
-					var wrssprbpicget=document.getElementById('activedisplay').getAttribute('data-wrssprbpic');
-					var hwprbpicget=document.getElementById('activedisplay').getAttribute('data-hwprbpic');
-					var instructget=document.getElementById('activedisplay').getAttribute('data-instruct');
-					var glprbpicget=document.getElementById('activedisplay').getAttribute('data-glprbpic');
+			var wrssprbpicget=document.getElementById('activedisplay').getAttribute('data-wrssprbpic');
+			var hwprbpicget=document.getElementById('activedisplay').getAttribute('data-hwprbpic');
+			var instructget=document.getElementById('activedisplay').getAttribute('data-instruct');
+			var glprbpicget=document.getElementById('activedisplay').getAttribute('data-glprbpic');
 
 
-					if(wrssprbpicget !== null){
-						var wrssprbpic=JSON.parse(wrssprbpicget);
-					}else{
-						var wrssprbpic=[];
-					}
+			if(wrssprbpicget !== null){
+				var wrssprbpic=JSON.parse(wrssprbpicget);
+			}else{
+				var wrssprbpic=[];
+			}
 
-					if(hwprbpicget !== null){
-						var hwprbpic=JSON.parse(hwprbpicget);
-					}else{
-						var hwprbpic=[];
-					}
+			if(hwprbpicget !== null){
+				var hwprbpic=JSON.parse(hwprbpicget);
+			}else{
+				var hwprbpic=[];
+			}
 
-					if(instructget !== null){
-						var instruct=JSON.parse(instructget);
-					}else{
-						var instruct=[];
-					}
+			if(instructget !== null){
+				var instruct=JSON.parse(instructget);
+			}else{
+				var instruct=[];
+			}
 
-					if(glprbpicget !== null){
-						var glprbpic=JSON.parse(glprbpicget);
-					}else{
-						var glprbpic=[];
-					}
+			if(glprbpicget !== null){
+				var glprbpic=JSON.parse(glprbpicget);
+			}else{
+				var glprbpic=[];
+			}
 
 
 
@@ -1029,7 +1032,7 @@ html
 					}
 					refnode.parentNode.insertBefore(pullwrsspic,refnode.nextSibling);
 
-					
+
 				}
 
 
@@ -1075,7 +1078,7 @@ html
 						refnode.parentNode.insertBefore(pullhwpic,refnode.nextSibling);
 						assignFunc(solveobj,'img',1,username,'',chosenusername)
 						realtimeEqualizer(username,chosenusername,10,'img','hw');
-						
+
 					}
 
 
@@ -1113,7 +1116,7 @@ html
 							pullglpic.appendChild(picdiv);
 						}
 						refnode.parentNode.insertBefore(pullglpic,refnode.nextSibling);
-						
+
 					}
 
 
@@ -1142,7 +1145,7 @@ html
 					picdiv.className='picdiv';
 					var picimg=document.createElement('img');
 					picimg.className='picimg';
-					
+
 					picimg.src=a.prb[ia][8];
 					picdiv.appendChild(picimg);
 					fdiv.appendChild(picimg);
@@ -1157,7 +1160,7 @@ html
 
 					var resultdisplaydiv=document.createElement('div');
 					resultdisplaydiv.className='prbresultdisplaydiv';
-				
+
 					var wrssresultdiv=document.createElement('div');
 					wrssresultdiv.className='wrssprb';
 					resultdisplaydiv.appendChild(wrssresultdiv);
@@ -1212,7 +1215,7 @@ html
 					}else{
 						hwresultdiv.style.backgroundColor='';
 					}
-		
+
 
 					var chk=0;
 					for(var ib=0; ib<glprbpic.length; ib++){
@@ -1247,7 +1250,7 @@ html
 					if(chk==1){
 						insresultdiv.style.backgroundColor='#7af0ed';
 						insresultdiv.onclick=function(){
-				
+
 							var displaypic=document.getElementsByClassName('displaypic');
 							while(displaypic.length!=0){
 								displaypic[0].remove();
@@ -1307,7 +1310,7 @@ html
 					//if(a.a[ia].cptoption=='show'|| a.a[ia].cptoption=='hide'){	
 						rgprblist.push([a.a[ia].listinfo,a.a[ia].cptid])
 						//rgprblist.push([a.a[ia].listinfo,a.a[ia].numid])
-					
+
 						var fdiv=document.createElement('div');
 						fdiv.id=a.a[ia].cptid+'order'
 						fdiv.className='subjectbox'
@@ -1323,14 +1326,14 @@ html
 							fdiv.style.marginTop='1%';
 						}
 
-		
+
 						var fdiva1=document.createElement('a');
 						if(mode=='admin'){
 						fdiva1.onclick=function(i,j){
 							return function(){
 
 
-								
+
 								function callingBack(i,j){
 									var tpinputlist=document.getElementsByClassName('tpinput')
 									for(var ia=0; ia<tpinputlist.length; ia++){
@@ -1346,18 +1349,18 @@ html
 										tpinputlist[ia].nextSibling.remove();
 										tpinputlist[ia].remove();
 									}
-									
+
 									var tpinput=document.createElement('input');	
 									tpinput.id='tpinput'+j;
 									tpinput.className='tpinput';
 									tpinput.value=i.childNodes[1].getAttribute('data-content');
 									//tpinput.value=i.childNodes[1].innerHTML;
 									i.appendChild(tpinput);
-					
+
 									var tpbutton=document.createElement('button');
 									tpbutton.innerHTML='change';
 									i.appendChild(tpbutton);
-				
+
 									tpbutton.onclick=function(k){
 										return function(){
 											var topicmsg=document.getElementById('tpinput'+k).value.replace(/\\/g,"\\\\");
@@ -1380,7 +1383,7 @@ html
 							return function(){
 								socket.emit('subjectanalysis2',{mode:'callprb',prblist:j})
 								colorR2same(i);
-								
+
 								var r1divc=document.getElementsByClassName('r1div');
 								for(var	ib=0; ib<r1divc.length; ib++){
 									r1divc[ib].style.border='';
@@ -1487,7 +1490,7 @@ html
 				}else{
 					break;
 				}
-					
+
 				}
 				//MathJax.Hub.Queue(["Typeset",MathJax.Hub,"activedisplay"])	
 
@@ -1529,7 +1532,7 @@ html
 
 				var r2setdiv = document.getElementById('activedisplay');
 				//var r2setdiv = document.getElementById('r2set');
-			
+
 				var indr2set=[];
 				for(var ia=0; ia<a.a.length; ia++){
 					var chk=0;
@@ -1544,7 +1547,7 @@ html
 					}
 				}
 
-				
+
 				r2obj=[];
 				for(var ia=0; ia<indr2set.length; ia++){
 					r2obj[ia]={r2id:indr2set[ia][0],r2listinfo:indr2set[ia][1],r1set:[]}
@@ -1562,7 +1565,7 @@ html
 					r2div.className='r2div';
 					r2div.id='rankcall'+r2obj[ia].r2id;
 
-					
+
 					var r2divadiv=document.createElement('div');
 					r2divadiv.className='r2divadiv';
 					r2divadiv.id='rd'+r2obj[ia].r2id;
@@ -1631,7 +1634,7 @@ html
 				prbOrder();
 
 			}else{
-		
+
 
 			}
 		});
@@ -1644,7 +1647,7 @@ html
 			var topicbutton=document.createElement('button');
 			topicbutton.innerHTML='creation';
 			createtopicdiv.appendChild(topicbutton);
-			
+
 			topicbutton.onclick=function(){	
 				return function(){
 					var topicmsg=document.getElementById('topicinput').value;
@@ -1658,5 +1661,5 @@ html
 			}();
 
 		}
-		
-		
+
+
