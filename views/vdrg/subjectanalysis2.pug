@@ -138,6 +138,7 @@ html
 							var tempbox=document.getElementById('tempr1box');
 							if(tempbox){
 								tempbox.remove();
+								console.log('ssclicked') 
 							}
 							var r1setdiv=document.createElement('div');
 							r1setdiv.id='tempr1box';
@@ -214,17 +215,12 @@ html
 									}else{
 										r1div.style.backgroundColor='black';
 									}
-									//r1setdiv.appendChild(r1callr0);
-									//r1setdiv.appendChild(callprborder);
 	
 								}
 							}
 
-								//if(a.b[0]!==undefined){
-									//var refnode=document.getElementById(a.b[0].parentcol);
-									//refnode.parentNode.insertBefore(r1setdiv,refnode.nextSibling);
+								
 							this.appendChild(r1setdiv);
-								//}
 
 
 
@@ -257,7 +253,6 @@ html
 					tempr1set.id='tempr1set'+r2id;
 					tempr1set.className='tempr1set';
 
-
 					for(var ia=0; ia<r1obj.length; ia++){
 						var r1div=document.createElement('div');
 						r1div.className='r1div';
@@ -270,10 +265,6 @@ html
 						var r1divanum=document.createElement('a');
 						r1divanum.innerHTML=ia+1+'. ';
 						r1divadiv.appendChild(r1divanum);
-
-
-
-						
 
 						r1divanum.onclick=function(j){
 							return function(){
@@ -341,11 +332,6 @@ html
 
 				
 			}	
-
-
-
-
-
 
 
 		function callStdlist(){
