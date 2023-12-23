@@ -1,0 +1,1 @@
+export const mainServerURL = 'https://ai.elcue.org/'
