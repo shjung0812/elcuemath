@@ -7,6 +7,7 @@ import * as coloringFunction from '/model/utils/functions/coloringThings.js'
 import {
     studentUsernameChosenColor,
     resultDisplayTimePeriodColor,
+    subjectanalysisR2ChosenColor,
 } from '/model/constants/color/chosenColor.js'
 
 if (mode == 'admin') {
@@ -457,12 +458,14 @@ function prbOrder() {
                 pconadiv.id = 'pconadiv' + rgprblist[ia][1];
                 var pconnum = document.createElement('a');
                 pconnum.innerHTML = '[' + (ia + 1) + '] ';
-                pconnum.onclick = function (i) {
+                pconnum.onclick = function (i,r2id) {
                     return function () {
                         colorR2same(i);
+                        
+
                         checkWhichR2included(i, cps)
                     }
-                }(rgprblist[ia][1]);
+                }(rgprblist[ia][1],findr2id);
                 //pcona.innerHTML='['+(ia+1)+']'+rgprblist[ia][0];
                 pcona.innerHTML = rgprblist[ia][0];
                 pconadiv.appendChild(pconnum);
@@ -792,14 +795,29 @@ socket.on('subjectanalysis2after', function (a) {
                             }
                         }(fdiv, a.a[ia].cptid);
                     }
+
+
+
+                    var findr2id = '';
+                    var findr2listinfo = '';
+                    for (var ic = 0; ic < cps.length; ic++) {
+                        if (cps[ic].cptid == a.a[ia].cptid && cps[ic].parent == r3id) {
+                            findr2id = cps[ic].r2id;
+                            findr2listinfo = cps[ic].r2listinfo;
+                            break;
+                        }
+                    }
+
                     fdiva1.innerHTML = '[' + (ia + 1) + ']  ';
                     var fdiva2 = document.createElement('a');
                     fdiva2.innerHTML = a.a[ia].listinfo;
                     fdiva2.setAttribute('data-content', a.a[ia].listinfo);
-                    fdiva2.onclick = function (j, i) {
+                    fdiva2.onclick = function (j, i,r2id) {
                         return function () {
                             socket.emit('subjectanalysis2', { mode: 'callprb', prblist: j })
                             colorR2same(i);
+                              coloringFunction.coloringSingleElement({divListCommonClassName:'r2change',prefix:'r2change',specificName:r2id,color:subjectanalysisR2ChosenColor})
+
                             var r1divc = document.getElementsByClassName('r1div');
                             for (var ib = 0; ib < r1divc.length; ib++) {
                                 r1divc[ib].style.border = '';
@@ -809,7 +827,7 @@ socket.on('subjectanalysis2after', function (a) {
                                 r1panel.style.border = '3px solid #C973D8';
                             }
                         }
-                    }(a.a[ia].prblist, a.a[ia].cptid);
+                    }(a.a[ia].prblist, a.a[ia].cptid,findr2id);
                     fdiv.appendChild(fdiva1)
                     fdiv.appendChild(fdiva2)
                     var wr2 = document.createElement('a');
@@ -821,15 +839,7 @@ socket.on('subjectanalysis2after', function (a) {
                     }(a.a[ia].cptid);
                     fdiv.appendChild(wr2);
                     var wr2 = document.createElement('a');
-                    var findr2id = '';
-                    var findr2listinfo = '';
-                    for (var ic = 0; ic < cps.length; ic++) {
-                        if (cps[ic].cptid == a.a[ia].cptid && cps[ic].parent == r3id) {
-                            findr2id = cps[ic].r2id;
-                            findr2listinfo = cps[ic].r2listinfo;
-                            break;
-                        }
-                    }
+
                     /*
                     var wr2=document.createElement('a');
                     wr2.innerHTML='|C';

@@ -16,7 +16,7 @@ export const coloringSingleElement = ({ divListCommonClassName, prefix, specific
     try {
       document.getElementById(prefix + specificName).style.backgroundColor = color;
     } catch (error) {
-      console.error('에러가 발생했습니다:', error.message);
+      console.error(`에러가 발생했습니다 : ${error.message}, 관련변수 prefix : ${prefix}, specificName:${specificName}`);
     }
   }
   

@@ -1,3 +1,10 @@
+import {
+    subjectanalysisR2ChosenColor,
+} from '/model/constants/color/chosenColor.js'
+import * as coloringFunction from '/model/utils/functions/coloringThings.js'
+
+
+
 export function subjectAnalysisNavigation() {
     var resultDisplayDataCall = document.getElementById('resultdisplaydatacall');
 
@@ -18,8 +25,12 @@ export function subjectAnalysisNavigation() {
                 fdiva.innerHTML = '[' + indr2.length + ']' + cps[ic].r2listinfo;
                 fdiv.appendChild(fdiva);
                 fdiva.className = 'r2change';
+                fdiva.id='r2change'+cps[ic].r2id
+
                 fdiva.onclick = function (i) {
                     return function () {
+                        coloringFunction.coloringSingleElement({divListCommonClassName:'r2change',prefix:'r2change',specificName:i,color:subjectanalysisR2ChosenColor})
+
                         var sb = document.getElementsByClassName('pconadiv');
                         for (var ib = 0; ib < sb.length; ib++) {
                             if (sb[ib].getAttribute('data-r2id') == i) {
