@@ -2,11 +2,12 @@ import {
     subjectanalysisR2ChosenColor,
 } from '/model/constants/color/chosenColor.js'
 import * as coloringFunction from '/model/utils/functions/coloringThings.js'
+import * as insertFunction from '/model/utils/functions/insertThings.js'
 
 
 
 export function subjectAnalysisNavigation() {
-    var resultDisplayDataCall = document.getElementById('resultdisplaydatacall');
+    var r2changeDiv = document.getElementById('r2change');
 
     var indr2 = [];
     for (var ic = 0; ic < cps.length; ic++) {
@@ -24,12 +25,12 @@ export function subjectAnalysisNavigation() {
                 var fdiva = document.createElement('a');
                 fdiva.innerHTML = '[' + indr2.length + ']' + cps[ic].r2listinfo;
                 fdiv.appendChild(fdiva);
-                fdiva.className = 'r2change';
-                fdiva.id='r2change'+cps[ic].r2id
+                fdiva.className = 'r2changeelement';
+                fdiva.id='r2changeelement'+cps[ic].r2id
 
-                fdiva.onclick = function (i) {
+                fdiva.onclick = function (i,fdivj) {
                     return function () {
-                        coloringFunction.coloringSingleElement({divListCommonClassName:'r2change',prefix:'r2change',specificName:i,color:subjectanalysisR2ChosenColor})
+                        coloringFunction.coloringSingleElement({divListCommonClassName:'r2changeelement',prefix:'r2changeelement',specificName:i,color:subjectanalysisR2ChosenColor})
 
                         var sb = document.getElementsByClassName('pconadiv');
                         for (var ib = 0; ib < sb.length; ib++) {
@@ -39,12 +40,12 @@ export function subjectAnalysisNavigation() {
                                 sb[ib].parentNode.style.backgroundColor = '';
                             }
                         }
-                        var tempbox = document.getElementById('tempr1box');
-                        if (tempbox) {
-                            tempbox.remove();
+                        var tempr1box = document.getElementById('tempr1box');
+                        if (tempr1box) {
+                            tempr1box.remove();
                         }
-                        var r1setdiv = document.createElement('div');
-                        r1setdiv.id = 'tempr1box';
+                        var tempr1box = document.createElement('div');
+                        tempr1box.id = 'tempr1box';
                         var num = 0;
                         for (var ia = 0; ia < cps.length; ia++) {
                             if (cps[ia].r2id == i) {
@@ -76,7 +77,7 @@ export function subjectAnalysisNavigation() {
                                     }
                                 }(cps[ia].prblist, cps[ia].cptid);
                                 r1div.appendChild(r1diva);
-                                r1setdiv.appendChild(r1div);
+                                tempr1box.appendChild(r1div);
                                 if (cps[ia].cptoption == 'show') {
                                     r1div.style.backgroundColor = 'green';
                                     r1div.style.color = 'white';
@@ -100,11 +101,13 @@ export function subjectAnalysisNavigation() {
                                 }
                             }
                         }
-                        //- this.parentNode.insertBefore(r1setdiv,this.parentNode.nextSibling);
-                        this.appendChild(r1setdiv);
+                        // this.appendChild(tempr1box);
+                        // insertFunction.tembBoxDisplayInsertEndMethod({insertElement:tempr1box,parentElement:r2changeDiv})
+                        insertFunction.tembBoxDisplayInsertMiddleMethodToggleClickClose({insertElement:tempr1box,refElementForNextSibling:fdivj,parentElement:r2changeDiv})
+                        
                     }
-                }(cps[ic].r2id)
-                resultDisplayDataCall.appendChild(fdiv);
+                }(cps[ic].r2id,fdiv)
+                r2changeDiv.appendChild(fdiv);
             }
         }
     }

@@ -816,7 +816,7 @@ socket.on('subjectanalysis2after', function (a) {
                         return function () {
                             socket.emit('subjectanalysis2', { mode: 'callprb', prblist: j })
                             colorR2same(i);
-                              coloringFunction.coloringSingleElement({divListCommonClassName:'r2change',prefix:'r2change',specificName:r2id,color:subjectanalysisR2ChosenColor})
+                              coloringFunction.coloringSingleElement({divListCommonClassName:'r2changeelement',prefix:'r2changeelement',specificName:r2id,color:subjectanalysisR2ChosenColor})
 
                             var r1divc = document.getElementsByClassName('r1div');
                             for (var ib = 0; ib < r1divc.length; ib++) {
