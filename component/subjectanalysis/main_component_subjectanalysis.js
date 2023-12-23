@@ -3,13 +3,17 @@ import {
     subjectAnalysisNavigation
 } from '/component/subjectanalysis/navigation_component_subjectanalysis.js'
 import * as commonFunction from '/model/utils/functions/removeThings.js'
-
+import * as coloringFunction from '/model/utils/functions/coloringThings.js'
+import {
+    studentUsernameChosenColor,
+    resultDisplayTimePeriodColor,
+} from '/model/constants/color/chosenColor.js'
 
 if (mode == 'admin') {
     userinfo='';
 }
 if (mode == 'admin') {
-    var username = 'songarim1029';
+    username = 'songarim1029';
 } else {
     commonFunction.removeAllEleByParentId('main');
 }
@@ -24,7 +28,7 @@ for (var ia = 0; ia < periodlist.length; ia++) {
     fdiv.onclick = function (i) {
         return function () {
             periodrd = i;
-            userColorset('rdd' + i, 'rddperiod')
+            coloringFunction.coloringSingleElement({divListCommonClassName:'rddperiod',prefix:'chosenrdd',specificName:i,color:resultDisplayTimePeriodColor})
             resultDisplay(username, i);
         }
     }(periodlist[ia]);
@@ -53,12 +57,14 @@ socket.on('callstdlistafter', function (a) {
             return function () {
                 username = i;
                 resultDisplay(i, periodrd);
-                userColorset(i, 'usercolorset');
+                coloringFunction.coloringSingleElement({divListCommonClassName:'usercolorset',prefix:'chosen',specificName:i,color:studentUsernameChosenColor})
+
             }
         }(a.a[ia].username);
         userlist.appendChild(fdiv);
     }
-    userColorset(username);
+    coloringFunction.coloringSingleElement({divListCommonClassName:'usercolorset',prefix:'chosen',specificName:username,color:studentUsernameChosenColor})
+
 })
 callStdlist();
 function colorR2same(cptid) {
@@ -1006,4 +1012,78 @@ if (mode == 'admin') {
             }
         }
     }();
+}
+function r1Call(r1obj,r2id){
+    var tempr1set=document.getElementById('tempr1set'+r2id);
+    if(tempr1set){
+        tempr1set.remove();
+    }else{
+        tempr1setclass=document.getElementsByClassName('tempr1set');
+        for(var ia=0; ia<tempr1setclass.length; ia++){
+            tempr1setclass[ia].remove();
+        }
+        var tempr1set=document.createElement('div');
+        tempr1set.id='tempr1set'+r2id;
+        tempr1set.className='tempr1set';
+        for(var ia=0; ia<r1obj.length; ia++){
+            var r1div=document.createElement('div');
+            r1div.className='r1div';
+            r1div.id=r1obj[ia].r1id;	
+            var r1divadiv=document.createElement('div');
+            r1divadiv.className='r1divadiv';
+            r1divadiv.id='rd'+r1obj[ia].r1id;
+            var r1divanum=document.createElement('a');
+            r1divanum.innerHTML=ia+1+'. ';
+            r1divadiv.appendChild(r1divanum);
+            r1divanum.onclick=function(j){
+                return function(){
+                    socket.emit('subjectanalysis2',{mode:'callprb',prblist:j})
+                }
+            }(r1obj[ia].r1prb);
+            var r1diva=document.createElement('a');
+            if(r1obj[ia].r1prb!=''){
+                r1diva.innerHTML=r1obj[ia].r1listinfo+ '<a style="font-size:.8em">('+r1obj[ia].r1prb.split(",").length+')</a>';
+            }else{
+                r1diva.innerHTML=r1obj[ia].r1listinfo+ '<a style="font-size:.8em">('+0+')</a>';
+            }
+            r1divadiv.appendChild(r1diva);
+            var chk=0;
+            var chk1=0;
+            for(ib=0; ib<cps.length; ib++){
+                if(endsymbol==cps[ib].listinfo){
+                    chk1=1;
+                }
+                if(cps[ib].cptid == r1obj[ia].r1id && chk1==0){
+                    chk=1;
+                    break;
+                }
+            }
+            if(chk==1){
+                r1diva.parentNode.style.backgroundColor='red';
+                r1diva.parentNode.style.color='white';
+            }else{
+                r1diva.onclick=function(j){
+                    return function(){
+                    for(var ia=0; ia<rgprblist.length;ia++){
+                        if(rgprblist[ia][1]==j){
+                            removeFromrglistRank(rgprblist[ia]);	
+                            break;
+                        }
+                    }
+                }}(r1obj[ia].r1id);
+            }
+            r1div.appendChild(r1divadiv);
+            tempr1set.appendChild(r1div);
+        }
+        var refnode=document.getElementById('rankcall'+r2id);
+        refnode.parentNode.insertBefore(tempr1set,refnode.nextSibling);
+        MathJax.Hub.Queue(["Typeset",MathJax.Hub,tempr1set])	
+    }
+}	
+function callStdlist(){
+if(mode!='admin'){
+    socket.emit('callstdlist',{username:userinfo.username,mode:'teacherstd'});	
+}else{
+    socket.emit('callstdlist');	
+}
 }
