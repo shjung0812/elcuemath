@@ -4,9 +4,9 @@ import {
 } from "/component/hwuserhistory/pickingSubject_component_hwuserhistory.js"
 import {resultDisplay} from "/controller/hwuserhistory_controller/hwuserhistory_resultDisplay_controller.js"
 import {controlButtonNext,switchModeButton} from "/component/hwuserhistory/controlButton_component_hwuserhistory.js"
-import {switchMode} from "/controller/hwuserhistory_controller/hwuserhistory_switchMode_controller.js"
+import {simplifiedModeDecision} from "/controller/hwuserhistory_controller/hwuserhistory_simplifiedModeDecision_controller.js"
 
-switchMode()
+simplifiedModeDecision()
 // switchModeButton()
 controlButtonNext()
 

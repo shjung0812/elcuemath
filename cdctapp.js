@@ -3842,11 +3842,12 @@ app.get('/admin/r1userhistory',function(req,res){
 
 app.get('/vdrg/hwuserhistory',function(req,res){
 	sf.LoginCheck(req.user,1,function(err){
+		const simplifiedMode=req.query.simplifiedMode
 		if(err){
 			res.send(err);
 		}else{
 			sf.getcptStructure(function(a){
-				res.render('vdrg/hwuserhistory',{r2list:a[0].r2list,username:req.user});
+				res.render('vdrg/hwuserhistory',{r2list:a[0].r2list,username:req.user,simplifiedMode:simplifiedMode});
 			});
 
 		}
