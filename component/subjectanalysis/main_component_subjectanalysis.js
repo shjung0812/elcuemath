@@ -9,6 +9,10 @@ import {
     resultDisplayTimePeriodColor,
     subjectanalysisR2ChosenColor,
 } from '/model/constants/color/chosenColor.js'
+import {levelControlComponent} from '/component/subjectanalysis/levelcontrol_component_subjectanalysis.js'
+import {changeShow} from '/controller/subjectanalysis_controller/subjectanalysis_levelControl_controller.js'
+
+levelControlComponent()
 
 if (mode == 'admin') {
     userinfo='';
@@ -293,7 +297,6 @@ socket.on('showuserdataresultafter', function (a) {
         }
     }
 });
-var activescene = 0;
 function sceneChange2() {
     if (activescene != 2) {
         activescene = 2;
@@ -303,25 +306,7 @@ function sceneChange2() {
         socket.emit('subjectanalysis2', { mode: 'rankcallmodechange' });
     }
 }
-function sceneChange() {
-    if (activescene == 0) {
-        activescene = 1;
-        socket.emit('subjectanalysis2', { mode: 'getdata_modechange' });
-    } else if (activescene == 1) {
-        activescene = 0;
-        socket.emit('subjectanalysis2', { mode: 'getdata' });
-    } else {
-        activescene = 0;
-        socket.emit('subjectanalysis2', { mode: 'getdata' });
-    }
-    /*
-    var activedisplay=document.getElementById('activedisplay');
-    if(opt==0){	
-        socket.emit('subjectanalysis2',{mode:'getdata'});
-    }else if(opt==1){	
-        prbOrder();
-    }*/
-}
+
 //sceneChange();
 socket.emit('subjectanalysis2', { mode: 'getdata' });
 function saveOrder(opt) {
@@ -723,13 +708,7 @@ socket.on('subjectanalysis2callprb', function (a) {
 });
 //socket.emit('subjectanalysis2',{mode:'getdata'});
 var numlimit = 30000;
-function changeShow(cptid, option) {
-    if (option == 'show' || option == 'hide') {
-        socket.emit('subjectanalysis2', { mode: 'changeshow', cptid: cptid, option: option })
-    } else {
-        alert('wrong option');
-    }
-}
+
 // Order Contents Display area
 var viewoption = ['show', 'hide'];
 socket.on('subjectanalysis2after', function (a) {
@@ -859,8 +838,7 @@ socket.on('subjectanalysis2after', function (a) {
                         wr2.innerHTML = '|S|';
                         wr2.onclick = function (i) {
                             return function () {
-                                //checkWhichR2included(i,cps)
-                                //colorR2same(i);
+
                                 this.innerHTML = '|H|'
                                 changeShow(i, 'hide');
                             }

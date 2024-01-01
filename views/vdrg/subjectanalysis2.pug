@@ -7,9 +7,7 @@ html
 		link(rel='stylesheet', href='/css/subjectanalysis2.css')
 	div(id='main')
 		div(id='createtopicbox')
-		button(onclick="sceneChange()") Mode Change
-		button(id='saveorder', onclick='saveOrder("orderset")') saver Order
-		button(onclick="sceneChange2()") Rankcall
+
 	div(id='panel')
 		div(id='resultdisplaydatacall')
 		div(id='r2change')
@@ -29,16 +27,18 @@ html
 		var periodrd = 1;
 		var rgprblist = [];
 		var givenprblist = [];
-		
 		const cps = !{JSON.stringify(cps)};
 		const r3list = !{ JSON.stringify(r3list) };
 		const mode = !{ JSON.stringify(mode) };
-
-
-		const userinfo = !{ JSON.stringify(userinfo) };
+		if(mode=='admin'){
+			var userinfo=''
+		}else{
+			var userinfo = !{ JSON.stringify(userinfo) };
+		}
 		var username = !{ JSON.stringify(username) };
 
-	
+
+		var activescene = 0;
+
+
 	script(type='module', src='/component/subjectanalysis/main_component_subjectanalysis.js')
-
-

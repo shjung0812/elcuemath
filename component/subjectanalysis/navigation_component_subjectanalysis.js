@@ -4,6 +4,7 @@ import {
 import * as coloringFunction from '/model/utils/functions/coloringThings.js'
 import * as insertFunction from '/model/utils/functions/insertThings.js'
 
+import {changeShow} from '/controller/subjectanalysis_controller/subjectanalysis_levelControl_controller.js'
 
 
 export function subjectAnalysisNavigation() {
@@ -66,11 +67,19 @@ export function subjectAnalysisNavigation() {
                                         targetelement.style.border = '1px solid red';
                                         //const targetelementposition=targetelement.getBoundingClientRect();
                                         //document.getElementById('activedisplay').scrollTo({ top: targetelementposition.top, left: 0, behavior: 'smooth' })
-                                        const container = document.getElementById('activedisplay');
+                                        const activedisplayContainer = document.getElementById('activedisplay');
+                                        const activedisplayTotalLength=activedisplayContainer.scrollHeight
+                                        const containerRect = activedisplayContainer.getBoundingClientRect();
                                         const nodeRect = targetelement.getBoundingClientRect();
-                                        const containerRect = container.getBoundingClientRect();
+
+
+                                        const relativeTop=nodeRect.top-containerRect.top
+
                                         const scrollY = nodeRect.top - containerRect.top + nodeRect.height / 2 - containerRect.height / 2;
-                                        container.scrollTo({
+                                        console.log('relativeTop',relativeTop,'activedisplayTotalLength',activedisplayTotalLength,'containerRect.height',containerRect.height)
+                                        // const scrollY = containerRect.height*(relativeTop/activedisplayTotalLength)
+                                        console.log('scrollY',scrollY)
+                                        activedisplayContainer.scrollTo({
                                             top: scrollY,
                                             behavior: 'smooth' // 부드러운 스크롤을 위해 추가합니다. 필요하지 않다면 제거할 수 있습니다.
                                         })

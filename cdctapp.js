@@ -6314,19 +6314,7 @@ vdrg.on('connection',function(socket){
 });
 
 
-// app.get('/admin/subjectanalysis2',function(req,res){
 
-// 		sf.getinfodb('select * from r3list',function(a){
-// 		sf.getinfodb('select cpt.prblist,cpt.listinfo,cpt.cptid,r2.r2listinfo,r2.r2order, rk.rkorder as r1order, r2.r2id, r.parentcol as parent,cpt.instructorder,cpt.cptoption from rkconnect as r join rkconnect as rk on r.childcol=rk.parentcol join cptproblemset as cpt on rk.childcol=cpt.cptid join r2list as r2 on r2.r2id=rk.parentcol order by r2.r2order asc, instructorder asc', function(b){
-// 		//sf.getinfodb('select cpt.prblist,cpt.listinfo,cpt.cptid,r2.r2listinfo,r2.r2order, rk.rkorder as r1order, r2.r2id from rkconnect as r join rkconnect as rk on r.childcol=rk.parentcol join cptproblemset as cpt on rk.childcol=cpt.cptid join r2list as r2 on r2.r2id=rk.parentcol where r.parentcol="r3id.jCdf6GgI6C" order by r2.r2order asc', function(b){
-// 			res.render('vdrg/subjectanalysis2',{cps:b,r3list:a,mode:'admin',userinfo:''});
-// 		});
-// 		})
-
-
-
-
-// });
 
 app.get('/admin/subjectanalysis',function(req,res){
 	res.render('vdrg/subjectanalysis');
