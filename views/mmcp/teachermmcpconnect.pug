@@ -2,6 +2,12 @@ html
 	head
 		script(type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML")
 		script(src='/socket.io/socket.io.js')
+		meta(charset="utf-8")
+		meta(name="viewport", content="width=device-width, initial-scale=1")
+		link(href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css", rel="stylesheet", integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN", crossorigin="anonymous")
+
+
+
 		link(rel="stylesheet",href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css")
 		script(src="https://code.jquery.com/jquery-1.12.4.js")
 		script(src="https://code.jquery.com/ui/1.12.1/jquery-ui.js")
@@ -24,13 +30,20 @@ html
 				height:90%;
 				float:left;
 			}
+			#prbsetzonerow{
+				//- width:100%;
+				height:100%;
+			}
 			#rankcall {
-				width:100%;
-				height:5%;
+				//- width:100%;
+				//- height:5%;
+			}
+			#rankcall button{
+
 			}
 			#r2set {
-				width:100%;
-				height:95%;
+				//- width:100%;
+				//- height:95%;
 				float:left;
 				overflow:auto;
 				font-size:.7em;
@@ -46,15 +59,16 @@ html
 			}
 
 			#rankdiv{
-				width:50%;
+				//- width:50%;
 				height:100%;
-				float:left;
+				//- float:left;
+				overflow:auto;
 			}
 			#r1set {
-				width:50%;
+				//- width:50%;
 				height:100%;
-				float:left;
-				font-size:1em;
+				//- float:left;
+				//- font-size:1em;
 				overflow:auto;
 			}
 			#userpanel {
@@ -64,15 +78,18 @@ html
 				overflow:auto;
 			}
 			.prblist {
-				width:96%;
-				margin:5% 2%;
+				//- width:96%;
+				//- margin:5% 2%;
 			}
 			.prbpicdiv {
-				width:100%;
+				//- width:100%;
 			
 			}
 			.prbpicdiv img {
 				width:100%;
+			}
+			.prbdivprb{
+				height:20%;
 			}
 			#stdlist {
 				float:left;
@@ -86,7 +103,7 @@ html
 				width:100%;
 			}
 			#temphwlist div {
-				font-size:.5em;
+				font-size:0.7em;
 				margin: 2% 0;
 			}
 			.conlistinfodiv {
@@ -196,8 +213,7 @@ html
 
 
 			.prbresultdisplaydiv {
-				width:100%;
-				height:3%;
+				height:4%;
 			}
 			.wrssprb {
 				width:20%;
@@ -243,7 +259,7 @@ html
 			}
 
 	body
-		div(id='createzone')
+		div(id='createzone' class='col-md-12')
 			div
 				input(id='datecon')
 				input(id='connectname')
@@ -265,35 +281,36 @@ html
 				input(type='submit' name='mmcp' onclick='clickSubmit()')
 
 
-		div(id='userpanel')
+		div(id='userpanel' class='col-md-5')
 			div(id='mmcpdisplay')
 			div(id='mmcphwprb')
 
-		div(id='prbsetzone')
+		div(id='prbsetzone' class='container' class='col-md-5')
+			div(class='row', id='prbsetzonerow')
 
-			div(id='rankdiv')
-				div(id='rankcall')
-					button(onclick='resultDisplay(1)') 1
-					button(onclick='resultDisplay(2)') 2
-					button(onclick='resultDisplay(5)') 5
-					button(onclick='resultDisplay(7)') 7
-					button(onclick='resultDisplay(15)') 15
-					button(onclick='resultDisplay(30)') 30
-					button(onclick='resultDisplay(90)') 90
-					button(onclick='resultDisplay(180)') 180
-					button(onclick='resultDisplay(360)') 360
-					button(onclick='resultDisplay(10000)') 10000
-					button(onclick='userEvalPrb(username,3)') UE3
-					button(onclick='userEvalPrb(username,4)') UE4
-					button(onclick='userImmediateHistory(username,10)') UI now
-					button(onclick='userImmediateHistory(username,168)') UI 1w
-					button(onclick='userImmediateHistory(username,336)') UI 2w
-					button(onclick='userImmediateHistory(username,1680)') UI 10w
-					button(onclick='HwEval(username,-1)') Hw null
-					button(onclick='HwEval(username,3)') Hw 3
-				div(id='r2set')
-			div(id='r1set')
-		div(id='stdlist')
+				div(id='rankdiv' class="col-md-6 d-flex flex-column")
+					div(id='rankcall' class='col-md-12')
+						button(onclick='resultDisplay(1)') 1
+						button(onclick='resultDisplay(2)') 2
+						button(onclick='resultDisplay(5)') 5
+						button(onclick='resultDisplay(7)') 7
+						button(onclick='resultDisplay(15)') 15
+						button(onclick='resultDisplay(30)') 30
+						button(onclick='resultDisplay(90)') 90
+						button(onclick='resultDisplay(180)') 180
+						button(onclick='resultDisplay(360)') 360
+						//- button(onclick='resultDisplay(10000)') 10000
+						//- button(onclick='userEvalPrb(username,3)') UE3
+						//- button(onclick='userEvalPrb(username,4)') UE4
+						button(onclick='userImmediateHistory(username,10)') UI now
+						button(onclick='userImmediateHistory(username,168)') UI 1w
+						button(onclick='userImmediateHistory(username,336)') UI 2w
+						button(onclick='userImmediateHistory(username,1680)') UI 10w
+						//- button(onclick='HwEval(username,-1)') Hw null
+						//- button(onclick='HwEval(username,3)') Hw 3
+					div(id='r2set' class='col-md-12 flex-grow-1')
+				div(id='r1set',  class="col-md-6")
+		div(id='stdlist' class='col-md-2')
 			div(id='mmcpconboard')
 		script.
 			var userid=!{JSON.stringify(userid)}
@@ -712,7 +729,7 @@ html
 						}
 						
 						mmcpdiv.id='hw'+a.prbcon[ib][0];
-						mmcpdiv.className='prblist';
+						mmcpdiv.className='prblist col-md-12';
 
 						var mmcpdiva=document.createElement('A');
 						mmcpdiva.innerHTML=a.prbcon[ib][1];
@@ -758,7 +775,7 @@ html
 							}
 							
 							mmcpdiv.id='hw'+a.a[ia].prbid;
-							mmcpdiv.className='prblist';
+							mmcpdiv.className='prblist col-md-12';
 
 							var mmcpdiva=document.createElement('A');
 							mmcpdiva.innerHTML=a.a[ia].prbkorean.replace(/`/g,'');
@@ -808,7 +825,7 @@ html
 							}
 							
 							mmcpdiv.id='under'+a.a[ia].prbid;
-							mmcpdiv.className='prblist';
+							mmcpdiv.className='prblist col-md-12';
 
 							var mmcpdiva=document.createElement('A');
 							mmcpdiva.innerHTML=a.a[ia].prbkorean.replace(/`/g,'');
@@ -1489,6 +1506,8 @@ html
 						var prbdiv=document.createElement('div');
 
 						var prbdivprb=document.createElement('div');
+						prbdivprb.className='prbdivprb col-md-12 mb-3'
+						
 						var prbdivprba=document.createElement('A');
 						prbdivprba.innerHTML=a.prbcon[ia][1]
 						prbdivprb.appendChild(prbdivprba);
@@ -1501,7 +1520,7 @@ html
 								clickToChosen(i)
 							}
 						}(a.prbcon[ia][0]);
-						prbdiv.className='prblist';
+						prbdiv.className='prblist col-md-12';
 						prbdiv.id=a.prbcon[ia][0];
 
 
@@ -1547,7 +1566,7 @@ html
 
 						if(a.prbcon[ia][8]!=null){
 							var prbpicdiv=document.createElement('div');
-							prbpicdiv.className='prbpicdiv';
+							prbpicdiv.className='prbpicdiv col-md-12';
 							var prbimg=document.createElement('img');
 							prbimg.src=a.prbcon[ia][8];
 							prbpicdiv.appendChild(prbimg);
@@ -1564,7 +1583,7 @@ html
 						}	
 
 						var resultdisplaydiv=document.createElement('div');
-						resultdisplaydiv.className='prbresultdisplaydiv';
+						resultdisplaydiv.className='prbresultdisplaydiv col-md-12';
 					
 						var wrssresultdiv=document.createElement('div');
 						wrssresultdiv.className='wrssprb';
@@ -1850,6 +1869,8 @@ html
 				}
 		
 			}
+		script(src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js", integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL", crossorigin="anonymous")
+
 
 
 
