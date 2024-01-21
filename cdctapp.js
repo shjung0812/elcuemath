@@ -64,6 +64,7 @@ app.set('view engine', 'pug');
 app.set('views', __dirname + '/views');
 app.use(express.static(__dirname + '/public'));
 app.use('/css',express.static(__dirname + '/assets/css'));
+app.use('/assets',express.static(__dirname + '/assets'));
 app.use('/component', express.static(__dirname + "/component"));
 app.use('/controller', express.static(__dirname + "/controller"));
 app.use('/model', express.static(__dirname + "/model"));

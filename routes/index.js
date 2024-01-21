@@ -2,11 +2,12 @@ const express = require('express');
 const router = express.Router();
 
 // const subjectanalysisRouter = require('./subjectanalysis_router/main');
-const subjectanalysisRouter = require('./subjectanalysis_router/subjectanalysis_main');
-// const userRouter = require('./userRoutes');
 
-// router.use('/', mainRouter);
+
+const subjectanalysisRouter = require('./subjectanalysis_router');
 router.use('/subjectanalysis', subjectanalysisRouter);
-// router.use('/user', userRouter);
+
+const ads_router = require('./ads_router');
+router.use('/correspondence', ads_router);
 
 module.exports = router;

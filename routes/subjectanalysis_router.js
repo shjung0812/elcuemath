@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-var sf = require('../../bin/serverflow.js');
+var sf = require('../bin/serverflow.js');
 
 
 router.get('/subjectanalysis_mentor',function(req,res){
