@@ -11,4 +11,8 @@ router.get('/adtest/proman',function(req,res){
     res.render('ads/adtest/proman/proman')
 	
 });
+router.get('/adtest/creative',function(req,res){
+    res.render('ads/adtest/creative/creative')
+	
+});
 module.exports = router;
