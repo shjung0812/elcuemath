@@ -37,6 +37,7 @@ html
 			#rankcall {
 				//- width:100%;
 				//- height:5%;
+				background-color:green;
 			}
 			#rankcall button{
 
@@ -291,8 +292,6 @@ html
 				div(id='rankdiv' class="col-md-6 d-flex flex-column")
 					div(id='rankcall' class='col-md-12')
 						button(onclick='resultDisplay(1)') 1
-						button(onclick='resultDisplay(2)') 2
-						button(onclick='resultDisplay(5)') 5
 						button(onclick='resultDisplay(7)') 7
 						button(onclick='resultDisplay(15)') 15
 						button(onclick='resultDisplay(30)') 30
@@ -393,23 +392,18 @@ html
 
 			function resultDisplay(t){
 				if(username){
-					const date=new Date();
-					
-					let day = date.getDate();
-					let month = date.getMonth() + 1;
-					let year = date.getFullYear();
-					let today=year+'-'+month+'-'+day;
+					const date = new Date();
 
-					let timebefore=new Date( (new Date(today).getTime()/1000/60/60/24-t)*1000*60*60*24);
+					// 현재 날짜를 'YYYY-MM-DD' 형식의 문자열로 변환
+					let today = date.toISOString().split('T')[0];
 
-					let bday = timebefore.getDate();
-					let bmonth = timebefore.getMonth() + 1;
-					let byear = timebefore.getFullYear();
-					let btoday=byear+'-'+bmonth+'-'+bday;
+					// t일 전의 날짜 계산
+					let timeBefore = new Date(date - t * 24 * 60 * 60 * 1000);
 
-					
-					
-					socket2.emit('showuserdataresult',{username:username, time:btoday,timestart:today});
+					// timeBefore도 'YYYY-MM-DD' 형식의 문자열로 변환
+					let formattedTimeBefore = timeBefore.toISOString().split('T')[0];
+
+					socket2.emit('showuserdataresult',{username:username, time:formattedTimeBefore,timestart:today});
 				}
 			}           
 	
