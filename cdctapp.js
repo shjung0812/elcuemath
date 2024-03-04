@@ -3860,7 +3860,6 @@ app.get('/vdrg/hwuserhistory',function(req,res){
 });
 
 app.post('/flutter/elcuelogin',function(req,res){
-	console.log('받은 데이터:', req.body);
 	const username = req.body.username;
 	const password = req.body.password;
 	if(username=='wjdtjrgus'){
