@@ -5,6 +5,8 @@ require('dotenv').config(); // .env 파일을 로드
 
 var path=require('./prismpath.json');
 var sf=require(path.prismbin+'serverflow');
+const cors = require('cors');
+app.use(cors());
 
 var md5=require('md5');
 var https=require('https');
