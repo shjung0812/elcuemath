@@ -1,0 +1,316 @@
+#partition1 {
+    width:10%;
+    height:100%;
+    float:left;
+}
+#partition2 {
+    width:90%;
+    height:100%;
+    float:left;
+}
+
+#head {
+    width:100%;
+    height:10%;
+    background-color:#aaaaaa;
+}
+#head div {
+    margin:0 2%;
+
+}
+#controlpanel {
+    width:30%;
+    height:100%;
+    float:right;
+    cursor:pointer;
+}
+#container2 {
+    width:100%;
+    height:50%;
+}
+#container1 div {
+    width:15%;
+    float:left;
+    margin: 0;
+    text-align:center;
+    position:relative;
+    top:30%;
+}
+#container1 {
+    width:100%;
+    height:50%;
+
+
+}
+#container1 div:hover {
+    background-color:blue;
+    color:white;
+
+}
+
+
+#classinspect a {
+    text-decoration:none;
+    color:black;
+}
+#classinspect a:hover {
+    color:white;
+}
+
+#container2 div {
+    margin:0;
+    height:50%;
+    float:left;
+    text-align:center;
+
+    
+}
+
+#container2 div:hover {
+    background-color:yellow;
+}
+#r2body {
+    width:100%;
+    height:90%;
+    overflow:auto;
+}
+#r2listdiv {
+    width:100%;
+    overflow:auto;
+    background-color:#cccccc;
+}
+.r2list {
+    float:left;
+}
+.r2listinfodiv {
+    width:90%;
+    box-shadow:3px 3px black;
+    background-color:#61EA36;
+    text-align:center;
+    padding:0% 5%;
+    display:table;
+}
+.listfinfodiv {
+    width:100%;
+    text-align:center;
+    background-color:red;
+    overflow:auto;
+}
+.listinfodiv a {
+    font-size:.8em;
+    display:table-cell;
+    vertical-align:middle;
+
+}
+.r2resultdisplay {
+    width:100%;
+    
+}
+.r2resultdisplay div {
+    overflow:auto;
+    width:10%;
+    height:100%;
+    float:right;
+    font-size:.7em;
+}
+
+
+
+.r1containerdiv {
+    width:100%;
+}
+
+.r1div {
+    float:left;
+    font-size:.8em;
+    width:90%;
+    padding:0 5%;
+    margin:5% 0;
+}
+
+
+.r1divdatadiv {
+    width:100%;	
+}
+.r1divdatadiv div {
+    float:left;
+    width:20%;
+    text-align:center;
+}
+.wrsscount {
+    background-color:blue;
+    color:white;
+}
+.hwcount {
+    background-color:red;
+    color:white;
+}
+.inscount {
+    background-color:#7af0ed;
+}
+.glcount {
+    background-color:yellow;
+}
+
+#stdlistdiv {
+    width:25%; 
+    overflow:auto;
+    height:100%;
+    text-align:center;
+    background-color:#dddddd;
+}
+#stdlistdiv div {
+    width:20%;
+    margin:1% 0;
+    height:30%;
+    cursor:pointer;
+    float:left;
+}
+
+::-webkit-scrollbar {
+    display:none;
+}
+
+#prbdisplay {
+    height:100%;
+    background-color:#eeeeee;
+    position:fixed;
+    top:0;
+    right:0;
+    z-index:2;
+    width:1%;
+    overflow:auto;
+    overflow-y: scroll;
+    transition: width .2s;
+
+}
+
+
+#solveresult {
+    width:55%;
+    height:100%;
+    background-color:red;
+    float:left;
+}
+#wrssresultdiv {
+    width:100%;
+    height:33%;
+    background-color:yellow;
+    overflow:auto;
+}
+#wrssresultdiv div {
+    width:100%;
+    height:100%;
+    
+}
+#wrssresultdiv div img {
+    width:100%;
+}
+
+#hwresultdiv {
+    width:100%;
+    height:33%;
+    overflow:auto;
+}
+.hwprbdiv {
+    width:100%;
+    background-color:blue;
+}
+.hwprbimgdiv {
+    width:100%;
+    background-color:#22dd21;
+}
+.hwprbimgdiv img {
+    width:100%;
+}
+
+#glresultdiv {
+    width:100%;
+    height:33%;
+    overflow:auto;
+}
+.glprbdiv {
+    width:100%;
+    background-color:yellow;
+}
+.glprbimgdiv {
+    width:100%;
+    background-color:#22dd21;
+}
+.glprbimgdiv img {
+    width:100%;
+}
+
+
+
+#prblist {
+    width:30%;
+    height:100%;
+    float:left;
+    overflow-y:scroll;
+    overflow:auto;
+}
+.prbdisplaydiv {
+    width:90%;
+    padding:5%;
+}
+.prbpicdiv {
+    width:100%;
+    
+}
+.prbpicdiv img {
+    width:100%;
+}
+
+.refdiv {
+    width:100%;
+    height:2%;
+}
+.refdiv div {
+    width:20%;
+    float:left;
+    height:100%;
+}
+
+
+.r1divadiv {
+    overflow:hidden;
+}
+
+#r2listdivbrief {
+    width:100%;
+    height:100%;
+    overflow:auto;		
+    background-color:#cccccc;
+}
+.r2briefdiv {
+    width:100%;
+    cursor:pointer;
+    overflow:auto;
+}
+.r2briefdiv:hover {
+    background-color:purple;
+}
+.r2brieflistinfodiv {
+    width:60%;
+    float:left;
+    font-size:.5em;
+
+}
+.r2brieflistinfodiv:hover {
+
+    color:white;
+}
+.r2resultdisplaybrief {
+
+    width:40%;
+    float:left;
+}
+
+.r2resultdisplaybrief div {
+    text-align:center;
+    overflow:auto;
+    width:10%;
+    float:right;
+    font-size:.7em;
+}

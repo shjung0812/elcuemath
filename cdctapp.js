@@ -64,7 +64,10 @@ app.set('view engine', 'pug');
 app.set('views', __dirname + '/views');
 app.use(express.static(__dirname + '/public'));
 app.use('/css',express.static(__dirname + '/assets/css'));
+app.use('/assets',express.static(__dirname + '/assets'));
 app.use('/component', express.static(__dirname + "/component"));
+app.use('/controller', express.static(__dirname + "/controller"));
+app.use('/model', express.static(__dirname + "/model"));
 
 
 
@@ -124,6 +127,14 @@ passport.use(new LocalStrategy(
 		});
 	}
 ));
+
+
+
+const routes=require('./routes')
+app.use('/', routes);
+
+
+
 var ss=require('socket.io-stream');
 var path = require('path');
 
@@ -418,8 +429,6 @@ io.of('/vdch').on('connection',function(socket){
 
 
 
-
-
 app.get('/', function(req, res) {
 	if(!req.session.num){
 		req.session.num=1;
@@ -430,6 +439,7 @@ app.get('/', function(req, res) {
 	res.render('frontpage',{logincode:req.body.logincode});
 
 });
+
 
 app.get('/logout',function(req,res){
 	req.logout();
@@ -3833,11 +3843,12 @@ app.get('/admin/r1userhistory',function(req,res){
 
 app.get('/vdrg/hwuserhistory',function(req,res){
 	sf.LoginCheck(req.user,1,function(err){
+		const simplifiedMode=req.query.simplifiedMode
 		if(err){
 			res.send(err);
 		}else{
 			sf.getcptStructure(function(a){
-				res.render('vdrg/hwuserhistory',{r2list:a[0].r2list,username:req.user});
+				res.render('vdrg/hwuserhistory',{r2list:a[0].r2list,username:req.user,simplifiedMode:simplifiedMode});
 			});
 
 		}
@@ -6304,40 +6315,8 @@ vdrg.on('connection',function(socket){
 	});
 });
 
-app.get('/vdrg/subjectanalysis_mentor',function(req,res){
-	if(typeof req.query.username !== 'undeinfed'){
-		var username=req.query.username;
-
-		sf.getinfodb('select * from r3list',function(a){
-		sf.getinfodb('select cpt.prblist,cpt.listinfo,cpt.cptid,r2.r2listinfo,r2.r2order, rk.rkorder as r1order, r2.r2id, r.parentcol as parent,cpt.instructorder,cpt.cptoption from rkconnect as r join rkconnect as rk on r.childcol=rk.parentcol join cptproblemset as cpt on rk.childcol=cpt.cptid join r2list as r2 on r2.r2id=rk.parentcol order by r2.r2order asc, instructorder asc', function(b){
-			res.render('vdrg/subjectanalysis2',{cps:b,r3list:a,username:username, userinfo:req.user,mode:'mentor'});
-		});
-		})
 
 
-
-	}else{
-		var msg='로그인을 하시고 와주세요. <a href="/">LogIn </a>'
-		res.send(msg);
-	}
-
-});
-
-
-
-app.get('/admin/subjectanalysis2',function(req,res){
-
-		sf.getinfodb('select * from r3list',function(a){
-		sf.getinfodb('select cpt.prblist,cpt.listinfo,cpt.cptid,r2.r2listinfo,r2.r2order, rk.rkorder as r1order, r2.r2id, r.parentcol as parent,cpt.instructorder,cpt.cptoption from rkconnect as r join rkconnect as rk on r.childcol=rk.parentcol join cptproblemset as cpt on rk.childcol=cpt.cptid join r2list as r2 on r2.r2id=rk.parentcol order by r2.r2order asc, instructorder asc', function(b){
-		//sf.getinfodb('select cpt.prblist,cpt.listinfo,cpt.cptid,r2.r2listinfo,r2.r2order, rk.rkorder as r1order, r2.r2id from rkconnect as r join rkconnect as rk on r.childcol=rk.parentcol join cptproblemset as cpt on rk.childcol=cpt.cptid join r2list as r2 on r2.r2id=rk.parentcol where r.parentcol="r3id.jCdf6GgI6C" order by r2.r2order asc', function(b){
-			res.render('vdrg/subjectanalysis2',{cps:b,r3list:a,mode:'admin',userinfo:''});
-		});
-		})
-
-
-
-
-});
 
 app.get('/admin/subjectanalysis',function(req,res){
 	res.render('vdrg/subjectanalysis');
