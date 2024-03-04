@@ -3857,6 +3857,25 @@ app.get('/vdrg/hwuserhistory',function(req,res){
 
 });
 
+app.post('/flutter/elcuelogin',function(req,res){
+	console.log('받은 데이터:', req.body);
+	const username = req.body.username;
+	const password = req.body.password;
+	if(username=='wjdtjrgus'){
+		if(password=='aa2792'){
+			res.status(200).json({ message: 'POST 요청 성공' });
+		}else{
+			res.status(401).json({ message: '로그인 실패: 사용자 인증 실패' });
+
+		}
+	}else{
+		console.log('다른유저네임')
+	}
+
+})
+
+
+
 function mictime(){
 	var hrTime=process.hrtime();
 	return hrTime[0]*1000000+hrTime[1]/1000
