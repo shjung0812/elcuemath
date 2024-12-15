@@ -4,7 +4,7 @@ var app = express();
 require('dotenv').config(); // .env 파일을 로드
 
 var path=require('./prismpath.json');
-var sf=require(path.prismbin+'serverflow');
+var sf=require('./bin/serverflow');
 const cors = require('cors');
 app.use(cors());
 
@@ -20,8 +20,8 @@ var client = require('twilio')(accountSid, authToken);
 
 var fs = require('fs');
 const options = {
-	key: fs.readFileSync('./keys/2308aielcue/ai_elcue_org_SHA256WITHRSA.key'),
-	cert:fs.readFileSync('./keys/2308aielcue/ai_elcue_org.crt')
+	key: fs.readFileSync('./keys/2408aielcue/ai_elcue_org_SHA256WITHRSA.key'),
+	cert:fs.readFileSync('./keys/2408aielcue/ai_elcue_org.crt')
 }
 //var server=require('http').createServer(app);
 //var server=https.createServer(app);
@@ -60,7 +60,7 @@ var upload=multer({storage:storage});
 var session = require('express-session');
 const FileStore = require('session-file-store')(session);
 
-//app.set('port', process.env.PORT || 80);
+// app.set('port', process.env.PORT || 80);
 app.set('port', process.env.PORT || 443);
 app.set('view engine', 'pug');
 app.set('views', __dirname + '/views');
@@ -3860,6 +3860,7 @@ app.get('/vdrg/hwuserhistory',function(req,res){
 });
 
 app.post('/flutter/elcuelogin',function(req,res){
+	console.log('받은요청',req.body)
 	const username = req.body.username;
 	const password = req.body.password;
 	if(username=='wjdtjrgus'){

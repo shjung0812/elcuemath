@@ -1,4 +1,4 @@
 {
-"prismbin":"/home/morgan/web/cdct/bin/",
-"prismspam":"/home/morgan/web/cdct/spam/"
+"prismbin":"./bin/",
+"prismspam":"./spam/"
 }

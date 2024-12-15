@@ -3,3 +3,4 @@ log/
 syncserver/
 .env
 
+node_modules

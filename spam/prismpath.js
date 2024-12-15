@@ -1,7 +1,7 @@
 module.exports={
 
 spamprbtest:function(){
-var path='/home/morgan/web/cdct/bin/';
+var path='../bin/';
 return path;	
 }
 };
