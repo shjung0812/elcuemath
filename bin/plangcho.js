@@ -1,6 +1,8 @@
 
 
 var mysql = require('mysql2');
+const path = require('path'); // path 모듈 필요
+
 module.exports = {
 	prblang: function (cont, lang) {
 		if (lang == 0 || typeof lang == 'undefined' || lang == 'kr') {
@@ -17,16 +19,10 @@ module.exports = {
 	},
 
 	prbchoice: function (prbid, prbrows, lang) {
-		var path = require('./prismpath.json');
-		var prbpath = '../spam/' + prbid;
-
-		//var path='../spam/'+prbid;
+		var prbpath = path.join(__dirname, '..', 'spam', prbid);
 		var fs = require('fs');
-
 		if (fs.existsSync(prbpath + '.js')) {
 			var prbc = require(prbpath);
-
-			//	var prbcont=prbc.spamprb(module.exports.prblang(prbrows,lang));
 			prbdb = module.exports.prblang(prbrows, lang);
 			var prbcont = prbc.spamprb(prbdb[0].replace(/\\/g, "\\\\"));
 			if (prbcont[2] == 1) {
