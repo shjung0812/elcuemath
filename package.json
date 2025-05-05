@@ -11,7 +11,7 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start:dev": "supervisor cdctapp.js",
+    "start:dev": "./node_module/.bin/supervisor cdctapp.js",
     "start": "./node_modules/.bin/forever start cdctapp.js"
   },
   "repository": {
