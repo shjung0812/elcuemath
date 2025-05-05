@@ -1,0 +1,68 @@
+html
+	head
+		script(src='/socket.io/socket.io.js')
+	body
+		div
+			h2 SYNC
+		div(id='syncbutton')
+		div
+			-for(var ia=data.length-1; ia>=0; ia--){
+				div
+					a=data[ia] 
+			-}
+	script.
+		
+
+		var socket = io('/maintainsystem',{
+			transports:['websocket'],
+			upgrade:false
+		});
+
+		var data=!{JSON.stringify(data)};
+		console.log(data);
+		function deployingButton(){
+			var ddate=data[data.length-2].split(' ');
+			var dy=ddate[2].split('.')[0];
+			var dm=ddate[3].split('.')[0];
+			var dd=ddate[4].split('.')[0];
+			var dt=ddate[6];
+
+			console.log(dy,dm,dd,dt);
+
+			var now=new Date();
+			var year = now.getFullYear();
+			var month = now.getMonth()+1;
+			var day=now.getDate();
+
+			//var stDate= new Date('2022','05','03');
+			var stDate= new Date(dy,dm,dd);
+			var endDate=new Date(year,month,day);
+			
+			var btMs=endDate.getTime()-stDate.getTime();
+			var btDay=btMs/(1000*60*60*24);
+			console.log(btDay);
+
+
+			var syncb=document.getElementById('syncbutton');
+			var ddaylist=[1,3,5,7,10,20,30,1000]
+			for(var ia=0; ia<ddaylist.length; ia++){
+				if(ddaylist[ia]>=btDay+1){
+					var fbut=document.createElement('button');
+					fbut.innerHTML='SYNC_'+ddaylist[ia];
+					fbut.onclick=function(i){
+						return function(){
+							syncStart(i)
+						}
+					}(ddaylist[ia]);
+					syncb.appendChild(fbut);
+				}
+			
+			}
+		}
+		deployingButton();
+		function syncStart(targetday){
+			socket.emit('syncturnon',{targetday:targetday});
+		}
+			
+	
+

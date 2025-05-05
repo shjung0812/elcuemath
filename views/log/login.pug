@@ -1,0 +1,40 @@
+html
+	head
+		script(src='/socket.io/socket.io.js')
+	body
+		div(id='loginlist')
+		script.
+			var userinfo=!{JSON.stringify(userinfo)};
+			var data=!{JSON.stringify(data)};
+			var username=userinfo.username;
+			var origin=window.location.origin;
+			var socket = io('/mmcp',{
+				transports:['websocket'],
+				upgrade:false
+			});
+
+
+			var num=1000;
+			socket.emit('callstdlist',{username:username,mode:'teacherstd'});
+			socket.on('callstdlistafter',function(a){
+				for(var ia=data.length-2; ia>=(data.length-num); ia--){
+					var username=data[ia].split(' ')[4].split(',')[0];
+					var chk=0;
+					for(var ib=0; ib<a.a.length; ib++){
+						if(a.a[ib].username==username){	
+							chk=1;
+							break;
+						}
+					}	
+					if(chk==1){
+						if(username!='bob'){
+							var fdiv=document.createElement('div');
+							var fdiva=document.createElement('a');
+							fdiva.innerHTML=data[ia];
+							fdiv.appendChild(fdiva);
+							document.getElementById('loginlist').appendChild(fdiv);
+						}
+					}
+				}
+			});
+

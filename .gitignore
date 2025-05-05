@@ -1,12 +1,12 @@
-public/jscontent
-public/nusd
-public/usernote
-public/uploadquestion
-public/prismpics
-sessions/
-log/
-syncserver/
-.env
-spam/
+/public/jscontent/
+/public/nusd/
+/public/usernote/
+/public/uploadquestion/
+/public/prismpics/
+/sessions/
+/log/
+/syncserver/
+/.env
+/spam/
 
-node_modules
+/node_modules/
