@@ -1,6 +1,7 @@
 public/jscontent
 public/nusd
 public/usernote
+public/uploadquestion
 log/
 syncserver/
 .env
