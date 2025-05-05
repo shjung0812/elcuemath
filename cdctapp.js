@@ -3,29 +3,46 @@ var app = express();
 
 require('dotenv').config(); // .env 파일을 로드
 
-var path=require('./prismpath.json');
 var sf=require('./bin/serverflow');
 const cors = require('cors');
 app.use(cors());
+var fs = require('fs');
 
 var md5=require('md5');
-var https=require('https');
 const {WebRTCLogger} = require('./winston/logger'); // 위에서 설정한 Winston 인스턴스 가져오기
 
 const accountSid = process.env.TWILIO_ACCOUNT_SID;
 const authToken = process.env.TWILIO_AUTH_TOKEN;
 var client = require('twilio')(accountSid, authToken);
 
+const https=require('https');
+const http=require('http');
 
+// 환경 변수에서 포트 번호를 읽어오거나 기본값 설정
+const port = process.env.PORT || 3000;
 
-var fs = require('fs');
-const options = {
-	key: fs.readFileSync('./keys/2408aielcue/ai_elcue_org_SHA256WITHRSA.key'),
-	cert:fs.readFileSync('./keys/2408aielcue/ai_elcue_org.crt')
+// 환경 변수 PORT 값이 443인지 확인하여 환경 판단
+const isProduction = (port == 443); // 또는 process.env.NODE_ENV === 'production' 사용 권장
+
+let server;
+
+if (isProduction) {
+    // Production 환경 (PORT=443) -> HTTPS 서버 생성
+    console.log('Running in Production mode (HTTPS)');
+    const options = {
+        // 키 파일 경로를 환경 변수나 다른 설정 파일에서 읽어오는 것이 더 안전할 수 있습니다.
+        // 여기서는 예시로 하드코딩된 경로를 사용합니다.
+        key: fs.readFileSync('./keys/2408aielcue/ai_elcue_org_SHA256WITHRSA.key'),
+        cert: fs.readFileSync('./keys/2408aielcue/ai_elcue_org.crt')
+        // ca: [fs.readFileSync('path/to/ca_bundle.crt')] // 체인 인증서가 있다면 추가
+    };
+    server = https.createServer(options, app);
+} else {
+    // Development 환경 (PORT=3000 또는 다른 값) -> HTTP 서버 생성
+    console.log('Running in Development mode (HTTP)');
+    server = http.createServer(app);
 }
-//var server=require('http').createServer(app);
-//var server=https.createServer(app);
-var server=https.createServer(options,app);
+
 var io = require('socket.io')(server);
 var pagerefresh=sf.nodetime()+' node page refreshed!'+'\n';
 fs.appendFile('./log/socketlog.log',pagerefresh,function(err){
@@ -36,8 +53,6 @@ fs.appendFile('./log/socketlog.log',pagerefresh,function(err){
 
 
 var formidable = require('formidable');
-var readChunk = import('read-chunk');
-var fileType = import('file-type');
 
 
 
@@ -60,8 +75,7 @@ var upload=multer({storage:storage});
 var session = require('express-session');
 const FileStore = require('session-file-store')(session);
 
-// app.set('port', process.env.PORT || 80);
-app.set('port', process.env.PORT || 443);
+
 app.set('view engine', 'pug');
 app.set('views', __dirname + '/views');
 app.use(express.static(__dirname + '/public'));
@@ -93,7 +107,7 @@ app.use(flash());
 var passport = require('passport')
 ,LocalStrategy = require('passport-local').Strategy;
 
-var User = require(path.prismbin+'user');
+var User = require('./bin/user');
 
 app.use(passport.initialize());
 app.use(passport.session());
@@ -432,16 +446,21 @@ io.of('/vdch').on('connection',function(socket){
 
 
 app.get('/', function(req, res) {
-	if(!req.session.num){
-		req.session.num=1;
-	}else{
-		req.session.num +=1;
-	}
+    // 세션 num 초기화 및 증가
+    if (!req.session.num) {
+        req.session.num = 1;
+    } else {
+        req.session.num += 1;
+    }
 
-	res.render('frontpage',{logincode:req.body.logincode});
+    // logincode 값 예외 처리 (req.body 자체에 대한 방어)
+    let logincode = ''; // 기본값 설정
+    if (req.body && typeof req.body.logincode !== 'undefined') {
+        logincode = req.body.logincode;
+    }
 
+    res.render('frontpage', { logincode: logincode });
 });
-
 
 app.get('/logout',function(req,res){
 	req.logout();
@@ -3592,10 +3611,15 @@ mmcp.on('connection',function(socket){
 		});
 	});
 	socket.on('mmcphwconcreate',function(a){
+		console.log('mmcphwconnect -1')
+
 		if(a.option==0){
 			sf.GetObjId('hwcon','mmcphwconnect',10,function(mpconid){
+				console.log('mmcphwconnect 0')
 			var concreate={mmcplistinfo:a.listinfo,mmcpconid:mpconid,mmcpprblist:a.mmcpprblist, createdate:sf.nodetime(), numprb:a.numprb,username:a.userid}
-				sf.getinfodb_par('insert into mmcphwconnect set ? ', concreate, function(){
+			console.log('mmcphwconnect 1')	
+			sf.getinfodb_par('insert into mmcphwconnect set ? ', concreate, function(){
+				console.log('mmcphwconnect 2')
 					socket.emit('mmcpconnectcreateafter');
 				});
 			});
@@ -7003,9 +7027,9 @@ app.use(function(err, req, res, next){
 });
 
 //app.listen(app.get('port'), function(){
-server.listen(app.get('port'), function(){
+server.listen(port, function(){
   console.log( 'Express started on http://localhost:' + 
-    app.get('port') + '; press Ctrl-C to terminate.' );
+    port + '; press Ctrl-C to terminate.' );
 });
 
 

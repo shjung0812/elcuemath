@@ -1,34 +1,28 @@
 <!DOCTYPE html>
 <html>
-
 <head>
     <title>엑셀 스크립트 음성 출력</title>
     <style>
         .script-item {
             cursor: pointer;
         }
-
         .speaking {
             background-color: #FFFF00;
             animation: speakingAnimation 1s infinite;
         }
-
         @keyframes speakingAnimation {
             0% {
                 opacity: 1;
             }
-
             50% {
                 opacity: 0.5;
             }
-
             100% {
                 opacity: 1;
             }
         }
     </style>
 </head>
-
 <body>
     <input type='file' id='fileInput' accept='.xlsx'>
     <input type='range' id='speedControl' min='0.1' max='3' step='0.1' value='2'>
@@ -79,10 +73,7 @@
                 });
                 scriptsList.appendChild(scriptItem);
             });
-
-
         }
-
 
         function speakScript(index) {
             if (index < scripts.length) {
@@ -90,31 +81,31 @@
 
                 fetch(`http://ai.elcue.org:3000/generate_audio`, {
                     method: 'POST',
-                    body: JSON.stringify({ text: script, index: index }),
+                    body: JSON.stringify({ text: script, index:index }),
                     headers: {
                         'Content-Type': 'application/json'
                     }
                 })
-                    .then(response => {
-                        if (response.ok) {
-                            console.log('response')
-                            console.log(response)
-                            return response.text();
-                        } else {
-                            throw new Error('오류 발생');
-                        }
-                    })
-                    .then(audioUrl => {
-                        console.log('audioUrl')
-                        console.log(audioUrl)
-                        const audiofilepath = JSON.parse(audioUrl).filepath
-                        console.log(audioUrl.filepath)
-                        audioPlayer.src = '/' + audiofilepath;
-                        audioPlayer.play();
-                    })
-                    .catch(error => {
-                        console.error(error);
-                    });
+                .then(response => {
+                    if (response.ok) {
+                        console.log('response')
+                        console.log(response)
+                        return response.text();
+                    } else {
+                        throw new Error('오류 발생');
+                    }
+                })
+                .then(audioUrl => {
+                    console.log('audioUrl')
+                    console.log(audioUrl)
+                    const audiofilepath=JSON.parse(audioUrl).filepath
+                    console.log(audioUrl.filepath)
+                    audioPlayer.src = '/'+audiofilepath;
+                    audioPlayer.play();
+                })
+                .catch(error => {
+                    console.error(error);
+                });
             }
         }
 
@@ -131,5 +122,4 @@
         }
     </script>
 </body>
-
 </html>

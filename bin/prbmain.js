@@ -1,8 +1,5 @@
 var prbid='p00013';
-var path=require('./prismpath.json');
-var plc=require(path.prismbin+'plangcho');
-var mbs=require(path.prismbin+'mathbasic');
-var sf=require(path.prismbin+'serverflow');
+var sf=require('./serverflow');
 
 var ts=[1,2];
 

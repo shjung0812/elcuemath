@@ -10,8 +10,7 @@ b=temp;
 return Math.abs(a);
 },
 rvar:function(an,avr,dis){
-var path=require('./prismpath.json');
-var rand=require(path.prismbin+'prbtest');
+var rand=require('./prbtest');
 var testva=[];
 var kk;
 var anl=an.length

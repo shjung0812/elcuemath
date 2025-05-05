@@ -1,5 +1,3 @@
-var path=require('./prismpath.json');
-var mb=require(path.prismbin+'mathbasic');
 module.exports={
 
 prbvariable:function(arglist){

@@ -68,7 +68,7 @@ def generate_audio_all():
     tts.save(output_path)  # 음성 파일을 저장
 
     # return send_from_directory(output_dir, 'output.mp3')
-    return send_from_directory(output_dir, 'output_scriptAll.mp3', as_attachment=True)
+    return {'result':'success','filepath':output_path}
 
 if __name__ == '__main__':
     if not os.path.exists(output_dir):

@@ -1,7 +1,6 @@
 // user
 
-var path=require('./prismpath.json');
-var sf = require(path.prismbin+'serverflow');
+var sf = require('./serverflow');
 
 		function User(username){
 			this.username=username;

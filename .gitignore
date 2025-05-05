@@ -2,5 +2,6 @@ public/
 log/
 syncserver/
 .env
+spam/
 
 node_modules

@@ -1445,7 +1445,70 @@ html
 
 
 			}
-			
+			function videoRaising(container){
+				/*	
+				var mentorvideobox = document.getElementById('mentorvideobox');
+
+				if(mentorvideobox!== null ){
+					mentorvideobox.remove();
+				}*/
+				removeByclassname("videobutton")
+				var mentorvideocontroltop=document.createElement('div');
+				mentorvideocontroltop.id='mentorvideocontroltop';
+				mentorvideocontroltop.className='videobutton'
+				var topbutton=document.createElement('button');
+				topbutton.innerHTML='비디오를 위로 이동';
+				topbutton.onclick=function(){moveVideobox("up")};
+				mentorvideocontroltop.appendChild(topbutton);
+				var sharepaperoptionbox = document.getElementById('sharepaperoptionbox');
+				sharepaperoptionbox.appendChild(mentorvideocontroltop);
+
+
+				var mentorvideocontroldown=document.createElement('div');
+				mentorvideocontroldown.id='mentorvideocontroldown';
+				mentorvideocontroldown.className='videobutton';
+				var downbutton=document.createElement('button');
+				downbutton.innerHTML='비디오를 아래로 이동';
+				downbutton.onclick=function(){moveVideobox("down")};
+				mentorvideocontroldown.appendChild(downbutton);
+				sharepaperoptionbox.appendChild(mentorvideocontroldown);
+
+
+
+
+				const remoteVideo = document.getElementById('mentorvideo');
+				console.log(remoteVideo.style.visibility);
+				if(remoteVideo.style.visibility=='hidden' || remoteVideo.style.visibility==''){
+					remoteVideo.style.visibility='visible';
+				}
+
+				remoteVideo.srcObject = remoteStream;
+				console.log('video up and sender stream is connected');
+
+
+
+
+				//only show mentee self video when mentor video connected
+				var rtrack = remoteStream.getTracks();
+				console.log(rtrack);
+				var chk=0;
+				for(var ia=0; ia<rtrack.length; ia++){
+					if(rtrack[ia].kind=='video'){
+						chk=1;
+						break;
+					}
+				}
+				if(chk==1){
+				const selfVideo = document.getElementById('selfvideo');
+					if(selfVideo.style.visibility=='hidden' || selfVideo.style.visibility==''){
+						selfVideo.style.visibility='visible';
+					}
+
+					selfVideo.srcObject = stream;
+				}
+				console.log('video up and sender stream is connected');
+
+			}	
 
 			async function getConnectedDevices(type){
 				const devices = await navigator.mediaDevices.enumerateDevices();
@@ -1592,7 +1655,7 @@ html
 				}else if(a.signalkind=='pcobjectreload'){
 					console.log('pcobjectreload');
 					//pcobjectReload();
-					//- socket.emit('communicationready');
+					socket.emit('communicationready');
 				}else {
 					console.log('error');
 				}
