@@ -2,6 +2,7 @@ public/jscontent
 public/nusd
 public/usernote
 public/uploadquestion
+public/prismpics
 log/
 syncserver/
 .env
