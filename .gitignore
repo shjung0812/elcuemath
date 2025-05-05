@@ -3,6 +3,7 @@ public/nusd
 public/usernote
 public/uploadquestion
 public/prismpics
+sessions/
 log/
 syncserver/
 .env
