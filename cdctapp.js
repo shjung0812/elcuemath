@@ -1288,6 +1288,7 @@ app.get('/mmcp/prbprint',function(req,res){
 
 app.post('/mmcphomework',function(req,res){
 	console.log('mmcphomework xhr');
+	console.log('__dirname',__dirname)
 	form = new formidable.IncomingForm();
 
 	//form.multiples = true;
@@ -1296,7 +1297,8 @@ app.post('/mmcphomework',function(req,res){
 	form.keepExtensions = true;
 	form.parse(req,function(a,b,c){//err,key_value1, keyvalue2;
 		//sf.GetObjId('uno','usernote',10,function(uid){
-			var rinfo={roundnum:b.roundnum,timeallocated:b.timeallocated,operationid:b.operationid,mmcpconid:b.mmcpconid,mmcpid:b.mmcpid,prbid:b.prbid,mpicid:c.file.originalFilename,username:b.username,createdate:sf.nodetime(),mpicorder:b.picnum,timepassed:b.timepassed};
+
+			var rinfo={roundnum:b.roundnum,timeallocated:b.timeallocated,operationid:b.operationid,mmcpconid:b.mmcpconid,mmcpid:b.mmcpid,prbid:b.prbid,mpicid:c.file[0].originalFilename,username:b.username,createdate:sf.nodetime(),mpicorder:b.picnum,timepassed:b.timepassed};
 			sf.getinfodb_par('insert into mmcphomework SET ?',rinfo,function(){
 				res.send('xhr mmcphomework succeed');
 			});
@@ -4449,18 +4451,69 @@ vdrg.on('connection',function(socket){
 	});
 	socket.on('getwebrtclog',function(a){
 		fs.readFile('./log/userpagerefresh.log','utf8',function(err,data){
-			var split1data=data.split('\n');
-			var split2data=[];
-			console.log(a);
-			for(var ia=split1data.length-1; ia>split1data.length-100; ia--){
-				if(split1data[ia].split(' ')[8]==a.username+',' || split1data[ia].split(' ')[8]=='wrss-'+a.mentorid+','){
-					split2data.push(split1data[ia]);
+			let split1data = []; // 파일이 없거나 비어있으면 빈 배열로 시작
+			let split2data = [];
+
+			if (err) {
+				// 파일 읽기 중 오류 발생
+				if (err.code === 'ENOENT') {
+					// 파일이 존재하지 않는 오류 (ENOENT)인 경우
+					console.log('./log/userpagerefresh.log 파일이 없습니다. 빈 데이터로 처리합니다.');
+					// data 변수는 undefined 또는 null일 것이므로 split1data를 빈 배열로 둡니다.
+					split1data = [];
+				} else {
+					// 다른 종류의 파일 읽기 오류인 경우
+					console.error('로그 파일 읽기 오류:', err);
+					// 다른 오류 발생 시에는 빈 데이터를 보내고 함수를 종료합니다.
+					socket.emit('getwebrtclogafter',{data:[]});
+					return; // 콜백 함수 종료
+				}
+			} else {
+				// 파일 읽기 성공
+				// 파일 내용이 비어있는 경우를 처리 (data가 빈 문자열일 수 있음)
+				if (data === null || data === undefined || data === '') {
+					split1data = [];
+				} else {
+					split1data=data.split('\n');
 				}
 			}
+
+			// 여기까지 오면 split1data는 파일의 내용이거나 (읽기 성공 시),
+			// 파일이 없거나 비어있어서 빈 배열이 됩니다.
+
+			console.log(a);
+
+			// 배열이 비어있지 않은 경우에만 순회 및 필터링
+			// 순회 시작 인덱스 계산 (마지막부터 최대 100개)
+			const startIndex = split1data.length - 1;
+			// 순회 종료 인덱스 계산 (0번 인덱스까지 또는 마지막 100개 중 가장 앞의 인덱스)
+			// Math.max(-1, ...)를 사용하는 이유는 ia > endIndex 조건 때문입니다.
+			// 예를 들어 lines.length가 50이면 endIndex는 Math.max(-1, 50-100) = Math.max(-1, -50) = -1 이 되어
+			// ia는 49부터 0까지 (ia > -1) 순회하게 됩니다.
+			const endIndex = Math.max(-1, split1data.length - 101);
+
+
+			for(var ia = startIndex; ia > endIndex; ia--){
+				const line = split1data[ia]; // 현재 줄 가져오기
+
+				// 줄이 유효하고 (null, undefined, 빈 문자열 아님) 특정 조건에 맞는지 확인
+                // line.split(' ') 전에 line이 유효한지 체크하고,
+                // split 결과 배열의 길이가 최소 9인지 (인덱스 8에 접근하기 위해) 체크해야 안전합니다.
+                if (line && line.trim().length > 0) { // 줄이 비어있지 않고 공백만 있지 않은 경우
+                    const parts = line.split(' ');
+                    if (parts.length > 8) { // 공백으로 나눈 부분이 9개 이상인 경우 (인덱스 8 존재)
+                        const field8 = parts[8];
+                        // a.username과 a.mentorid가 존재하는지 확인하는 것이 안전합니다.
+                        if ((a && a.username && field8 === a.username + ',') || (a && a.mentorid && field8 === 'wrss-' + a.mentorid + ',')) {
+                            split2data.push(line);
+                        }
+                    }
+                }
+			}
+
+			// 필터링된 데이터 또는 빈 배열을 소켓으로 전송
 			socket.emit('getwebrtclogafter',{data:split2data});
-			//var userrelateddata=splitdata;
-			//es.render('log/login',{data:data.split('\n'),userinfo:req.user});
-		});
+		});		
 
 	});
 

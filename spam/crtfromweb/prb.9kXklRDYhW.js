@@ -8,10 +8,10 @@
 	var rst=pr.AnsFuncc([[1,10,1],[1,15,1]]);
 	var Nans=rst[1];
 
-	var cho1=` 19 `;
-	var cho2=` 17 `;
-	var cho3=` 18 `;
-	var ans=` 20 `;
+	var cho1=` 490 `;
+	var cho2=` 480 `;
+	var cho3=` 470 `;
+	var ans=` 450 `;
 	prbcontent=`prbcontent=`+prbrows;
 	eval(prbcontent);
 
