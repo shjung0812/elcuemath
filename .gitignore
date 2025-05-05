@@ -1,4 +1,6 @@
-public/
+public/jscontent
+public/nusd
+public/usernote
 log/
 syncserver/
 .env
