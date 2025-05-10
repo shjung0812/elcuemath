@@ -2,7 +2,6 @@
 
 # 스크립트 실행 시 에러 발생 시 즉시 종료
 set -e
-
 # --- 변수 설정 ---
 SOURCE_DIR="/home/morgan/downloads"        # 복사할 원본 서버의 폴더 경로로 변경하세요.
 TARGET_DIR="/home/morgan/web"             # 새로운 서버에 복사할 대상 폴더 경로로 변경하세요.
