@@ -2,19 +2,30 @@
 #set -x # 이 줄 추가
 
 # --- 설정 변수 ---
-# MySQL 설정
-USER_ID="morgan"
-DB_USER="shjung"         # MySQL 사용자 이름
-DB_PASSWORD="" # MySQL 비밀번호 (보안 경고: 스크립트에 직접 쓰는 것은 위험)
-DB_NAME="prismmath"      # 백업할 데이터베이스 이름
+# .env 파일 로드
+script_dir=$(dirname "$(readlink -f "$0")")
+env_file_path=$(dirname "$script_dir")/../.env
+
+if [ -f "$env_file_path" ]; then
+  while IFS='=' read -r key value; do
+    export "$key"="$value"
+  done < "$env_file_path"
+fi
+
+# MySQL 설정 (환경 변수 우선, .env 파일에서 로드됨)
+USER_ID="${USER_ID:-morgan}"
+DB_USER="${DB_USER}"
+DB_PASSWORD="${DB_PASSWORD}"
+DB_NAME="${DB_NAME}"
+DB_HOST="${DB_HOST:-localhost}"
 
 # 프로젝트 설정
 PROJECT_DIR="/home/$USER_ID/web/elcuemath" # 백업할 프로젝트 폴더 전체 경로
 
 # 백업 설정
 BACKUP_DIR="/home/$USER_ID/web/backup" # 백업 파일을 저장할 디렉토리 (중요: 프로젝트 외부!)
-TIMESTAMP=$(date +"%Y%m%d_%H%M%S")       # 백업 파일에 사용할 시간 정보 (YYYYMMDD_HHMMSS 형식)
-RETENTION_COUNT=7                         # 유지할 최근 백업 개수 (예: 7개 = 7일치 백업)
+TIMESTAMP=$(date +"%Y%m%d_%H%M%S")          # 백업 파일에 사용할 시간 정보 (YYYYMMDD_HHMMSS 형식)
+RETENTION_COUNT="${RETENTION_COUNT:-7}"      # 유지할 최근 백업 개수 (기본값: 7)
 
 # --- 스크립트 본문 ---
 
@@ -26,20 +37,18 @@ if [ ! -d "$BACKUP_DIR" ]; then
   mkdir -p "$BACKUP_DIR"
   # 백업 디렉토리 권한 설정 (스크립트를 실행하는 사용자만 접근 가능하도록 설정)
   chmod 700 "$BACKUP_DIR"
-  chown $(whoami):$(whoami) "$BACKUP_DIR" # 현재 스크립트 실행 사용자로 소유자 변경
+  chown "$(whoami)":"$(whoami)" "$BACKUP_DIR" # 현재 스크립트 실행 사용자로 소유자 변경
 fi
 
 # 2. MySQL 데이터베이스 덤프
 echo "MySQL 덤프 생성 중..."
-# mysqldump 명령에 -p 옵션 바로 뒤에 비밀번호를 붙여 사용합니다. (보안상 .my.cnf 권장)
-# 또는 DB_PASSWORD 변수를 직접 사용합니다.
-# 보안 강화를 위해 비밀번호를 직접 쓰지 않고 .my.cnf 파일을 사용하는 방법은 아래 설명 참조
-# mysqldump -u "$DB_USER" -p"$DB_PASSWORD" "$DB_NAME" | gzip > "$BACKUP_DIR/mysql_dump_$TIMESTAMP.sql.gz"
-
-# .my.cnf 파일을 사용하는 안전한 방식 (권장)
-# ~/.my.cnf 파일에 [mysqldump] 또는 [client] 섹션에 user=... password=... 설정
-# 이 스크립트를 실행하는 사용자의 홈 디렉토리에 해당 파일이 있어야 합니다.
-mysqldump -u "$DB_USER" "$DB_NAME" | gzip > "$BACKUP_DIR/mysql_dump_$TIMESTAMP.sql.gz"
+# 환경 변수 DB_PASSWORD가 설정되어 있다면 사용
+if [ -n "$DB_PASSWORD" ]; then
+  mysqldump -h "$DB_HOST" -u "$DB_USER" -p"$DB_PASSWORD" "$DB_NAME" | gzip > "$BACKUP_DIR/mysql_dump_$TIMESTAMP.sql.gz"
+else
+  echo "경고: DB_PASSWORD 환경 변수가 설정되지 않았습니다. .my.cnf 파일을 사용합니다."
+  mysqldump -h "$DB_HOST" -u "$DB_USER" "$DB_NAME" | gzip > "$BACKUP_DIR/mysql_dump_$TIMESTAMP.sql.gz"
+fi
 
 if [ ${PIPESTATUS[0]} -ne 0 ]; then
   echo "오류: MySQL 덤프 실패"

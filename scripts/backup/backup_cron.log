@@ -1,0 +1,5 @@
+--- 백업 시작: 20250510_130001 ---
+MySQL 덤프 생성 중...
+경고: DB_PASSWORD 환경 변수가 설정되지 않았습니다. .my.cnf 파일을 사용합니다.
+mysqldump: Got error: 1045: Access denied for user 'morgan'@'localhost' (using password: YES) when trying to connect
+오류: MySQL 덤프 실패
