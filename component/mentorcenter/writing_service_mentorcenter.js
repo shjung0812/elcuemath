@@ -102,7 +102,6 @@ myPics.addEventListener('mousedown', e => {
 });
 
 myPics.addEventListener('mousemove', e => {
-    console.log('mousemove',e)
     if(drawingFigure.line.isLining){
 
     }else{
@@ -315,127 +314,127 @@ var beginningoffset = 0.6;
 
 
 
-myPics.addEventListener('pointerdown', function (e) {
-	console.log('pointer down end')
-    if (e.pointerType == 'pen') {
-        if (drawingFigure.line.isLining) {
-            pointerdown = 0
+// myPics.addEventListener('pointerdown', function (e) {
+// 	console.log('pointer down end')
+//     if (e.pointerType == 'pen') {
+//         if (drawingFigure.line.isLining) {
+//             pointerdown = 0
 
-            const linex = e.clientX - rect.left;
-            const liney = e.clientY - rect.top;
-            drawingFigure.line.start.x = linex
-            drawingFigure.line.start.y = liney
-
-
-        } else {
-            pointerdown = 1;
-
-            if (stat.code != 'eraser' && stat.code != 'tusereraser' && stat.code != environdefine.layereraser[2]) {
-                if (stat.size > (stdpensize + maxstdpensize)) {
-                } else {
-                    stat.size = stdpensize * beginningoffset + maxstdpensize * e.pressure;
-                }
-
-            } else {
-                stat.size = stdpensize * 16
-            }
-        }
+//             const linex = e.clientX - rect.left;
+//             const liney = e.clientY - rect.top;
+//             drawingFigure.line.start.x = linex
+//             drawingFigure.line.start.y = liney
 
 
-    } else {
-        if (stat.code != 'eraser' && stat.code != 'tusereraser' && stat.code != environdefine.layereraser[2]) {
-            stat.size = stdpensize;
-        } else {
-            stat.size = stdpensize * 16
-        }
+//         } else {
+//             pointerdown = 1;
 
-    }
-}, false);
+//             if (stat.code != 'eraser' && stat.code != 'tusereraser' && stat.code != environdefine.layereraser[2]) {
+//                 if (stat.size > (stdpensize + maxstdpensize)) {
+//                 } else {
+//                     stat.size = stdpensize * beginningoffset + maxstdpensize * e.pressure;
+//                 }
 
-    if(drawingFigure.line.isLining){
+//             } else {
+//                 stat.size = stdpensize * 16
+//             }
+//         }
 
-    }else{
-        if (isDrawing === true) {
-            drawLine(context, x, y, e.clientX - rect.left, e.clientY - rect.top, stat, 0);
-            x = e.clientX - rect.left;
-            y = e.clientY - rect.top;
-            if (typeof chosenusersocketid !== 'undefined') {
-                socket.emit('mentortomenteedraw', { pos: convertToratio(x, y), mousestat: 'move', usersocketid: chosenusersocketid, statoption: stat })
-            }
-        }
 
-    }
+//     } else {
+//         if (stat.code != 'eraser' && stat.code != 'tusereraser' && stat.code != environdefine.layereraser[2]) {
+//             stat.size = stdpensize;
+//         } else {
+//             stat.size = stdpensize * 16
+//         }
+
+//     }
+// }, false);
+
+//     if(drawingFigure.line.isLining){
+
+//     }else{
+//         if (isDrawing === true) {
+//             drawLine(context, x, y, e.clientX - rect.left, e.clientY - rect.top, stat, 0);
+//             x = e.clientX - rect.left;
+//             y = e.clientY - rect.top;
+//             if (typeof chosenusersocketid !== 'undefined') {
+//                 socket.emit('mentortomenteedraw', { pos: convertToratio(x, y), mousestat: 'move', usersocketid: chosenusersocketid, statoption: stat })
+//             }
+//         }
+
+//     }
     
 
-myPics.addEventListener('pointermove', function (e) {
-    if (pointerdown == 1) {
+// myPics.addEventListener('pointermove', function (e) {
+//     if (pointerdown == 1) {
 
-        if (e.pointerType == 'pen') {
-            if (stat.code != 'eraser' && stat.code != 'tusereraser' && stat.code != environdefine.layereraser[2]) {
+//         if (e.pointerType == 'pen') {
+//             if (stat.code != 'eraser' && stat.code != 'tusereraser' && stat.code != environdefine.layereraser[2]) {
 
-                if (stat.size > (stdpensize + maxstdpensize)) {
-                } else {
-                    stat.size = stdpensize * beginningoffset + maxstdpensize * e.pressure;
-                }
-            } else {
-                //if(stat.code=='eraser'){
-                indcon.strokeStyle = '#000000';
-                indcon.beginPath();
-                indcon.arc(x, y, 10, 0, 2 * Math.PI, true)
-                indcon.closePath();
-                indcon.stroke();
-                indcon.fill();
+//                 if (stat.size > (stdpensize + maxstdpensize)) {
+//                 } else {
+//                     stat.size = stdpensize * beginningoffset + maxstdpensize * e.pressure;
+//                 }
+//             } else {
+//                 //if(stat.code=='eraser'){
+//                 indcon.strokeStyle = '#000000';
+//                 indcon.beginPath();
+//                 indcon.arc(x, y, 10, 0, 2 * Math.PI, true)
+//                 indcon.closePath();
+//                 indcon.stroke();
+//                 indcon.fill();
 
-            }
-        } else {
-        }
+//             }
+//         } else {
+//         }
 
-    }
-}, false);
+//     }
+// }, false);
 
-myPics.addEventListener('pointerup', function (e) {
-	console.log('pointer up')
+// myPics.addEventListener('pointerup', function (e) {
+// 	console.log('pointer up')
 
-    pointerdown = 0;
-    if (stat.code == 'eraser' || stat.code == 'tusereraswer' || environdefine.layereraser[2]) {
-        setTimeout(function () {
-            indcon.clearRect(0, 0, indicatepic.width, indicatepic.height)
-        }, 100);
-    }
-    if (drawingFigure.line.isLining) {
-        console.log('pointerup')
+//     pointerdown = 0;
+//     if (stat.code == 'eraser' || stat.code == 'tusereraswer' || environdefine.layereraser[2]) {
+//         setTimeout(function () {
+//             indcon.clearRect(0, 0, indicatepic.width, indicatepic.height)
+//         }, 100);
+//     }
+//     if (drawingFigure.line.isLining) {
+//         console.log('pointerup')
 
-        const endx = e.clientX - rect.left;
-        const endy = e.clientY - rect.top;
+//         const endx = e.clientX - rect.left;
+//         const endy = e.clientY - rect.top;
 
-        drawingFigure.line.end.x = endx;
-        drawingFigure.line.end.y = endy;
+//         drawingFigure.line.end.x = endx;
+//         drawingFigure.line.end.y = endy;
 
-        context.beginPath()
-        context.strokeStyle = stat.color;
-        context.moveTo(drawingFigure.line.start.x, drawingFigure.line.start.y)
+//         context.beginPath()
+//         context.strokeStyle = stat.color;
+//         context.moveTo(drawingFigure.line.start.x, drawingFigure.line.start.y)
 
-        context.lineCap = 'round';
-        context.lineJoin = 'round';
-        context.lineTo(drawingFigure.line.end.x, drawingFigure.line.end.y);
-        context.globalCompositeOperation = 'source-over';
-        context.lineWidth = apppensize * stat.size;
-
-
-
-        context.stroke();
-        context.closePath();
-
-
-        socket.emit('mentortomenteedrawobject', { positionInfo: { startPosition: convertToratio(drawingFigure.line.start.x, drawingFigure.line.start.y), endPosition: convertToratio(drawingFigure.line.end.x, drawingFigure.line.end.y) }, drawobjectmode: 'object_line', usersocketid: chosenusersocketid, statoption: stat })
+//         context.lineCap = 'round';
+//         context.lineJoin = 'round';
+//         context.lineTo(drawingFigure.line.end.x, drawingFigure.line.end.y);
+//         context.globalCompositeOperation = 'source-over';
+//         context.lineWidth = apppensize * stat.size;
 
 
 
+//         context.stroke();
+//         context.closePath();
 
-    }
+
+//         socket.emit('mentortomenteedrawobject', { positionInfo: { startPosition: convertToratio(drawingFigure.line.start.x, drawingFigure.line.start.y), endPosition: convertToratio(drawingFigure.line.end.x, drawingFigure.line.end.y) }, drawobjectmode: 'object_line', usersocketid: chosenusersocketid, statoption: stat })
 
 
-}, false);
+
+
+//     }
+
+
+// }, false);
 
 
 function drawLine(context, x1, y1, x2, y2, vstat, mode) {
