@@ -79,6 +79,7 @@ var drawingFigure = { line: { start: { x: 0, y: 0 }, end: { x: 0, y: 0 }, isLini
 
 //Add the event listeners for mousedown, mousemove, and mouseup
 myPics.addEventListener('mousedown', e => {
+	console.log('mousedown')
     x = e.clientX - rect.left;
     y = e.clientY - rect.top;
 
@@ -101,10 +102,13 @@ myPics.addEventListener('mousedown', e => {
 });
 
 myPics.addEventListener('mousemove', e => {
+    console.log('mousemove',e)
     if(drawingFigure.line.isLining){
 
     }else{
-        if (isDrawing === true) {
+        const constantIntent=20
+        const isUnintendedKick =  Math.abs(e.movementX)>constantIntent || Math.abs(e.movementY)>constantIntent
+        if (isDrawing === true && !isUnintendedKick) {
             drawLine(context, x, y, e.clientX - rect.left, e.clientY - rect.top, stat, 0);
             x = e.clientX - rect.left;
             y = e.clientY - rect.top;
@@ -117,7 +121,8 @@ myPics.addEventListener('mousemove', e => {
     
 });
 
-window.addEventListener('mouseup', e => {
+myPics.addEventListener('mouseup', e => {
+	console.log('mouse up')
 
     if (drawingFigure.line.isLining) {
 
@@ -236,6 +241,7 @@ function sketchpad_touchMove(e) {
 
 
 function sketchpad_touchEnd(e) {
+	console.log('touch end')
     if (stat.code == 'eraser') {
         setTimeout(function () {
             indcon.clearRect(0, 0, indicatepic.width, indicatepic.height)
@@ -310,6 +316,7 @@ var beginningoffset = 0.6;
 
 
 myPics.addEventListener('pointerdown', function (e) {
+	console.log('pointer down end')
     if (e.pointerType == 'pen') {
         if (drawingFigure.line.isLining) {
             pointerdown = 0
@@ -345,6 +352,21 @@ myPics.addEventListener('pointerdown', function (e) {
     }
 }, false);
 
+    if(drawingFigure.line.isLining){
+
+    }else{
+        if (isDrawing === true) {
+            drawLine(context, x, y, e.clientX - rect.left, e.clientY - rect.top, stat, 0);
+            x = e.clientX - rect.left;
+            y = e.clientY - rect.top;
+            if (typeof chosenusersocketid !== 'undefined') {
+                socket.emit('mentortomenteedraw', { pos: convertToratio(x, y), mousestat: 'move', usersocketid: chosenusersocketid, statoption: stat })
+            }
+        }
+
+    }
+    
+
 myPics.addEventListener('pointermove', function (e) {
     if (pointerdown == 1) {
 
@@ -372,6 +394,7 @@ myPics.addEventListener('pointermove', function (e) {
 }, false);
 
 myPics.addEventListener('pointerup', function (e) {
+	console.log('pointer up')
 
     pointerdown = 0;
     if (stat.code == 'eraser' || stat.code == 'tusereraswer' || environdefine.layereraser[2]) {
