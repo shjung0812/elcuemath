@@ -106,9 +106,9 @@ myPics.addEventListener('mousemove', e => {
     if(drawingFigure.line.isLining){
 
     }else{
-        const constantIntent=20
-        const isUnintendedKick =  Math.abs(e.movementX)>constantIntent || Math.abs(e.movementY)>constantIntent
-        if (isDrawing === true && !isUnintendedKick) {
+        
+        
+        if (isDrawing === true) {
             drawLine(context, x, y, e.clientX - rect.left, e.clientY - rect.top, stat, 0);
             x = e.clientX - rect.left;
             y = e.clientY - rect.top;
