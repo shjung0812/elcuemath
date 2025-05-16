@@ -967,6 +967,7 @@ html
 
 			function userImmediateHistory(studentid,dttime){
 				if(typeof studentid !='undefined'){
+					console.log(studentid,dttime)
 					socket.emit('userimmediatehistory',{studentid:studentid,dtime:dttime,mode:'immediatehistory',returnsocket:'vdrggetprblist'});
 				}else{
 					alert('no studentid is selectd yet');

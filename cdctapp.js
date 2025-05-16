@@ -3173,6 +3173,7 @@ mmcp.on('connection',function(socket){
 
 
 	socket.on('userimmediatehistory',function(a){
+		console.log('a',a)
 		if(a.mode=='immediatehistory'){
 		sf.getinfodb('select distinct prbid, numid, hisopt from rdcthistory where username="'+a.studentid+'" and (createdate between date_add(now(),interval -'+a.dtime+' hour) and now())',function(b){
 
