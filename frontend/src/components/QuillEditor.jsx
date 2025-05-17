@@ -17,12 +17,12 @@ function QuillEditor() {
 
   return (
     <div className="bg-white p-6 rounded-md shadow-md">
-<button
-  className="bg-blue-600 hover:bg-blue-800 text-green-300 font-bold py-2 px-4 rounded mb-4 focus:outline-none focus:shadow-outline"
-  onClick={togglePreview}
->
-  {showPreview ? '에디터만 보기' : '에디터와 미리보기 같이 보기'}
-</button>
+      <button
+        className="bg-blue-600 hover:bg-blue-800 text-green-300 font-bold py-2 px-4 rounded mb-4 focus:outline-none focus:shadow-outline"
+        onClick={togglePreview}
+      >
+        {showPreview ? '에디터만 보기' : '에디터와 미리보기 같이 보기'}
+      </button>
 
       <div className={showPreview ? 'flex flex-row gap-8' : 'flex justify-center'}>
         <div className={showPreview ? 'w-1/2' : 'w-full'}>
