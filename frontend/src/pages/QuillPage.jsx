@@ -3,7 +3,7 @@ import QuillEditor from '../components/QuillEditor';
 
 function QuillPage() {
   return (
-    <div className="flex justify-center items-start min-h-screen">
+    <div>
       <QuillEditor />
     </div>
   );

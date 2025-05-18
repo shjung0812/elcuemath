@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import Home from './pages/Home';
-import './App.css'
 import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 import QuillPage from './pages/QuillPage';
+
 function App() {
   return (
     <BrowserRouter>
