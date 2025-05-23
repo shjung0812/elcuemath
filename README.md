@@ -43,3 +43,9 @@ password="@soojunglove@"
 user=shjung
 password="@soojunglove@"
 
+
+#crontab -e
+*/10 * * * * /bin/bash /home/morgan/web/elcuemath/scripts/backup/backup_elcuemath.sh > /home/morgan/web/elcuemath/scripts/backup/backup_cron.log 2>&1 
+
+
+
