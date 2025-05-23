@@ -1,28 +1,32 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import ReactQuill, { Quill } from 'react-quill'; // Quill 객체를 함께 임포트합니다.
+import ReactQuill, { Quill } from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
-import ImageResize from 'quill-image-resize-module-react'; // 설치한 모듈을 임포트합니다.
+import ImageResize from 'quill-image-resize-module-react';
+import { fetchWithOutCSRF } from '../../../utils/requests';
 
-// ImageResize 모듈을 Quill에 등록합니다. 이 코드는 컴포넌트 외부, 파일 상단에 위치해야 합니다.
-// true를 세 번째 인자로 전달하면, 다른 라이브러리에 의해 이미 등록된 경우 덮어쓰도록 허용할 수 있습니다.
 Quill.register('modules/imageResize', ImageResize);
 
 function QuillEditorWithImage() {
   const [value, setValue] = useState('');
+  const [title, setTitle] = useState(''); // <-- 1. title 상태 추가
   const [showPreview, setShowPreview] = useState(true);
   const quillRef = useRef(null);
   const previewRef = useRef(null);
 
   const handleChange = useCallback((newValue) => {
     setValue(newValue);
-    // console.log('Editor content updated via handleChange:', newValue);
   }, []);
 
-  const togglePreview = () => {
-    setShowPreview(!showPreview);
-  };
+  // <-- 2. title 입력 필드 핸들러 추가
+  const handleTitleChange = useCallback((e) => {
+    setTitle(e.target.value);
+  }, []);
 
-  const copyToPlainText = async () => {
+  const togglePreview = useCallback(() => {
+    setShowPreview(prev => !prev);
+  }, []);
+
+  const copyToPlainText = useCallback(async () => {
     if (quillRef.current) {
       const editor = quillRef.current.getEditor();
       const plainText = editor.getText();
@@ -34,9 +38,9 @@ function QuillEditorWithImage() {
         alert('텍스트 복사에 실패했습니다. 브라우저 설정을 확인해주세요.');
       }
     }
-  };
+  }, []);
 
-  const copyToHtml = async () => {
+  const copyToHtml = useCallback(async () => {
     if (quillRef.current) {
       const editor = quillRef.current.getEditor();
       const htmlContent = editor.root.innerHTML;
@@ -48,9 +52,9 @@ function QuillEditorWithImage() {
         alert('HTML 복사에 실패했습니다. 브라우저 설정을 확인해주세요.');
       }
     }
-  };
+  }, []);
 
-  const copyToJson = async () => {
+  const copyToJson = useCallback(async () => {
     if (quillRef.current) {
       const editor = quillRef.current.getEditor();
       const jsonContent = JSON.stringify(editor.getContents());
@@ -62,7 +66,7 @@ function QuillEditorWithImage() {
         alert('JSON 복사에 실패했습니다. 브라우저 설정을 확인해주세요.');
       }
     }
-  };
+  }, []);
 
   const imageHandler = useCallback(() => {
     if (!quillRef.current) {
@@ -101,6 +105,51 @@ function QuillEditorWithImage() {
     };
   }, [handleChange]);
 
+  const handleSaveDelta = useCallback(async () => {
+    if (!quillRef.current) {
+      console.error("Quill editor instance not available.");
+      return;
+    }
+
+    // <-- 3. 저장 시 title 유효성 검사 및 전송
+    if (!title.trim()) {
+      alert('제목을 입력해주세요.');
+      return;
+    }
+
+    const editor = quillRef.current.getEditor();
+    const delta = editor.getContents();
+    const htmlContent = editor.root.innerHTML; // HTML 내용도 함께 보낼 경우
+
+    try {
+      const response = await fetchWithOutCSRF({
+        url: '/contents/savewriting',
+        method: 'post',
+        body: {
+          title: title, // <-- 4. title도 body에 추가
+          delta: delta,
+          // htmlContent: htmlContent // 필요하다면
+        }
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        alert('Delta 데이터가 성공적으로 저장되었습니다.');
+        console.log('Delta 저장 성공:', result);
+        // 저장 성공 후 필요한 로직 (예: 상태 초기화, 메시지 표시)을 추가할 수 있습니다.
+        // setTitle(''); // 저장 후 제목 초기화
+        // setValue(''); // 저장 후 에디터 내용 초기화
+      } else {
+        const errorData = await response.json();
+        console.error('Delta 데이터 저장 실패:', errorData);
+        alert(`Delta 데이터 저장에 실패했습니다: ${errorData.message || response.statusText}`);
+      }
+    } catch (error) {
+      console.error('Delta 데이터 저장 중 오류 발생:', error);
+      alert('Delta 데이터 저장 중 네트워크 오류가 발생했습니다.');
+    }
+  }, [title]); // <-- title 상태가 변경될 때마다 handleSaveDelta를 다시 생성
+
   const modules = React.useMemo(() => ({
     toolbar: {
       container: [
@@ -123,26 +172,8 @@ function QuillEditorWithImage() {
         image: imageHandler,
       },
     },
-    // imageResize 모듈 설정을 추가합니다.
     imageResize: {
-      // parchment: Quill.import('parchment'), // quill-image-resize-module-react에서는 이 줄이 없어도 잘 동작하는 경우가 많습니다.
-      modules: ['Resize', 'DisplaySize', 'Toolbar'], // 원하는 기능만 선택할 수 있습니다 (예: Resize만)
-      // 핸들 스타일, 툴바 스타일 등도 여기서 커스터마이징 가능합니다.
-      // 예: handles: 'all' (모든 핸들) 또는 ['nw', 'ne', 'se', 'sw'] (특정 핸들만)
-      // displayStyles: {
-      //   backgroundColor: 'black',
-      //   border: 'none',
-      //   color: 'white'
-      // },
-      // handleStyles: {
-      //   backgroundColor: 'black',
-      //   border: 'none',
-      //   color: 'white',
-      //   // width, height 등
-      // },
-      // toolbarStyles: {
-      //   // 이미지 선택 시 나타나는 툴바 스타일
-      // }
+      modules: ['Resize', 'DisplaySize', 'Toolbar'],
     }
   }), [imageHandler]);
 
@@ -185,7 +216,29 @@ function QuillEditorWithImage() {
           >
             Quill JSON 복사
           </button>
+          <button
+            type="button"
+            className="bg-teal-500 hover:bg-teal-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+            onClick={handleSaveDelta}
+          >
+            Delta로 저장
+          </button>
         </div>
+      </div>
+
+      {/* <-- 5. 제목 입력 필드 추가 */}
+      <div className="mb-4">
+        <label htmlFor="contentTitle" className="block text-gray-700 text-sm font-bold mb-2">
+          제목
+        </label>
+        <input
+          type="text"
+          id="contentTitle"
+          className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+          placeholder="제목을 입력하세요"
+          value={title}
+          onChange={handleTitleChange}
+        />
       </div>
 
       <div className={showPreview ? 'flex flex-row gap-8' : 'flex justify-center'}>
@@ -196,14 +249,11 @@ function QuillEditorWithImage() {
             value={value}
             onChange={handleChange}
             theme="snow"
-            modules={modules} // 업데이트된 modules 객체를 전달합니다.
+            modules={modules}
             formats={[
               'bold', 'italic', 'underline', 'strike', 'blockquote', 'code-block',
               'header', 'list', 'script', 'indent', 'direction', 'size', 'color',
               'background', 'font', 'align', 'clean', 'image',
-              // imageResize 모듈이 사용하는 'width', 'height', 'style' 등의 포맷도 허용될 수 있도록
-              // 명시적으로 추가하거나, Quill의 기본 동작에 맡길 수 있습니다.
-              // 보통은 별도로 추가하지 않아도 잘 동작합니다.
             ]}
             className="bg-gray-50 border border-gray-300 rounded-md"
           />
