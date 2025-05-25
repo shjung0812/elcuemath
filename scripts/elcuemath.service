@@ -1,0 +1,18 @@
+[Unit]
+Description=Elcue math
+After=network.taget
+[Service]
+
+ExecStart=/bin/bash -c 'LOGFILE="/home/morgan/web/elcuemath/log/startup_error_$(date +%%Y%%m%%d_%%H%%M%%S).log"; node ./cdctapp.js >> /home/morgan/web/elcuemath/log/log_output.log 2>> >(while IFS= read -r line; do echo "$(date +%%Y-%%m-%%d %%H:%%M:%%S) $line"; done >> "$LOGFILE")'
+
+Restart=always
+User=root
+Group=root
+WorkingDirectory=/home/morgan/web/elcuemath
+StandardError=append:/home/morgan/web/elcuemath/log/log_error.log
+StandardOutput=append:/home/morgan/web/elcuemath/log/log_output.log
+Environment="PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+
+
+[Install]
+WantedBy=multi-user.target

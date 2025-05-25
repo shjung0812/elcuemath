@@ -3,15 +3,15 @@
 # 스크립트 실행 시 에러 발생 시 즉시 종료
 set -e
 # --- 변수 설정 ---
-SOURCE_DIR="/home/morgan/downloads"        # 복사할 원본 서버의 폴더 경로로 변경하세요.
-TARGET_DIR="/home/morgan/web"             # 새로운 서버에 복사할 대상 폴더 경로로 변경하세요.
+SOURCE_DIR="/home/seokhyun/downloads"        # 복사할 원본 서버의 폴더 경로로 변경하세요.
+TARGET_DIR="/home/seokhyun/web"             # 새로운 서버에 복사할 대상 폴더 경로로 변경하세요.
 TAR_FILE="project_backup_20250510_094510.tar.gz"          # 압축 해제할 tar 파일 이름 (SOURCE_DIR 안에 있어야 함)
 MYSQL_ROOT_PASSWORD="@131071vangogh@" # MySQL root 비밀번호로 변경하세요.
 MYSQL_USER="shjung"          # 생성할 MySQL 사용자 이름으로 변경하세요.
 MYSQL_PASSWORD="@soojunglove@"         # 생성할 MySQL 사용자 비밀번호로 변경하세요.
 MYSQL_DATABASE="prismmath"          # 생성할 MySQL 데이터베이스 이름으로 변경하세요.
-MYSQL_DUMP_FILE="mysql_dump_20250510_094510.sql.gz"          # 실행할 MySQL dump 파일 이름 (SOURCE_DIR 안에 있어야 함)
-SFTP_USER="morgan"        # SFTP 사용자 계정
+MYSQL_DUMP_FILE="mysql_dump_20250510_094510.sql"          # 실행할 MySQL dump 파일 이름 (SOURCE_DIR 안에 있어야 함)
+SFTP_USER="seokhyun"        # SFTP 사용자 계정
 SFTP_USER_HOME="/home/$SFTP_USER" # SFTP 사용자 홈 디렉토리
 PROJECT_DIR="elcuemath"
 
@@ -310,7 +310,7 @@ install_modules() {
     exit 1
   fi
 }
-configure_mysql() {
+configure_mysql_user() {
   echo ""
   echo "MySQL 사용자 생성 및 데이터베이스 설정 시작 (권한 부여 포함)..."
 
@@ -374,7 +374,7 @@ configure_mysql() {
     exit 1
   fi
 }
-import_database() {
+import_mysql_dump() {
   echo ""
   echo "MySQL 데이터베이스 dump 파일 가져오기 시작..."
 
@@ -496,10 +496,10 @@ grant_remote_access() {
   echo "--- 연결 테스트 시작 ---"
 
   # 연결 테스트
-  if mysql -h"%" -u"${MYSQL_USER}" -p"${MYSQL_PASSWORD}" -e "SELECT 1;" > /dev/null 2>&1; then
-    echo "MySQL 서버(모든 IP)에 사용자 '${MYSQL_USER}'로 연결 성공!"
+  if mysql -h"127.0.0.1" -u"${MYSQL_USER}" -p"${MYSQL_PASSWORD}" -e "SELECT 1;" > /dev/null 2>&1; then
+    echo "MySQL 서버에 사용자 '${MYSQL_USER}'로 연결 성공!"
   else
-    echo "MySQL 서버(모든 IP)에 사용자 '${MYSQL_USER}'로 연결 실패!"
+    echo "MySQL 서버에 사용자 '${MYSQL_USER}'로 연결 실패!"
     echo "오류 메시지를 확인하고 방화벽, 설정 파일, 사용자 권한을 다시 점검해 보세요."
   fi
 
@@ -516,21 +516,21 @@ grant_remote_access() {
 # 함수 사용 예시:
 # grant_remote_access "root" "your_root_password" "shjung" "your_password" "%"
 # --- 메인 프로세스 ---
-# validate_directories
-# validate_tar_content
-# install_sftp
-# install_nodejs
-# install_mysql
-  # setup_project
-configure_mysql
-# import_database
-# grant_remote_access
+validate_directories
+validate_tar_content
+install_sftp
+install_nodejs
+ install_mysql
+ setup_project
+configure_mysql_user
+ import_mysql_dump
+grant_remote_access
 
-echo ""
-echo "모든 작업이 완료되었습니다."
-echo "다음 단계를 확인하세요:"
-echo "1. Node.js 프로젝트에 필요한 패키지 설치 (cd $TARGET_DIR/$PROJECT_DIR && npm install <패키지명>)."
-echo "2. 애플리케이션 실행."
-echo "3. SFTP 접속 설정 확인 (필요한 경우)."
-echo "4. mysql dump"
+# echo ""
+# echo "모든 작업이 완료되었습니다."
+# echo "다음 단계를 확인하세요:"
+# echo "1. Node.js 프로젝트에 필요한 패키지 설치 (cd $TARGET_DIR/$PROJECT_DIR && npm install <패키지명>)."
+# echo "2. 애플리케이션 실행."
+# echo "3. SFTP 접속 설정 확인 (필요한 경우)."
+# echo "4. mysql dump"
 

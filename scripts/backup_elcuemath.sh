@@ -42,19 +42,17 @@ fi
 
 # 2. MySQL 데이터베이스 덤프
 echo "MySQL 덤프 생성 중..."
-# 환경 변수 DB_PASSWORD가 설정되어 있다면 사용
-if [ -n "$DB_PASSWORD" ]; then
-  mysqldump -h "$DB_HOST" -u "$DB_USER" -p"$DB_PASSWORD" "$DB_NAME" | gzip > "$BACKUP_DIR/mysql_dump_$TIMESTAMP.sql.gz"
-else
-  echo "경고: DB_PASSWORD 환경 변수가 설정되지 않았습니다. .my.cnf 파일을 사용합니다."
-  mysqldump -h "$DB_HOST" -u "$DB_USER" "$DB_NAME" | gzip > "$BACKUP_DIR/mysql_dump_$TIMESTAMP.sql.gz"
-fi
+DUMP_OPTIONS="--single-transaction --set-gtid-purged=OFF --master-data=2 --no-tablespaces"
 
-if [ ${PIPESTATUS[0]} -ne 0 ]; then
-  echo "오류: MySQL 덤프 실패"
-  exit 1
+# 환경 변수 DB_PASSWORD가 설정되어 있다면 사용 (보안 경고 완화)
+if [ -n "$DB_PASSWORD" ]; then
+  echo "DB_PASSWORD 환경 변수를 사용하여 mysqldump 실행 중..."
+  mysqldump -h "$DB_HOST" -u "$DB_USER" -p"$DB_PASSWORD" $DUMP_OPTIONS "$DB_NAME" | gzip > "$BACKUP_DIR/mysql_dump_$TIMESTAMP.sql.gz"
+else
+  echo "경고: DB_PASSWORD 환경 변수가 설정되지 않았습니다. .my.cnf 파일을 사용하거나 비밀번호를 수동으로 입력해야 합니다."
+  # -p 옵션만 사용하여 비밀번호 프롬프트 표시 또는 .my.cnf 파일 사용 유도
+  mysqldump -h "$DB_HOST" -u "$DB_USER" -p $DUMP_OPTIONS "$DB_NAME" | gzip > "$BACKUP_DIR/mysql_dump_$TIMESTAMP.sql.gz"
 fi
-echo "MySQL 덤프 완료: $BACKUP_DIR/mysql_dump_$TIMESTAMP.sql.gz"
 
 # 3. 프로젝트 폴더 백업 (node_modules 제외)
 echo "프로젝트 폴더 백업 중..."
