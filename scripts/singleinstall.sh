@@ -3,43 +3,43 @@
 # 스크립트 실행 시 에러 발생 시 즉시 종료
 set -e
 # --- 변수 설정 ---
-SOURCE_DIR="/home/seokhyun/downloads"        # 복사할 원본 서버의 폴더 경로로 변경하세요.
-TARGET_DIR="/home/seokhyun/web"             # 새로운 서버에 복사할 대상 폴더 경로로 변경하세요.
-TAR_FILE="project_backup_20250510_094510.tar.gz"          # 압축 해제할 tar 파일 이름 (SOURCE_DIR 안에 있어야 함)
-MYSQL_ROOT_PASSWORD="@131071vangogh@" # MySQL root 비밀번호로 변경하세요.
-MYSQL_USER="shjung"          # 생성할 MySQL 사용자 이름으로 변경하세요.
-MYSQL_PASSWORD="@soojunglove@"         # 생성할 MySQL 사용자 비밀번호로 변경하세요.
-MYSQL_DATABASE="prismmath"          # 생성할 MySQL 데이터베이스 이름으로 변경하세요.
-MYSQL_DUMP_FILE="mysql_dump_20250510_094510.sql"          # 실행할 MySQL dump 파일 이름 (SOURCE_DIR 안에 있어야 함)
-SFTP_USER="seokhyun"        # SFTP 사용자 계정
-SFTP_USER_HOME="/home/$SFTP_USER" # SFTP 사용자 홈 디렉토리
+SOURCE_DIR="/home/morgan/downloads"                 # 복사할 원본 서버의 폴더 경로로 변경하세요.
+TARGET_DIR="/home/morgan/web"                       # 새로운 서버에 복사할 대상 폴더 경로로 변경하세요.
+TAR_FILE="project_backup_20250525_120305.tar.gz"    # 압축 해제할 tar 파일 이름 (SOURCE_DIR 안에 있어야 함)
+MYSQL_ROOT_PASSWORD="@131071vangogh@"               # MySQL root 비밀번호로 변경하세요.
+MYSQL_USER="shjung"                                 # 생성할 MySQL 사용자 이름으로 변경하세요.
+MYSQL_PASSWORD="@soojunglove@"                      # 생성할 MySQL 사용자 비밀번호로 변경하세요.
+MYSQL_DATABASE="prismmath"                          # 생성할 MySQL 데이터베이스 이름으로 변경하세요.
+MYSQL_DUMP_FILE="mysql_dump_20250525_120305.sql.gz" # 실행할 MySQL dump 파일 이름 (SOURCE_DIR 안에 있어야 함)
+SFTP_USER="morgan"                                  # SFTP 사용자 계정
+SFTP_USER_HOME="/home/$SFTP_USER"                   # SFTP 사용자 홈 디렉토리
 PROJECT_DIR="elcuemath"
 
 # --- 함수 정의 ---
-# check_status() {
-#   local message="$1"
-#   local command="$2"
-#   echo -n "$message ... "
-#   if $command &> /dev/null; then
-#     echo "완료"
-#     return 0 # 성공
-#   else
-#     echo "실패"
-#     return 1 # 실패
-#   fi
-# }
 check_status() {
   local message="$1"
   local command="$2"
   echo -n "$message ... "
-  if $command; then
+  if $command &>/dev/null; then
     echo "완료"
     return 0 # 성공
   else
-    echo "실패 (오류: $@)"
+    echo "실패"
     return 1 # 실패
   fi
 }
+# check_status() {
+#   local message="$1"
+#   local command="$2"
+#   echo -n "$message ... "
+#   if $command; then
+#     echo "완료"
+#     return 0 # 성공
+#   else
+#     echo "실패 (오류: $@)"
+#     return 1 # 실패
+#   fi
+# }
 
 validate_directories() {
   echo "디렉토리 유효성 검사 시작..."
@@ -98,7 +98,7 @@ install_sftp() {
   echo "SFTP (OpenSSH Server) 설치 확인 및 시작..."
 
   # OpenSSH Server 설치 여부 확인 (dpkg -s 사용)
-  if dpkg -s openssh-server &> /dev/null; then
+  if dpkg -s openssh-server &>/dev/null; then
     echo "OpenSSH Server가 이미 설치되어 있습니다. 설치 단계를 건너뜁니다."
   else
     echo "OpenSSH Server가 설치되어 있지 않습니다. 설치를 진행합니다..."
@@ -108,7 +108,7 @@ install_sftp() {
       exit 1
     fi
     sudo apt-get install -y openssh-server
-    if dpkg -s openssh-server &> /dev/null; then
+    if dpkg -s openssh-server &>/dev/null; then
       echo "SFTP (OpenSSH Server) 설치 완료."
     else
       echo "SFTP (OpenSSH Server) 설치 실패. 스크립트 종료."
@@ -117,7 +117,7 @@ install_sftp() {
   fi
 
   # SFTP 사용자 생성 (필요한 경우)
-  if ! id -u "$SFTP_USER" &> /dev/null; then
+  if ! id -u "$SFTP_USER" &>/dev/null; then
     echo "SFTP 사용자 '$SFTP_USER' 생성..."
     sudo useradd -m -d "$SFTP_USER_HOME" -s /sbin/nologin "$SFTP_USER"
     if check_status "SFTP 사용자 생성" "id -u "$SFTP_USER""; then
@@ -136,19 +136,19 @@ install_sftp() {
   # sudo chown root:root /var/sftp
   # sudo chmod 755 /var/sftp
 
-#   # /etc/ssh/sshd_config 파일 수정
-#   sudo sed -i 's/Subsystem\s\s\s\ssftp\s\s\s\s\/usr\/lib\/openssh\/sftp-server/Subsystem\s\s\s\ssftp\s\s\s\sinternal-sftp/g' /etc/ssh/sshd_config
-#   sudo sed -i '$a\
-# Match User '$SFTP_USER'\n\
-#     ChrootDirectory /var/sftp\n\
-#     ForceCommand internal-sftp\n\
-#     AllowTcpForwarding no\n\
-#     X11Forwarding no\n\
-# ' /etc/ssh/sshd_config
+  #   # /etc/ssh/sshd_config 파일 수정
+  #   sudo sed -i 's/Subsystem\s\s\s\ssftp\s\s\s\s\/usr\/lib\/openssh\/sftp-server/Subsystem\s\s\s\ssftp\s\s\s\sinternal-sftp/g' /etc/ssh/sshd_config
+  #   sudo sed -i '$a\
+  # Match User '$SFTP_USER'\n\
+  #     ChrootDirectory /var/sftp\n\
+  #     ForceCommand internal-sftp\n\
+  #     AllowTcpForwarding no\n\
+  #     X11Forwarding no\n\
+  # ' /etc/ssh/sshd_config
 
   # sshd 서비스 재시작 (실행 중인지 확인 후 조건부 실행)
   echo "sshd 서비스 상태 확인..."
-  if pgrep -x sshd > /dev/null; then
+  if pgrep -x sshd >/dev/null; then
     echo "sshd 서비스가 실행 중입니다. 재시작을 건너뜁니다."
     echo "SFTP Chroot 설정 완료 (sshd 재시작 필요 없음)."
   else
@@ -198,10 +198,13 @@ install_mysql() {
   if check_status "MySQL 설치 확인" "command -v mysql"; then
     echo "MySQL이 이미 설치되어 있습니다."
   else
-    # 초기 설치 시 root 비밀번호 설정 (auth_socket 환경에서는 큰 의미 없을 수 있음)
-    echo "mysql-server mysql-server/root_password password $MYSQL_ROOT_PASSWORD" | sudo debconf-set-selections
-    echo "mysql-server mysql-server/root_password_again password $MYSQL_ROOT_PASSWORD" | sudo debconf-set-selections
+    echo "MySQL 서버 설치 중..."
+    # auth_socket 인증 방식을 선호하므로 root 비밀번호 설정을 위한 debconf-set-selections 제거
+    # 또는 최소한 이 부분에서 사용자 입력 비밀번호를 사용하지 않음
+    # sudo apt-get install -y mysql-server --fix-missing # --fix-missing 추가하여 패키지 누락 오류 방지
+    sudo apt-get update # apt update 먼저 실행
     sudo apt-get install -y mysql-server
+
     if ! check_status "MySQL 설치" "command -v mysql"; then
       echo "MySQL 설치 실패. 스크립트 종료."
       exit 1
@@ -209,20 +212,36 @@ install_mysql() {
     echo "MySQL 설치 완료."
   fi
 
-  # MySQL 사용자 생성 및 데이터베이스 설정
-  echo "MySQL 사용자 생성 및 데이터베이스 설정 시작..."
-  create_database() {
-    echo "데이터베이스 '$MYSQL_DATABASE' 생성 시도 (auth_socket 사용)..."
-    if sudo mysql -u root -e "CREATE DATABASE IF NOT EXISTS $MYSQL_DATABASE;"; then
-      echo "데이터베이스 '$MYSQL_DATABASE' 생성 완료."
+  create_database_and_user() {
+    echo "데이터베이스 '$MYSQL_DATABASE' 및 사용자 '$MYSQL_USER' 설정 시작..."
+
+    # MYSQL_PWD 환경 변수에 비밀번호 설정
+    # 이 변수는 mysql 클라이언트가 비밀번호를 자동으로 사용하도록 합니다.
+    export MYSQL_PWD=$MYSQL_ROOT_PASSWORD
+
+    local SQL_QUERIES="
+    CREATE DATABASE IF NOT EXISTS \`${MYSQL_DATABASE}\`;
+    CREATE USER IF NOT EXISTS '${MYSQL_USER}'@'localhost' IDENTIFIED BY '${MYSQL_USER_PASSWORD}';
+    GRANT ALL PRIVILEGES ON \`${MYSQL_DATABASE}\`.* TO '${MYSQL_USER}'@'localhost';
+    FLUSH PRIVILEGES;
+  "
+
+    echo "SQL 쿼리 실행 중..."
+    # sudo -E 옵션을 사용하여 현재 환경 변수(MYSQL_PWD)를 유지한 채 mysql 명령 실행
+    if sudo -E mysql -u root -B -N -e "$SQL_QUERIES"; then
+      echo "데이터베이스 '$MYSQL_DATABASE' 및 사용자 '$MYSQL_USER' 생성 및 권한 설정 완료."
       return 0
     else
-      echo "데이터베이스 '$MYSQL_DATABASE' 생성 실패 (auth_socket 사용)."
+      echo "오류: 데이터베이스 및 사용자 설정 실패. 비밀번호 확인 또는 권한 문제일 수 있습니다."
       return 1
     fi
+
+    # 작업 완료 후 MYSQL_PWD 환경 변수 제거 (보안 강화)
+    # 이 부분이 중요합니다. 비밀번호가 메모리에 오래 남아있지 않도록 합니다.
+    unset MYSQL_PWD
   }
 
-  if create_database; then
+  if create_database_and_user; then
     echo "데이터베이스 생성 확인 ... 성공"
   else
     echo "데이터베이스 생성 확인 ... 실패. 스크립트 종료."
@@ -314,6 +333,11 @@ configure_mysql_user() {
   echo ""
   echo "MySQL 사용자 생성 및 데이터베이스 설정 시작 (권한 부여 포함)..."
 
+  local root_user="root"
+  local remote_allowed_host="%"       # 외부 접속을 허용할 호스트 (보안상 특정 IP를 명시하는 것이 좋음, 예: "192.168.1.100")
+  local local_backup_host="localhost" # 백업이 진행될 로컬 호스트
+  local config_file="/etc/mysql/mysql.conf.d/mysqld.cnf"
+
   # MySQL 접속 및 명령어 실행을 위한 함수
   mysql_exec() {
     echo "$1" | sudo mysql -u root -p"$MYSQL_ROOT_PASSWORD"
@@ -332,47 +356,47 @@ configure_mysql_user() {
       exit 1
     fi
   fi
+  echo "--- MySQL 사용자 권한 설정 시작 ---"
 
-  # 사용자 존재 확인
-  echo -n "사용자 '$MYSQL_USER'@'localhost' 존재 확인 ... "
-  if mysql -u root -p"$MYSQL_ROOT_PASSWORD" -e "SELECT User FROM mysql.user WHERE User = '$MYSQL_USER' AND Host = 'localhost';" | grep -q "^$MYSQL_USER$"; then
-    echo "존재합니다."
-  else
-    echo "존재하지 않습니다. 생성합니다..."
-    if mysql_exec "CREATE USER '$MYSQL_USER'@'localhost' IDENTIFIED BY '$MYSQL_PASSWORD';"; then
-      echo "사용자 '$MYSQL_USER'@'localhost' 생성 완료."
-    else
-      echo "사용자 '$MYSQL_USER'@'localhost' 생성 실패. 스크립트 종료."
-      exit 1
-    fi
-  fi
+  # 1. 기존 'myuser@%' 계정 삭제 (외부 접속용 계정 초기화)
+  echo "기존 '${MYSQL_USER}'@'${remote_allowed_host}' 계정이 있다면 삭제합니다..."
+  mysql -u"${root_user}" -p"${MYSQL_ROOT_PASSWORD}" -e "DROP USER IF EXISTS '${MYSQL_USER}'@'${remote_allowed_host}';"
 
-  # 권한 부여 (기존 권한 부여 부분 유지)
-  echo -n "사용자 '$MYSQL_USER'@'localhost'에게 데이터베이스 '$MYSQL_DATABASE' 권한 부여 ... "
-  if mysql_exec "GRANT ALL PRIVILEGES ON $MYSQL_DATABASE.* TO '$MYSQL_USER'@'localhost';"; then
-    echo "완료."
+  # 2. 기존 'myuser@localhost' 계정 삭제 (로컬 백업용 계정 초기화)
+  echo "기존 '${MYSQL_USER}'@'${local_backup_host}' 계정이 있다면 삭제합니다..."
+  mysql -u"${root_user}" -p"${MYSQL_ROOT_PASSWORD}" -e "DROP USER IF EXISTS '${MYSQL_USER}'@'${local_backup_host}';"
 
-    # PROCESS 권한 부여 추가
-    echo -n "사용자 '$MYSQL_USER'@'localhost'에게 PROCESS 권한 부여 ... "
-    if mysql_exec "GRANT PROCESS ON *.* TO '$MYSQL_USER'@'localhost';"; then
-      echo "완료."
+  # 3. 외부 접속용 사용자 생성 및 권한 부여 (CRUD + DROP 포함)
+  echo "외부 접속용 사용자 '${MYSQL_USER}'@'${remote_allowed_host}'를 생성하고 모든 일반 접근 권한 (CRUD + DROP)을 부여합니다..."
+  # 사용자 생성은 동일
+  mysql -u"${root_user}" -p"${MYSQL_ROOT_PASSWORD}" -e "CREATE USER IF NOT EXISTS '${MYSQL_USER}'@'${remote_allowed_host}' IDENTIFIED BY '${MYSQL_PASSWORD}';"
+  # 외부 사용자는 특정 DB에 대한 모든 권한을 가집니다.
+  # ALL PRIVILEGES는 SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, DROP 등을 포함합니다.
+  mysql -u"${root_user}" -p"${MYSQL_ROOT_PASSWORD}" -e "GRANT ALL PRIVILEGES ON ${MYSQL_DATABASE}.* TO '${MYSQL_USER}'@'${remote_allowed_host}';"
 
-      # FLUSH PRIVILEGES (기존 위치 유지)
-      echo -n "MySQL 권한 적용 ... "
-      if mysql_exec "FLUSH PRIVILEGES;"; then
-        echo "완료."
-      else
-        echo "실패. 스크립트 종료."
-        exit 1
-      fi
-    else
-      echo "실패. 스크립트 종료."
-      exit 1
-    fi
-  else
-    echo "실패. 스크립트 종료."
-    exit 1
-  fi
+  # 4. 로컬 백업용 사용자 생성 및 권한 부여 (CRUD + DROP + 백업 권한 포함)
+  echo "로컬 백업용 사용자 '${MYSQL_USER}'@'${local_backup_host}'를 생성하고 백업 및 일반 접근 권한 (CRUD + DROP)을 부여합니다..."
+  # 사용자 생성은 동일
+  mysql -u"${root_user}" -p"${MYSQL_ROOT_PASSWORD}" -e "CREATE USER IF NOT EXISTS '${MYSQL_USER}'@'${local_backup_host}' IDENTIFIED BY '${MYSQL_PASSWORD}';"
+  # 백업에 필요한 글로벌 권한 (RELOAD, REPLICATION CLIENT, LOCK TABLES)과
+  # 특정 데이터베이스에 대한 모든 권한 (ALL PRIVILEGES)을 함께 부여합니다.
+  # 주의: ON *.* 에 ALL PRIVILEGES를 부여하면 해당 호스트에서 모든 DB에 접근 가능해집니다.
+  # 만약 로컬 백업 유저가 특정 DB에만 ALL 권한을 가지게 하려면 아래 줄을 두 줄로 분리해야 합니다.
+   # 백업 사용자는 특정 DB에 대한 모든 권한 (CRUD + DROP)을 가집니다.
+  mysql -u"${root_user}" -p"${MYSQL_ROOT_PASSWORD}" -e "GRANT ALL PRIVILEGES ON ${MYSQL_DATABASE}.* TO '${MYSQL_USER}'@'${local_backup_host}';"
+
+  # 백업에 필요한 글로벌 권한 (RELOAD, REPLICATION CLIENT, LOCK TABLES, PROCESS)을 함께 부여합니다.
+  # PROCESS 권한 추가!
+  mysql -u"${root_user}" -p"${MYSQL_ROOT_PASSWORD}" -e "GRANT RELOAD, REPLICATION CLIENT, LOCK TABLES, PROCESS ON *.* TO '${MYSQL_USER}'@'${local_backup_host}';"
+
+  # 5. 변경 사항 적용
+  echo "권한 변경 사항을 적용합니다..."
+  mysql -u"${root_user}" -p"${MYSQL_ROOT_PASSWORD}" -e "FLUSH PRIVILEGES;"
+
+  echo "MySQL 사용자 목록을 확인합니다..."
+  mysql -u"${root_user}" -p"${MYSQL_ROOT_PASSWORD}" -e "SELECT host, user FROM mysql.user WHERE user = '${MYSQL_USER}';"
+
+  echo "--- MySQL 사용자 권한 설정 완료 ---"
 }
 import_mysql_dump() {
   echo ""
@@ -392,7 +416,7 @@ import_mysql_dump() {
   # .gz 파일인 경우 압축 해제
   if [[ "$MYSQL_DUMP_FILE" == *.gz ]]; then
     echo "MySQL dump 파일이 gzip으로 압축되어 있습니다. 압축을 해제합니다..."
-    if gunzip -c "$DUMP_FILE" > "$UNCOMPRESSED_FILE"; then
+    if gunzip -c "$DUMP_FILE" >"$UNCOMPRESSED_FILE"; then
       echo "압축 해제 완료: '$UNCOMPRESSED_FILE'"
       DUMP_FILE="$UNCOMPRESSED_FILE" # 압축 해제된 파일로 변수 업데이트
     else
@@ -419,7 +443,7 @@ import_mysql_dump() {
     fi
     echo "데이터 dump를 가져옵니다..."
     # check_status 함수 대신 직접 실행 및 결과 확인
-    if mysql -u "$MYSQL_USER" -p"$MYSQL_PASSWORD" "$MYSQL_DATABASE" < "$DUMP_FILE"; then
+    if mysql -u "$MYSQL_USER" -p"$MYSQL_PASSWORD" "$MYSQL_DATABASE" <"$DUMP_FILE"; then
       echo "데이터베이스 dump 파일 가져오기 완료 ('$DUMP_FILE' -> '$MYSQL_DATABASE')."
       # 압축 해제된 파일 삭제 (선택 사항)
       if [[ "$MYSQL_DUMP_FILE" == *.gz ]]; then
@@ -437,38 +461,16 @@ import_mysql_dump() {
 }
 grant_remote_access() {
   local root_user="root"
-  local allowed_host="%"
-  local config_file="/etc/mysql/mysql.conf.d/mysqld.cnf"
+  local remote_allowed_host="%"                          # 외부 접속을 허용할 호스트 (보안상 특정 IP를 명시하는 것이 좋음, 예: "192.168.1.100")
+  local local_backup_host="localhost"                    # 백업이 진행될 로컬 호스트
+  local config_file="/etc/mysql/mysql.conf.d/mysqld.cnf" # MySQL 설정 파일 경로
 
-  echo "MySQL 사용자 '${MYSQL_USER}'에게 외부 접근 권한을 부여하는 함수입니다."
-
-  # '${MYSQL_USER}'@'localhost' 계정이 이미 존재할 경우 삭제합니다.
-  echo "기존 '${MYSQL_USER}'@'localhost' 계정이 있다면 삭제합니다..."
-  mysql -u"${root_user}" -p"${MYSQL_ROOT_PASSWORD}" -e "DROP USER IF EXISTS '${MYSQL_USER}'@'localhost';"
-
-  # 사용자 생성 및 외부 접근 허용
-  echo "사용자 '${MYSQL_USER}'@'${allowed_host}'를 생성하고 비밀번호를 설정합니다..."
-  mysql -u"${root_user}" -p"${MYSQL_ROOT_PASSWORD}" -e "CREATE USER IF NOT EXISTS '${MYSQL_USER}'@'${allowed_host}' IDENTIFIED BY '${MYSQL_PASSWORD}';"
-
-  # 권한 부여
-  echo "사용자 '${MYSQL_USER}'@'${allowed_host}'에게 모든 데이터베이스에 대한 모든 권한을 부여합니다..."
-  mysql -u"${root_user}" -p"${MYSQL_ROOT_PASSWORD}" -e "GRANT ALL PRIVILEGES ON *.* TO '${MYSQL_USER}'@'${allowed_host}';"
-
-  # 변경 사항 적용
-  echo "권한 변경 사항을 적용합니다..."
-  mysql -u"${root_user}" -p"${MYSQL_ROOT_PASSWORD}" -e "FLUSH PRIVILEGES;"
-
-  echo "MySQL 사용자 목록을 확인합니다..."
-  mysql -u"${root_user}" -p"${MYSQL_ROOT_PASSWORD}" -e "SELECT host, user FROM mysql.user WHERE user = '${MYSQL_USER}';"
-
-  echo ""
-  echo "함수 실행이 완료되었습니다."
-
+  # --- MySQL 설정 변경 시작 ---
   echo ""
   echo "--- MySQL 설정 변경 시작 ---"
-  echo "${config_file} 파일을 수정하여 bind-address를 0.0.0.0으로 설정합니다."
 
-  # bind-address 설정을 0.0.0.0으로 변경
+  # bind-address 설정을 0.0.0.0으로 변경 (외부 접속을 위해 필수)
+  echo "${config_file} 파일을 수정하여 bind-address를 0.0.0.0으로 설정합니다."
   if sudo sed -i 's/^bind-address\s*=\s*127\.0\.0\.1/bind-address = 0.0.0.0/' "${config_file}"; then
     echo "bind-address 설정을 0.0.0.0으로 변경했습니다."
   elif sudo grep -q '^bind-address' "${config_file}"; then
@@ -478,12 +480,28 @@ grant_remote_access() {
     sudo sh -c "echo '[mysqld]\nbind-address = 0.0.0.0' >> '${config_file}'"
   fi
 
+  # MySQL 시간을 한국 시간으로 설정 (default_time_zone)
+  echo "MySQL 기본 시간을 한국 시간(Asia/Seoul)으로 설정합니다."
+  if sudo grep -q '^default_time_zone' "${config_file}"; then
+    # 이미 default_time_zone이 있다면 +09:00으로 변경
+    # 변경: '+09:00'에서 따옴표 제거 (MySQL 설정에서 따옴표 없이 사용 가능)
+    sudo sed -i "s|^default_time_zone\s*=\s*.*|default_time_zone = +09:00|" "${config_file}"
+    echo "default_time_zone 설정을 +09:00으로 업데이트했습니다."
+  else
+    # default_time_zone이 없다면 [mysqld] 섹션 아래에 추가
+    # sed -i '/^\[mysqld\]/a default_time_zone = \'+09:00\'' "${config_file}"
+    # 또는 파일 끝에 추가 (간단한 방법) - 여기서도 따옴표 제거
+    sudo sh -c "echo 'default_time_zone = +09:00' >> '${config_file}'"
+    echo "default_time_zone 설정을 파일에 추가했습니다."
+  fi
+
   # MySQL 서버 재시작
   echo "MySQL 서버를 재시작합니다..."
   if sudo systemctl restart mysql; then
     echo "MySQL 서버 재시작 완료."
   else
     echo "MySQL 서버 재시작 실패! 오류를 확인하세요."
+    return 1 # 재시작 실패 시 함수 종료
   fi
 
   echo "--- MySQL 설정 변경 완료 ---"
@@ -495,12 +513,22 @@ grant_remote_access() {
   echo ""
   echo "--- 연결 테스트 시작 ---"
 
-  # 연결 테스트
-  if mysql -h"127.0.0.1" -u"${MYSQL_USER}" -p"${MYSQL_PASSWORD}" -e "SELECT 1;" > /dev/null 2>&1; then
-    echo "MySQL 서버에 사용자 '${MYSQL_USER}'로 연결 성공!"
+  # 외부 접속용 계정 연결 테스트 (필요하다면)
+  echo "외부 접속용 사용자 '${MYSQL_USER}'@'${remote_allowed_host}' 연결 테스트..."
+  # MYSQL_USER와 MYSQL_PASSWORD 변수는 이 함수 외부에서 정의되어야 합니다.
+  # 예를 들어, 이 함수 호출 전에 `MYSQL_USER="your_user"` `MYSQL_PASSWORD="your_password"` 등으로 정의 필요.
+  if mysql -h"$(hostname -I | awk '{print $1}')" -u"${MYSQL_USER}" -p"${MYSQL_PASSWORD}" -e "SELECT 1;" >/dev/null 2>&1; then
+    echo "MySQL 서버에 외부 접속용 사용자 '${MYSQL_USER}'로 연결 성공!"
   else
-    echo "MySQL 서버에 사용자 '${MYSQL_USER}'로 연결 실패!"
-    echo "오류 메시지를 확인하고 방화벽, 설정 파일, 사용자 권한을 다시 점검해 보세요."
+    echo "MySQL 서버에 외부 접속용 사용자 '${MYSQL_USER}'로 연결 실패! 방화벽/bind-address/권한을 점검하세요."
+  fi
+
+  # 로컬 백업용 계정 연결 테스트
+  echo "로컬 백업용 사용자 '${MYSQL_USER}'@'${local_backup_host}' 연결 테스트..."
+  if mysql -h"${local_backup_host}" -u"${MYSQL_USER}" -p"${MYSQL_PASSWORD}" -e "SELECT 1;" >/dev/null 2>&1; then
+    echo "MySQL 서버에 로컬 백업용 사용자 '${MYSQL_USER}'로 연결 성공!"
+  else
+    echo "MySQL 서버에 로컬 백업용 사용자 '${MYSQL_USER}'로 연결 실패! 오류를 확인하세요."
   fi
 
   echo "--- 연결 테스트 종료 ---"
@@ -516,15 +544,15 @@ grant_remote_access() {
 # 함수 사용 예시:
 # grant_remote_access "root" "your_root_password" "shjung" "your_password" "%"
 # --- 메인 프로세스 ---
-validate_directories
-validate_tar_content
-install_sftp
-install_nodejs
- install_mysql
- setup_project
+#validate_directories
+#validate_tar_content
+#install_sftp
+#install_nodejs
+#  install_mysql
+#  setup_project
 configure_mysql_user
- import_mysql_dump
-grant_remote_access
+# import_mysql_dump
+# grant_remote_access
 
 # echo ""
 # echo "모든 작업이 완료되었습니다."
@@ -533,4 +561,3 @@ grant_remote_access
 # echo "2. 애플리케이션 실행."
 # echo "3. SFTP 접속 설정 확인 (필요한 경우)."
 # echo "4. mysql dump"
-
