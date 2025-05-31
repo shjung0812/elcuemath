@@ -1,0 +1,13 @@
+--- 백업 시작: 20250530_092901 ---
+MySQL 덤프 생성 중...
+DB_PASSWORD 환경 변수를 사용하여 mysqldump 실행 중...
+mysqldump: [Warning] Using a password on the command line interface can be insecure.
+WARNING: --master-data is deprecated and will be removed in a future version. Use --source-data instead.
+프로젝트 폴더 백업 중...
+프로젝트 폴더 백업 완료: /home/morgan/web/backup/project_backup_20250530_092901.tar.gz
+오래된 백업 파일 정리 중 (최신 14 개 유지)...
+삭제 대상 파일:
+project_backup_20250525_051740.tar.gz
+mysql_dump_20250525_051740.sql.gz
+오래된 백업 파일 정리 완료.
+--- 백업 종료: 20250530_092901 ---
