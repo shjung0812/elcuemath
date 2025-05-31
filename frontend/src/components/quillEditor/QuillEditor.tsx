@@ -1,6 +1,5 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import ReactQuill, { Quill } from 'react-quill';
-import 'react-quill/dist/quill.snow.css';
 import ImageResize from 'quill-image-resize-module-react';
 
 // 실제 fetchWithOutCSRF 유틸리티를 임포트합니다.
@@ -10,23 +9,26 @@ import { fetchWithOutCSRF } from '../../../utils/requests';
 // Quill에 ImageResize 모듈을 등록합니다.
 Quill.register('modules/imageResize', ImageResize);
 
-function App() {
-  const [value, setValue] = useState(''); // Quill 에디터 내용 (HTML 문자열)
-  const [title, setTitle] = useState(''); // 콘텐츠 제목
-  const [showPreview, setShowPreview] = useState(true); // 미리보기 패널 토글
-  const [contents, setContents] = useState([]); // 저장된 모든 콘텐츠 목록
-  const [editingContentId, setEditingContentId] = useState(null); // 편집 중인 콘텐츠 ID (새 콘텐츠의 경우 null)
 
-  const quillRef = useRef(null); // Quill 에디터 인스턴스 참조
-  const previewRef = useRef(null); // 미리보기 div 참조
+
+function App(): React.ReactElement { // 함수 컴포넌트의 반환 타입 지정
+  const [value, setValue] = useState<string>(''); // Quill 에디터 내용 (HTML 문자열)
+  const [title, setTitle] = useState<string>(''); // 콘텐츠 제목
+  const [showPreview, setShowPreview] = useState<boolean>(true); // 미리보기 패널 토글
+  const [contents, setContents] = useState<Content[]>([]); // 저장된 모든 콘텐츠 목록
+  const [editingContentId, setEditingContentId] = useState<string | number | null>(null); // 편집 중인 콘텐츠 ID
+
+  // QuillRef는 HTMLDivElement 또는 ReactQuill 인스턴스를 참조할 수 있으므로 타입을 명확히 지정
+  const quillRef = useRef<ReactQuill | null>(null);
+  const previewRef = useRef<HTMLDivElement | null>(null); // 미리보기 div 참조
 
   // Quill 에디터 내용 변경을 처리합니다.
-  const handleChange = useCallback((newValue) => {
+  const handleChange = useCallback((newValue: string) => {
     setValue(newValue);
   }, []);
 
   // 제목 입력 필드 변경을 처리합니다.
-  const handleTitleChange = useCallback((e) => {
+  const handleTitleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setTitle(e.target.value);
   }, []);
 
@@ -39,9 +41,8 @@ function App() {
   const copyToPlainText = useCallback(async () => {
     if (quillRef.current) {
       const editor = quillRef.current.getEditor();
-      const plainText = editor.getText();
+      const plainText: string = editor.getText();
       try {
-        // iframe 호환성을 위해 document.execCommand('copy')를 사용합니다.
         const textarea = document.createElement('textarea');
         textarea.value = plainText;
         document.body.appendChild(textarea);
@@ -49,7 +50,7 @@ function App() {
         document.execCommand('copy');
         document.body.removeChild(textarea);
         alert('텍스트가 클립보드에 복사되었습니다.');
-      } catch (err) {
+      } catch (err: any) { // 에러 타입 명시
         console.error('텍스트 복사에 실패했습니다.', err);
         alert('텍스트 복사에 실패했습니다. 브라우저 설정을 확인해주세요.');
       }
@@ -60,9 +61,8 @@ function App() {
   const copyToHtml = useCallback(async () => {
     if (quillRef.current) {
       const editor = quillRef.current.getEditor();
-      const htmlContent = editor.root.innerHTML;
+      const htmlContent: string = editor.root.innerHTML;
       try {
-        // iframe 호환성을 위해 document.execCommand('copy')를 사용합니다.
         const textarea = document.createElement('textarea');
         textarea.value = htmlContent;
         document.body.appendChild(textarea);
@@ -70,7 +70,7 @@ function App() {
         document.execCommand('copy');
         document.body.removeChild(textarea);
         alert('HTML 내용이 클립보드에 복사되었습니다.');
-      } catch (err) {
+      } catch (err: any) { // 에러 타입 명시
         console.error('HTML 복사에 실패했습니다.', err);
         alert('HTML 복사에 실패했습니다. 브라우저 설정을 확인해주세요.');
       }
@@ -81,9 +81,8 @@ function App() {
   const copyToJson = useCallback(async () => {
     if (quillRef.current) {
       const editor = quillRef.current.getEditor();
-      const jsonContent = JSON.stringify(editor.getContents());
+      const jsonContent: string = JSON.stringify(editor.getContents());
       try {
-        // iframe 호환성을 위해 document.execCommand('copy')를 사용합니다.
         const textarea = document.createElement('textarea');
         textarea.value = jsonContent;
         document.body.appendChild(textarea);
@@ -91,7 +90,7 @@ function App() {
         document.execCommand('copy');
         document.body.removeChild(textarea);
         alert('Quill JSON (Delta) 내용이 클립보드에 복사되었습니다.');
-      } catch (err) {
+      } catch (err: any) { // 에러 타입 명시
         console.error('JSON 복사에 실패했습니다.', err);
         alert('JSON 복사에 실패했습니다. 브라우저 설정을 확인해주세요.');
       }
@@ -113,12 +112,10 @@ function App() {
     input.click();
 
     input.onchange = async () => {
-      const file = input.files[0];
+      const file = input.files ? input.files[0] : null; // null 체크 추가
       if (file && quillRef.current) {
         try {
-          // 실제 애플리케이션에서는 파일을 서버에 업로드하고 실제 URL을 받아야 합니다.
-          // 여기서는 플레이스홀더 이미지를 사용합니다.
-          const imageUrl = "https://placehold.co/600x400/FF5733/FFFFFF?text=Placeholder+Image"; // 예시 플레이스홀더 이미지
+          const imageUrl: string = "https://placehold.co/600x400/FF5733/FFFFFF?text=Placeholder+Image"; // 예시 플레이스홀더 이미지
 
           const currentEditor = quillRef.current.getEditor();
           currentEditor.focus(); // 삽입 전에 에디터에 포커스
@@ -126,13 +123,13 @@ function App() {
           if (!rangeToUse) {
             rangeToUse = currentEditor.getSelection(); // 저장된 선택 범위가 없으면 현재 선택 범위 가져오기
           }
-          const insertAtIndex = rangeToUse ? rangeToUse.index : currentEditor.getLength(); // 선택 범위 또는 끝에 삽입
+          const insertAtIndex: number = rangeToUse ? rangeToUse.index : currentEditor.getLength(); // 선택 범위 또는 끝에 삽입
           currentEditor.insertEmbed(insertAtIndex, 'image', imageUrl, 'user'); // 이미지 삽입
           currentEditor.setSelection(insertAtIndex + 1, 0); // 삽입된 이미지 뒤로 커서 이동
 
           // 새로운 HTML 내용으로 React 상태 업데이트
           handleChange(currentEditor.root.innerHTML);
-        } catch (error) {
+        } catch (error: any) { // 에러 타입 명시
           console.error('이미지 업로드 또는 삽입 실패:', error);
           alert(`이미지 처리 중 오류가 발생했습니다: ${error.message}`);
         }
@@ -143,26 +140,34 @@ function App() {
   // 백엔드에서 저장된 모든 콘텐츠를 가져옵니다.
   const fetchContents = useCallback(async () => {
     try {
+      // fetchWithOutCSRF가 Promise<FetchSuccessResponse>를 반환한다고 가정
       const result = await fetchWithOutCSRF({
-        url: '/contents/getwriting', // 모든 콘텐츠를 가져오는 백엔드 엔드포인트
+        url: '/contents/getwriting',
         method: 'get',
-      });
+      }) as FetchSuccessResponse; // 타입 단언
 
+      console.log('result', result);
 
       if (result.success) {
-        // 백엔드 응답 구조에 따라 'data' 키를 사용하거나 직접 배열을 사용합니다.
-        setContents(result.data || []);
+        setContents(result.data as Content[] || []); // 반환된 데이터가 Content[]임을 단언
       } else {
-        const errorData = await response.json();
-        console.error('콘텐츠 불러오기 실패:', errorData);
-        alert(`콘텐츠 불러오기 실패: ${errorData.message || response.statusText}`);
+        // fetchWithOutCSRF가 성공 응답만 반환하고 에러는 throw 한다고 가정
+        // 이 else 블록은 실행되지 않을 수 있습니다.
+        console.error('콘텐츠 불러오기 실패: 응답이 성공적이지 않습니다.');
+        alert('콘텐츠 불러오기 실패: 서버 응답 오류.');
       }
-    } catch (error) {
+    } catch (error: any) { // 에러 타입 명시
       console.error('콘텐츠 불러오기 중 오류 발생:', error);
       alert('콘텐츠 불러오기 중 네트워크 오류가 발생했습니다.');
     }
   }, []);
 
+  // 새 글 작성을 위해 에디터와 상태를 초기화합니다.
+  const handleNewPost = useCallback(() => {
+    setTitle('');
+    setValue('');
+    setEditingContentId(null);
+  }, []);
   // 콘텐츠 저장 또는 업데이트를 처리합니다 (Delta 형식).
   const handleSaveDelta = useCallback(async () => {
     if (!quillRef.current) {
@@ -176,103 +181,107 @@ function App() {
     }
 
     const editor = quillRef.current.getEditor();
-    const delta = editor.getContents(); // Delta 형식으로 콘텐츠 가져오기
-    // const htmlContent = editor.root.innerHTML; // 필요하다면 HTML 콘텐츠도 보낼 수 있습니다.
+    const delta: QuillDelta = editor.getContents(); // Delta 형식으로 콘텐츠 가져오기
 
     try {
-      let response;
+      let response: Response | FetchSuccessResponse; // Response 또는 커스텀 SuccessResponse 타입
+      const requestBody = {
+        title: title,
+        delta: delta.ops, // Quill Delta의 ops 배열만 보낼 수도 있습니다. 백엔드 요구사항에 따름
+        // htmlContent: editor.root.innerHTML // 필요하다면 HTML 콘텐츠도 보낼 수 있습니다.
+      };
+
       if (editingContentId) {
-        // 기존 콘텐츠를 편집 중인 경우 PUT 요청을 보냅니다.
         response = await fetchWithOutCSRF({
-          url: `/contents/updatewriting/${editingContentId}`, // 콘텐츠 업데이트 백엔드 엔드포인트
+          url: `/contents/updatewriting/${editingContentId}`,
           method: 'put',
-          body: {
-            title: title,
-            delta: delta,
-            // htmlContent: htmlContent // 필요하다면
-          }
+          body: requestBody
         });
       } else {
-        // 새 콘텐츠를 생성하는 경우 POST 요청을 보냅니다.
         response = await fetchWithOutCSRF({
-          url: '/contents/savewriting', // 새 콘텐츠 저장 백엔드 엔드포인트
+          url: '/contents/savewriting',
           method: 'post',
-          body: {
-            title: title,
-            delta: delta,
-            // htmlContent: htmlContent // 필요하다면
-          }
+          body: requestBody
         });
       }
 
-      if (response.ok) {
+      // fetchWithOutCSRF가 Promise<Response>를 반환할 경우
+      if (response instanceof Response && response.ok) {
         const result = await response.json();
         alert(`Delta 데이터가 성공적으로 ${editingContentId ? '업데이트' : '저장'}되었습니다.`);
         console.log('Delta 저장/업데이트 성공:', result);
-        // 저장/업데이트 후 콘텐츠 목록을 다시 가져옵니다.
         fetchContents();
-        // 에디터를 지우고 편집 상태를 초기화합니다.
+        handleNewPost();
+      } else if ('success' in response && response.success) { // fetchWithOutCSRF가 Promise<FetchSuccessResponse>를 반환할 경우
+        alert(`Delta 데이터가 성공적으로 ${editingContentId ? '업데이트' : '저장'}되었습니다.`);
+        console.log('Delta 저장/업데이트 성공:', response);
+        fetchContents();
         handleNewPost();
       } else {
-        const errorData = await response.json();
+        // 오류 처리: 응답이 Response 타입이지만 ok가 아니거나, FetchSuccessResponse 타입이지만 success가 false인 경우
+        const errorData = (response instanceof Response) ? await response.json() : response; // 에러 데이터 추출 방식 조정
         console.error('Delta 데이터 저장/업데이트 실패:', errorData);
-        alert(`Delta 데이터 저장/업데이트에 실패했습니다: ${errorData.message || response.statusText}`);
+        alert(`Delta 데이터 저장/업데이트에 실패했습니다: ${errorData.message || (response instanceof Response ? response.statusText : '알 수 없는 오류')}`);
       }
-    } catch (error) {
+    } catch (error: any) { // 에러 타입 명시
       console.error('Delta 데이터 저장/업데이트 중 오류 발생:', error);
       alert('Delta 데이터 저장/업데이트 중 네트워크 오류가 발생했습니다.');
     }
-  }, [title, editingContentId, fetchContents]);
+  }, [title, editingContentId, fetchContents, handleNewPost]);
 
   // 편집을 위해 선택된 콘텐츠를 에디터에 로드합니다.
-  const handleEditContent = useCallback((content) => {
+  const handleEditContent = useCallback((content: Content) => {
     setTitle(content.title);
-    // ReactQuill은 `value` prop에 HTML 문자열을 기대합니다.
-    // 백엔드가 Delta를 저장하는 경우, HTML로 변환해야 할 수 있습니다.
-    // 백엔드에서 htmlContent를 함께 제공한다고 가정합니다.
-    setValue(new Quill(document.createElement('div')).setContents(content.quill_content));
+    // 백엔드에서 받은 quill_content가 HTML 문자열이라고 가정합니다.
+    setValue(content.quill_content);
     setEditingContentId(content.id);
+
+    // 만약 content.quill_content가 Delta 객체(JSON)라면:
+    // const delta = typeof content.quill_content === 'string' ? JSON.parse(content.quill_content) : content.quill_content;
+    // quillRef.current?.getEditor().setContents(delta);
+    // setValue(quillRef.current?.getEditor().root.innerHTML || ''); // Delta를 HTML로 변환하여 value 상태 업데이트
   }, []);
 
   // 콘텐츠 항목을 삭제합니다.
-  const handleDeleteContent = useCallback(async (id) => {
-    // 사용자에게 삭제 확인 메시지를 표시합니다.
-    // 실제 애플리케이션에서는 사용자 정의 모달 UI를 사용해야 합니다.
+  const handleDeleteContent = useCallback(async (id: string | number) => {
     if (!window.confirm('정말로 이 콘텐츠를 삭제하시겠습니까?')) {
       return;
     }
     try {
+      console.log('id', id);
       const response = await fetchWithOutCSRF({
-        url: `/contents/deletewriting/${id}`, // 콘텐츠 삭제 백엔드 엔드포인트
+        url: `/contents/deletewriting/${id}`,
         method: 'delete',
       });
 
-      if (response.ok) {
+      // fetchWithOutCSRF가 Promise<Response>를 반환할 경우
+      if (response instanceof Response && response.ok) {
         alert('콘텐츠가 성공적으로 삭제되었습니다.');
-        fetchContents(); // 삭제 후 콘텐츠를 다시 가져옵니다.
+        fetchContents();
         if (editingContentId === id) {
-          handleNewPost(); // 삭제된 콘텐츠가 편집 중이었다면 에디터를 지웁니다.
+          handleNewPost();
+        }
+      } else if ('success' in response && response.success) { // fetchWithOutCSRF가 Promise<FetchSuccessResponse>를 반환할 경우
+        alert('콘텐츠가 성공적으로 삭제되었습니다.');
+        fetchContents();
+        if (editingContentId === id) {
+          handleNewPost();
         }
       } else {
-        const errorData = await response.json();
+        // 오류 처리
+        const errorData = (response instanceof Response) ? await response.json() : response;
         console.error('콘텐츠 삭제 실패:', errorData);
-        alert(`콘텐츠 삭제 실패: ${errorData.message || response.statusText}`);
+        alert(`콘텐츠 삭제 실패: ${errorData.message || (response instanceof Response ? response.statusText : '알 수 없는 오류')}`);
       }
-    } catch (error) {
+    } catch (error: any) { // 에러 타입 명시
       console.error('콘텐츠 삭제 중 오류 발생:', error);
       alert('콘텐츠 삭제 중 네트워크 오류가 발생했습니다.');
     }
-  }, [editingContentId, fetchContents]);
+  }, [editingContentId, fetchContents, handleNewPost]);
 
-  // 새 글 작성을 위해 에디터와 상태를 초기화합니다.
-  const handleNewPost = useCallback(() => {
-    setTitle('');
-    setValue('');
-    setEditingContentId(null);
-  }, []);
 
   // Quill 에디터 모듈 구성
-  const modules = React.useMemo(() => ({
+  const modules = useMemo(() => ({ // React.useMemo 대신 useMemo 직접 사용
     toolbar: {
       container: [
         ['bold', 'italic', 'underline', 'strike'],
@@ -305,9 +314,11 @@ function App() {
 
   // 미리보기를 위한 MathJax 조판
   useEffect(() => {
-    if (window.MathJax && showPreview && previewRef.current) {
-      window.MathJax.typesetPromise([previewRef.current])
-        .catch((err) => console.log('MathJax typesetting error:', err));
+    // window 객체에 MathJax가 존재함을 알리는 타입 단언
+    if ((window as any).MathJax && showPreview && previewRef.current) {
+      // MathJax의 typesetPromise 메서드 호출
+      (window as any).MathJax.typesetPromise([previewRef.current])
+        .catch((err: any) => console.log('MathJax typesetting error:', err));
     }
   }, [value, showPreview]);
 
@@ -393,7 +404,7 @@ function App() {
                 'background', 'font', 'align', 'clean', 'image',
               ]}
               className="bg-gray-50 border border-gray-300 rounded-lg shadow-sm min-h-[300px] flex flex-col"
-              style={{ flex: 1 }} // Quill이 사용 가능한 높이를 차지하도록 보장
+              style={{ flex: 1 }}
             />
           </div>
 
@@ -422,7 +433,6 @@ function App() {
                 >
                   <div>
                     <h4 className="text-xl font-semibold text-gray-900 mb-2 truncate">{content.title}</h4>
-                    {/* 백엔드에서 HTML 콘텐츠를 직접 받거나, Delta를 HTML로 변환하여 표시합니다. */}
                     <p className="text-gray-600 text-sm mb-4 line-clamp-3" dangerouslySetInnerHTML={{ __html: content.quill_content || '내용 없음' }}></p>
                   </div>
                   <div className="flex justify-end gap-3 mt-4">

@@ -26,6 +26,20 @@ module.exports = {
             // 에러를 다시 던지거나, 특정 에러 응답을 반환하거나, 빈 배열 등을 반환할 수 있습니다.
             throw new Error('Failed to retrieve contents.'); // 또는 throw error;
         }
+    },
+    deleteWriting: async (id) => {
+        try {
+            const deletedCount = await Content.destroy({
+                where: { id: id }
+            });
+
+            return deletedCount;
+        } catch (error) {
+            console.error('Error deleting a content:', error);
+            // 에러를 다시 던지거나, 특정 에러 응답을 반환하거나, 빈 배열 등을 반환할 수 있습니다.
+            throw new Error('Failed to delete contents.'); // 또는 throw error;
+        }
     }
+
 
 }
