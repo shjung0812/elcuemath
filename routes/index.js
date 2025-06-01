@@ -13,4 +13,10 @@ router.use('/correspondence', ads_router);
 const contents_router=require('./mathcontents/contents_router')
 router.use('/contents', contents_router);
 
+
+
+const react_router = require('./react_router')
+router.use('/renv', react_router);
+
+
 module.exports = router;
