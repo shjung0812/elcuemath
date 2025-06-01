@@ -14,6 +14,8 @@ export default defineConfig({
 // 
         // 
   ],
+  base: '/renv/',
+
   css: {
     postcss: {
       plugins: [
