@@ -5,12 +5,106 @@ module.exports = {
         res.send('hi')
 
     },
-    saveWriting: async (req, res) => {
+saveWriting: async (req, res) => {
         const { delta, title } = req.body;
-        console.log(req.body)
-        console.log('delta', delta)
-        await writingContentsService.saveWriting({ delta, title })
+        console.log('req.body:', req.body); // 요청 본문 전체
+        console.log('delta:', delta); // delta 값 확인
 
+        try {
+            // 서비스 계층에서 데이터베이스에 저장하고, 저장된 데이터를 반환받습니다.
+            // 예를 들어, 저장된 글의 id, title, quill_content 등을 포함할 수 있습니다.
+            const savedContent = await writingContentsService.saveWriting({ delta, title });
+
+            // 저장 성공 시
+            return res.status(201).json({ // 201 Created: 새로운 리소스가 성공적으로 생성되었을 때 사용
+                success: true,
+                message: '글이 성공적으로 저장되었습니다.',
+                data: savedContent // 저장된 글의 정보 (id, title 등)를 포함하여 보낼 수 있습니다.
+            });
+
+        } catch (error) {
+            console.error('글 저장 중 오류 발생:', error); // 서버 로그에 상세 에러 기록
+
+            // 에러 발생 시
+            // 에러 유형에 따라 다른 상태 코드와 메시지를 보낼 수 있습니다.
+            // 예를 들어, 유효성 검사 실패는 400 Bad Request, 서버 오류는 500 Internal Server Error
+            if (error.name === 'SequelizeValidationError') { // Sequelize 유효성 검사 에러
+                return res.status(400).json({
+                    success: false,
+                    message: '입력 데이터가 유효하지 않습니다.',
+                    errors: error.errors.map(err => err.message) // 유효성 검사 에러 메시지 배열
+                });
+            } else if (error.code === 'ER_NO_DEFAULT_FOR_FIELD' || error.message.includes("doesn't have a default value")) {
+                // 이전에 겪으셨던 ID 관련 에러 (마이그레이션 및 모델 정의 확인 필요)
+                return res.status(500).json({
+                    success: false,
+                    message: '데이터베이스 오류: ID 필드 설정에 문제가 있습니다. 관리자에게 문의하세요.',
+                    details: error.sqlMessage // 에러 상세 메시지 포함 (개발 단계에서 유용)
+                });
+            } else {
+                // 그 외 알 수 없는 서버 에러
+                return res.status(500).json({
+                    success: false,
+                    message: '글 저장에 실패했습니다. 서버 오류입니다.',
+                    error: error.message // 실제 서비스에서는 보안상 에러 메시지를 축약할 수 있습니다.
+                });
+            }
+        }
+    },
+updateSavedDelta: async (req, res) => {
+        const { delta,title } = req.body; // 클라이언트에서 body로 delta와 id를 보냄
+        const { id } = req.params; // URL 파라미터에서 삭제할 콘텐츠의 ID 추출
+        console.log('delta, id',delta, id)
+
+
+        // 입력값 유효성 검사 (기본적인 검증)
+        if (!id) {
+            return res.status(400).json({ message: 'Content ID is required.' });
+        }
+        if (!delta) {
+            return res.status(400).json({ message: 'Delta content is required.' });
+        }
+        // delta가 Quill Delta의 유효한 객체 형태인지 추가 검증할 수 있습니다.
+        // 예를 들어, `delta.ops`가 배열인지 확인하는 등.
+        if (!Array.isArray(delta.ops)) {
+             return res.status(400).json({ message: 'Invalid Delta format. "ops" array is missing.' });
+        }
+
+
+        try {
+            // 서비스 계층의 updateWriting 함수 호출
+            // 이 함수는 위에서 구현한 'updateWritingReplace' 또는 'updateWritingMerge' 중 하나가 될 것입니다.
+            const updatedContents = await writingContentsService.updateWritingReplace(id,title, delta);
+            // 만약 병합 방식을 사용한다면:
+            // const updatedContents = await writingContentsService.updateWritingMerge(id, delta);
+
+
+            // 업데이트 성공 시 응답
+            if (updatedContents) {
+                return res.status(200).json({
+                                    success: true,
+
+                    message: 'Content updated successfully.',
+                    data: updatedContents // 업데이트된 콘텐츠 데이터를 클라이언트에 반환
+                });
+            } else {
+                // ID는 유효했으나 어떤 이유로 업데이트된 내용이 없는 경우 (매우 드뭄)
+                return res.status(404).json({ 
+                                    success: false,
+
+                    message: 'Content not found or could not be updated.' });
+            }
+
+        } catch (error) {
+            console.error('Error in updateSavedDelta:', error.message);
+
+            // 서비스 계층에서 던진 에러를 잡아 클라이언트에 적절한 에러 응답
+            if (error.message.includes('not found')) {
+                return res.status(404).json({ message: error.message });
+            }
+            // 그 외 일반적인 서버 에러
+            return res.status(500).json({ message: 'Failed to update content due to a server error.', error: error.message });
+        }
     },
     getWriting: async (req, res) => {
         try {

@@ -66,7 +66,7 @@ export async function fetchWithOutCSRF(options: FetchOptions): Promise<Response 
   };
 
   // GET 또는 HEAD 메서드에는 body를 포함하지 않습니다.
-  if (body && method !== 'get' && method !== 'head') {
+  if (body && method !== 'get') {
     // FormData가 아닌 경우에만 JSON.stringify를 사용합니다.
     config.body = body instanceof FormData ? body : JSON.stringify(body);
   }

@@ -26,9 +26,14 @@ export interface QuillDelta extends Delta {
 }
 // 콘텐츠 객체의 타입 정의
 export interface Content {
-  id: string | number; // 백엔드 ID가 문자열 또는 숫자일 수 있으므로 유니온 타입 사용
+  id: number; // 백엔드 ID가 문자열 또는 숫자일 수 있으므로 유니온 타입 사용
   title: string;
   quill_content: string; // 백엔드에서 HTML을 직접 주거나, Delta JSON 문자열을 주거나
   // 'quill_content'가 Delta 객체 자체라면: quill_content: QuillDelta;
   // 백엔드에서 반환하는 다른 필드들을 여기에 추가할 수 있습니다.
+}
+export interface SaveContentOptions {
+  title: string;
+  delta: any; // Quill Delta 타입
+  editingContentId?: string | number | null;
 }
