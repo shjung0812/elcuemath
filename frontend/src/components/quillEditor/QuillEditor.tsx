@@ -46,6 +46,7 @@ const lastAutoSavedDataRef = useRef<{ delta: MyDeltaType | null; title: string |
     setValue(newValue);
     setAutoSaveStatus({ isSaving: false, message: '변경 사항 감지됨...' });
 
+
   }, []);
 
   // 제목 입력 필드 변경을 처리합니다.
@@ -171,7 +172,7 @@ const handleNewPost = useCallback(() => {
 }, []);
 
   // 콘텐츠 저장 또는 업데이트를 처리합니다 (Delta 형식).
-const saveOrUpdateContent = async ({ title, delta, editingContentId }: SaveContentOptions): Promise<FetchSuccessResponse> => {
+const saveOrUpdateContent = async ({ title, delta, editingContentId,isCreate }: SaveContentOptions): Promise<FetchSuccessResponse> => {
   const requestBody = {
     title: title,
     delta: delta,
@@ -180,7 +181,7 @@ const saveOrUpdateContent = async ({ title, delta, editingContentId }: SaveConte
   try {
     let response: Response | FetchSuccessResponse;
 
-    if (editingContentId) {
+    if (editingContentId&&!isCreate) {
       response = await fetchWithOutCSRF({
         url: `/contents/handlesavedelta/${editingContentId}`,
         method: 'put',
@@ -218,42 +219,44 @@ const saveOrUpdateContent = async ({ title, delta, editingContentId }: SaveConte
 };
 
 // handleSaveDelta 함수 수정 (주석 처리됨)
-// const handleSaveDelta = useCallback(async () => {
-//     if (!quillRef.current) {
-//         console.error("Quill editor instance not available.");
-//         alert('Quill 에디터 인스턴스를 찾을 수 없습니다.');
-//         return;
-//     }
+const handleSaveDelta = useCallback(async (isCreate:Boolean) => {
+    if (!quillRef.current) {
+        console.error("Quill editor instance not available.");
+        alert('Quill 에디터 인스턴스를 찾을 수 없습니다.');
+        return;
+    }
 
-//     if (!title.trim()) {
-//         alert('제목을 입력해주세요.');
-//         return;
-//     }
+    if (!title.trim()) {
+        alert('제목을 입력해주세요.');
+        return;
+    }
 
-//     const editor = quillRef.current.getEditor();
-//     const delta = editor.getContents();
+    const editor = quillRef.current.getEditor();
+    const delta = editor.getContents();
 
-//     setAutoSaveStatus({ isSaving: true, message: '수동 저장 중...' }); // 수동 저장 시작 알림
-//     const result: FetchSuccessResponse = await saveOrUpdateContent({
-//         title: title,
-//         delta: delta,
-//         editingContentId: editingContentId
-//     });
-//     // 수동 저장 결과에 따라 상태 업데이트
-//     setAutoSaveStatus({ isSaving: false, message: result.success ? '수동 저장 완료' : '수동 저장 실패' });
+    setAutoSaveStatus({ isSaving: true, message: '수동 저장 중...' }); // 수동 저장 시작 알림
+    const result: FetchSuccessResponse = await saveOrUpdateContent({
+        title: title,
+        delta: delta,
+        editingContentId: editingContentId,
+        isCreate,
+    });
+    // 수동 저장 결과에 따라 상태 업데이트
+    setAutoSaveStatus({ isSaving: false, message: result.success ? '수동 저장 완료' : '수동 저장 실패' });
 
 
-//     if (result.success) {
-//         alert(result.message);
-//         console.log('Delta 저장/업데이트 성공:', result.data);
-//         lastAutoSavedDeltaRef.current = delta; // 수동 저장 시에도 마지막 저장 Delta 업데이트
-//         fetchContents();
-//         handleNewPost();
-//     } else {
-//         console.error('Delta 데이터 저장/업데이트 실패:', result.data);
-//         alert(`Delta 데이터 저장/업데이트에 실패했습니다: ${result.message}`);
-//     }
-// }, [title, editingContentId, saveOrUpdateContent, fetchContents, handleNewPost]);
+    if (result.success) {
+        alert(result.message);
+        console.log('Delta 저장/업데이트 성공:', result.data);
+        lastAutoSavedDataRef.current = { delta: delta, title: title };
+
+        fetchContents();
+        handleNewPost();
+    } else {
+        console.error('Delta 데이터 저장/업데이트 실패:', result.data);
+        alert(`Delta 데이터 저장/업데이트에 실패했습니다: ${result.message}`);
+    }
+}, [title, editingContentId, saveOrUpdateContent, fetchContents, handleNewPost]);
   
 // 자동 저장 debounce 로직
 useEffect(() => {
@@ -286,10 +289,15 @@ useEffect(() => {
         console.log('자동 저장 시작 (Debounce)...');
         setAutoSaveStatus({ isSaving: true, message: '자동 저장 중...' });
 
+        fetchContents();
+
+        if(editingContentId){
+
         const result = await saveOrUpdateContent({
             title: currentTitle, // 수정된 currentTitle 사용
             delta: currentDelta,
-            editingContentId: editingContentId
+            editingContentId: editingContentId,
+            isCreate:false
         });
 
         if (result.success) {
@@ -301,6 +309,12 @@ useEffect(() => {
             console.error('자동 저장 실패:', result.data);
             setAutoSaveStatus({ isSaving: false, message: `자동 저장 실패: ${result.message || '알 수 없는 오류'}` });
         }
+
+        }else{
+          return;
+        }
+
+
     }, AUTO_SAVE_DEBOUNCE_DELAY);
 
     // 컴포넌트 언마운트 시 또는 의존성 변경 시 타이머 정리
@@ -313,21 +327,60 @@ useEffect(() => {
 
 
   // handleEditContent 함수 수정
-const handleEditContent = useCallback((content: Content) => {
-    setTitle(content.title);
-    // 백엔드에서 받은 quill_content가 JSON string 형태라고 가정하고 Delta로 변환
-    const deltaToLoad = new Delta(JSON.parse(content.quill_content));
+// const handleEditContent = useCallback((content: Content) => {
+
+//         console.log('fetchedContents', contents)
+
+//     // setTitle(content.title);
+//     // // 백엔드에서 받은 quill_content가 JSON string 형태라고 가정하고 Delta로 변환
+//     // const deltaToLoad = new Delta(JSON.parse(content.quill_content));
+
+//     // // ReactQuill에 Delta 객체를 직접 설정
+//     // quillRef.current?.getEditor().setContents(deltaToLoad);
+//     // // ReactQuill의 'value' prop은 HTML string을 기대하므로, Delta를 HTML로 변환하여 value 상태 업데이트
+//     // setValue(quillRef.current?.getEditor().root.innerHTML || '');
+//     // setEditingContentId(content.id);
+
+//     // // 편집 시작 시, 불러온 Delta를 마지막 저장 Delta로 설정
+//     // lastAutoSavedDataRef.current = deltaToLoad;
+//     // setAutoSaveStatus({ isSaving: false, message: '저장 대기 중' }); // 상태 초기화
+// }, []);
+
+const handleEditContent = (content: Content) => {
+
+        console.log('fetchedContents', contents)
+        const savingContent=contents.find((item)=>item.id==content.id)
+        console.log('savingContent',savingContent)
+        const savingContents=contents.find((item)=>item.id==content.id)
+        let savingTitle
+        let savingQuill
+        if(savingContents){
+          savingTitle=savingContents.title
+          savingQuill=savingContents.quill_content
+
+        }else{
+          return
+        }
+        
+      setTitle(savingTitle);
+
+
+
+    // setTitle(content.title);
+    // // 백엔드에서 받은 quill_content가 JSON string 형태라고 가정하고 Delta로 변환
+    const deltaToLoad = new Delta(JSON.parse(savingQuill));
 
     // ReactQuill에 Delta 객체를 직접 설정
     quillRef.current?.getEditor().setContents(deltaToLoad);
     // ReactQuill의 'value' prop은 HTML string을 기대하므로, Delta를 HTML로 변환하여 value 상태 업데이트
-    setValue(quillRef.current?.getEditor().root.innerHTML || '');
+    setValue(deltaToLoad);
     setEditingContentId(content.id);
 
     // 편집 시작 시, 불러온 Delta를 마지막 저장 Delta로 설정
     lastAutoSavedDataRef.current = deltaToLoad;
     setAutoSaveStatus({ isSaving: false, message: '저장 대기 중' }); // 상태 초기화
-}, []);
+};
+
 
   // 콘텐츠 항목을 삭제합니다.
   const handleDeleteContent = useCallback(async (id: string | number) => {
@@ -363,6 +416,7 @@ const handleEditContent = useCallback((content: Content) => {
       console.error('콘텐츠 삭제 중 오류 발생:', error);
       alert('콘텐츠 삭제 중 네트워크 오류가 발생했습니다.');
     }
+ 
   }, [editingContentId, fetchContents, handleNewPost]);
 
 
@@ -444,13 +498,13 @@ const handleEditContent = useCallback((content: Content) => {
               Quill JSON 복사
             </button> */}
             {/* 업데이트/저장 버튼 (주석 처리됨) */}
-            {/* <button
+            <button
               type="button"
               className="bg-teal-500 hover:bg-teal-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105"
-              onClick={handleSaveDelta}
+              onClick={editingContentId?()=>{handleSaveDelta(false)}:()=>{handleSaveDelta(true)}}
             >
               {editingContentId ? '업데이트' : '저장'}
-            </button> */}
+            </button>
             <button
               type="button"
               className="bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105"

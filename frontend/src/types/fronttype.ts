@@ -36,4 +36,5 @@ export interface SaveContentOptions {
   title: string;
   delta: any; // Quill Delta 타입
   editingContentId?: string | number | null;
+  isCreate:Boolean
 }
