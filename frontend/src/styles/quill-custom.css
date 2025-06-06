@@ -1,0 +1,28 @@
+/* src/styles/quill-custom.css */
+
+/* Quill 에디터 본문(.ql-editor)의 글자 크기를 설정합니다. */
+.ql-editor {
+  font-size: 1.25rem !important; /* text-xl에 해당, Quill의 기본 스타일을 덮어씁니다. */
+  line-height: 1.6; /* 가독성을 위한 줄 간격 조정 */
+
+  /* 부모(.ql-container)의 100% 높이에서 Quill 툴바 높이를 뺀 나머지 공간을 채웁니다. */
+  /* Quill Snow 테마 툴바 높이는 일반적으로 약 42px입니다. */
+  height: calc(
+    100% - 42px
+  ); /* 에디터 본문이 ReactQuill 컨테이너 내에서 꽉 차도록 설정 */
+  overflow-y: auto; /* 내용이 넘칠 경우 세로 스크롤바 생성 */
+  padding-bottom: 20px; /* 스크롤 시 하단 여유 공간 확보 */
+}
+
+/* 에디터 컨테이너가 포커스 되었을 때의 시각적 피드백 (선택 사항) */
+/* 이 스타일은 .ql-container가 .ql-snow 테마를 사용할 때 적용됩니다. */
+.ql-container.ql-snow:focus-within {
+  border-color: #60a5fa; /* Tailwind blue-400 */
+  box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.5); /* Tailwind ring-2 blue-300 */
+}
+
+/* Quill의 기본 툴바 아이콘 크기를 조절하고 싶다면 (선택 사항) */
+.ql-toolbar.ql-snow .ql-formats button svg {
+  width: 18px; /* 아이콘 크기 조절 */
+  height: 18px;
+}

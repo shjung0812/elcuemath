@@ -12,7 +12,7 @@ const ContentPreview: React.FC<ContentPreviewProps> = ({
 }) => {
   const previewRef = useRef<HTMLDivElement | null>(null);
 
-  // 미리보기를 위한 MathJax 조판
+  // 미리보기를 위한 MathJax 조판 (기존 로직 유지)
   useEffect(() => {
     if ((window as any).MathJax && showPreview && previewRef.current) {
       (window as any).MathJax.typesetPromise([previewRef.current]).catch(
@@ -25,16 +25,20 @@ const ContentPreview: React.FC<ContentPreviewProps> = ({
     return null;
   }
 
+  // Quill HTML 문자열을 직접 사용 (목업에서 델타 JSON 문자열로 대체되었었음)
+  const previewHtml = value || "<p>미리 볼 내용이 없습니다.</p>";
+
   return (
-    <div
-      ref={previewRef}
-      className="lg:w-1/2 mt-6 lg:mt-0 lg:pl-6 lg:border-l lg:border-gray-300"
-    >
-      <h3 className="text-2xl font-bold text-gray-800 mb-3">미리보기</h3>
+    <div className="w-full bg-white p-4 rounded-lg shadow-md border border-gray-200 mt-6 lg:mt-0">
+      {" "}
+      {/* 스타일 조정 */}
+      <h2 className="text-2xl font-semibold text-gray-800 mb-3 border-b pb-2">
+        미리보기
+      </h2>
       <div
-        className="border border-gray-300 rounded-lg p-5 shadow-sm ql-editor bg-gray-50 min-h-[300px] overflow-auto"
-        dangerouslySetInnerHTML={{ __html: value }}
-      ></div>
+        className="prose max-w-none overflow-y-auto max-h-[calc(50vh-100px)]" // 높이 조정 및 스크롤바
+        dangerouslySetInnerHTML={{ __html: previewHtml }}
+      />
     </div>
   );
 };

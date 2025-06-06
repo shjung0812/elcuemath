@@ -62,7 +62,7 @@ export const useContentManagement = (): UseContentManagementResult => {
 
   const fetchContents = useCallback(async () => {
     try {
-      const result = await fetchContentsApi();
+      const result = (await fetchContentsApi()) as FetchSuccessResponse;
       if (result.success) {
         setContents(result.data);
         const convertedHtmls = result.data.map((content: Content) => ({

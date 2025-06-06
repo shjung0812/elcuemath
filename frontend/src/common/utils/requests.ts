@@ -2,12 +2,26 @@
 
 import { RequestOptions } from "../types/commonTypes";
 import { FetchSuccessResponse } from "../types/commonTypes";
+
 export async function fetchWithOutCSRF({
-  url,
+  url, // This 'url' will now be treated as the relative path
   method,
   body,
   headers,
 }: RequestOptions): Promise<Response | FetchSuccessResponse> {
+  let baseUrl = "";
+
+  // Check if we are in a development environment
+  // import.meta.env.DEV is true when running `vite` development server
+  if (import.meta.env.DEV) {
+    // Append the host from .env.development (e.g., VITE_API_HOST=http://localhost:5000)
+    baseUrl = import.meta.env.VITE_API_HOST || ""; // Use empty string if VITE_API_HOST is not defined
+  }
+  // In production (import.meta.env.PROD is true), baseUrl will remain an empty string,
+  // making the final URL relative to the current host.
+
+  const fullUrl = `${baseUrl}${url}`; // Construct the full URL
+
   const config: RequestInit = {
     method: method,
     headers: {
@@ -18,22 +32,23 @@ export async function fetchWithOutCSRF({
   };
 
   try {
-    const response = await fetch(url, config);
+    const response = await fetch(fullUrl, config); // Use the constructed fullUrl
 
-    // 여기서는 응답이 FetchSuccessResponse 형식일 것이라고 가정하고 바로 파싱
-    // 실제로는 response.ok 체크 후 .json() 파싱하여 FetchSuccessResponse 형식으로 변환하는 로직이 필요할 수 있습니다.
     if (!response.ok) {
-      const errorData = await response.json();
+      const errorData = await response.json(); // Attempt to parse error data
       return {
         success: false,
-        message: errorData.message || response.statusText,
+        message:
+          errorData.message ||
+          response.statusText ||
+          "An unknown error occurred",
         data: errorData,
       };
     }
     const data = await response.json();
-    return { success: true, data: data, message: "Request successful" };
+    return data;
   } catch (error: any) {
-    console.error(`Error during ${method} request to ${url}:`, error);
+    console.error(`Error during ${method} request to ${fullUrl}:`, error); // Log the fullUrl for debugging
     return { success: false, message: `Network error: ${error.message}` };
   }
 }
