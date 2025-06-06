@@ -178,7 +178,7 @@ function EditorPage(): React.ReactElement {
         autoSaveStatus={autoSaveStatus} // autoSaveStatus 전달
       />
 
-      <div className="flex-grow flex flex-col lg:flex-row gap-6 mt-4 max-h-[calc(100vh-160px)]">
+      <div className="flex-grow flex flex-col lg:flex-row gap-6 mt-4 max-h-[calc(100vh-170px)]">
         {" "}
         {/* 툴바 높이를 고려한 max-height */}
         {/* 콘텐츠 목록 컴포넌트 (좌측 패널) */}

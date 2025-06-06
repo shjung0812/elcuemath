@@ -5,9 +5,9 @@ import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
 import NotFoundPage from "./pages/NotFound";
 import EditorPage from "./pages/EditorPage";
 
-// ReactQuill 기본 CSS 임포트
-import "react-quill/dist/quill.core.css"; // Quill 핵심 스타일
-import "react-quill/dist/quill.snow.css"; // Snow 테마 스타일
+// // ReactQuill 기본 CSS 임포트
+// import "react-quill/dist/quill.core.css"; // Quill 핵심 스타일
+// import "react-quill/dist/quill.snow.css"; // Snow 테마 스타일
 
 function App() {
   return (
