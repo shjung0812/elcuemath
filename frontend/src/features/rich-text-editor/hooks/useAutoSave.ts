@@ -55,9 +55,15 @@ export const useAutoSave = ({
   // 외부에서 수동으로 자동 저장 상태 메시지를 설정하기 위한 함수
   // isSaving은 기본적으로 false로 설정 (메시지만 변경할 경우)
   const setManualAutoSaveStatus = useCallback(
-    (message: string, isSaving: boolean = false) => {
-      setAutoSaveStatus({ isSaving, message });
+    (newMessage: string, isSaving: boolean = false) => {
+      setAutoSaveStatus((prev) => {
+        if (prev.message === newMessage) {
+          return prev;
+        }
+        return { isSaving, message: newMessage };
+      });
     },
+
     []
   );
 

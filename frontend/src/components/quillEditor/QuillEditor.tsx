@@ -6,22 +6,19 @@ import React, {
   useMemo,
 } from "react";
 import ReactQuill, { Quill } from "react-quill";
-
-import {
-  MyDeltaType,
-  Delta,
-} from "../../features/rich-text-editor/types/editorTypes";
-
+const Delta = Quill.import("delta");
+type MyDeltaType = InstanceType<typeof Delta>; // Delta 클래스의 인스턴스 타입을 얻습니다.
 import { QuillDeltaToHtmlConverter } from "quill-delta-to-html";
 import ImageResize from "quill-image-resize-module-react";
 
 import {
   Content,
-  SaveContentOptions,
   FetchSuccessResponse,
+  SaveContentOptions,
 } from "../../common/types/commonTypes";
+
 import { fetchWithOutCSRF } from "../../common/utils/requests";
-import { saveOrUpdateContent } from "../../features/rich-text-editor/api/contentApi";
+
 // Quill에 ImageResize 모듈을 등록합니다.
 Quill.register("modules/imageResize", ImageResize);
 
@@ -194,50 +191,120 @@ function App(): React.ReactElement {
     setAutoSaveStatus({ isSaving: false, message: "저장 대기 중" }); // 상태 초기화
   }, []);
 
-  // handleSaveDelta 함수 수정 (주석 처리됨)
-  const handleSaveDelta = useCallback(
-    async (isCreate: Boolean) => {
-      if (!quillRef.current) {
-        console.error("Quill editor instance not available.");
-        alert("Quill 에디터 인스턴스를 찾을 수 없습니다.");
-        return;
-      }
+  // 콘텐츠 저장 또는 업데이트를 처리합니다 (Delta 형식).
+  const saveOrUpdateContent = async ({
+    title,
+    delta,
+    editingContentId,
+  }: SaveContentOptions): Promise<FetchSuccessResponse> => {
+    const requestBody = {
+      title: title,
+      delta: delta,
+    };
 
-      if (!title.trim()) {
-        alert("제목을 입력해주세요.");
-        return;
-      }
+    try {
+      let response: Response | FetchSuccessResponse;
 
-      const editor = quillRef.current.getEditor();
-      const delta = editor.getContents();
-
-      setAutoSaveStatus({ isSaving: true, message: "수동 저장 중..." }); // 수동 저장 시작 알림
-      const result: FetchSuccessResponse = await saveOrUpdateContent({
-        title: title,
-        delta: delta,
-        editingContentId: editingContentId,
-        isCreate,
-      });
-      // 수동 저장 결과에 따라 상태 업데이트
-      setAutoSaveStatus({
-        isSaving: false,
-        message: result.success ? "수동 저장 완료" : "수동 저장 실패",
-      });
-
-      if (result.success) {
-        alert(result.message);
-        console.log("Delta 저장/업데이트 성공:", result.data);
-        lastAutoSavedDataRef.current = { delta: delta, title: title };
-
-        fetchContents();
-        handleNewPost();
+      if (editingContentId) {
+        response = await fetchWithOutCSRF({
+          url: `/contents/handlesavedelta/${editingContentId}`,
+          method: "put",
+          body: requestBody,
+        });
       } else {
-        console.error("Delta 데이터 저장/업데이트 실패:", result.data);
-        alert(`Delta 데이터 저장/업데이트에 실패했습니다: ${result.message}`);
+        response = await fetchWithOutCSRF({
+          url: "/contents/savewriting",
+          method: "post",
+          body: requestBody,
+        });
       }
-    },
-    [title, editingContentId, saveOrUpdateContent, fetchContents, handleNewPost]
-  );
+
+      if (response instanceof Response) {
+        const result = await response.json();
+        if (response.ok) {
+          return {
+            success: true,
+            message: `Delta 데이터가 성공적으로 ${
+              editingContentId ? "업데이트" : "저장"
+            }되었습니다.`,
+            data: result,
+          };
+        } else {
+          return {
+            success: false,
+            message: result.message || response.statusText,
+            data: result,
+          };
+        }
+      } else if ("success" in response) {
+        if (response.success) {
+          return {
+            success: true,
+            message: `Delta 데이터가 성공적으로 ${
+              editingContentId ? "업데이트" : "저장"
+            }되었습니다.`,
+            data: response.data,
+          };
+        } else {
+          return {
+            success: false,
+            message: response.message || "알 수 없는 오류",
+            data: response.data,
+          };
+        }
+      } else {
+        // 예상치 못한 응답 형식 처리
+        return {
+          success: false,
+          message: "알 수 없는 응답 형식",
+          data: response,
+        };
+      }
+    } catch (error: any) {
+      console.error("Delta 데이터 저장/업데이트 중 오류 발생:", error);
+      return {
+        success: false,
+        message: "Delta 데이터 저장/업데이트 중 네트워크 오류가 발생했습니다.",
+      };
+    }
+  };
+
+  // handleSaveDelta 함수 수정 (주석 처리됨)
+  // const handleSaveDelta = useCallback(async () => {
+  //     if (!quillRef.current) {
+  //         console.error("Quill editor instance not available.");
+  //         alert('Quill 에디터 인스턴스를 찾을 수 없습니다.');
+  //         return;
+  //     }
+
+  //     if (!title.trim()) {
+  //         alert('제목을 입력해주세요.');
+  //         return;
+  //     }
+
+  //     const editor = quillRef.current.getEditor();
+  //     const delta = editor.getContents();
+
+  //     setAutoSaveStatus({ isSaving: true, message: '수동 저장 중...' }); // 수동 저장 시작 알림
+  //     const result: FetchSuccessResponse = await saveOrUpdateContent({
+  //         title: title,
+  //         delta: delta,
+  //         editingContentId: editingContentId
+  //     });
+  //     // 수동 저장 결과에 따라 상태 업데이트
+  //     setAutoSaveStatus({ isSaving: false, message: result.success ? '수동 저장 완료' : '수동 저장 실패' });
+
+  //     if (result.success) {
+  //         alert(result.message);
+  //         console.log('Delta 저장/업데이트 성공:', result.data);
+  //         lastAutoSavedDeltaRef.current = delta; // 수동 저장 시에도 마지막 저장 Delta 업데이트
+  //         fetchContents();
+  //         handleNewPost();
+  //     } else {
+  //         console.error('Delta 데이터 저장/업데이트 실패:', result.data);
+  //         alert(`Delta 데이터 저장/업데이트에 실패했습니다: ${result.message}`);
+  //     }
+  // }, [title, editingContentId, saveOrUpdateContent, fetchContents, handleNewPost]);
 
   // 자동 저장 debounce 로직
   useEffect(() => {
@@ -277,36 +344,29 @@ function App(): React.ReactElement {
       console.log("자동 저장 시작 (Debounce)...");
       setAutoSaveStatus({ isSaving: true, message: "자동 저장 중..." });
 
-      fetchContents();
+      const result = await saveOrUpdateContent({
+        title: currentTitle, // 수정된 currentTitle 사용
+        delta: currentDelta,
+        editingContentId: editingContentId,
+      });
 
-      if (editingContentId) {
-        const result = await saveOrUpdateContent({
-          title: currentTitle, // 수정된 currentTitle 사용
+      if (result.success) {
+        console.log("자동 저장 성공:", result.data);
+        // 성공 시 마지막 저장된 Delta와 Title 모두 업데이트
+        lastAutoSavedDataRef.current = {
           delta: currentDelta,
-          editingContentId: editingContentId,
-          isCreate: false,
+          title: currentTitle,
+        };
+        setAutoSaveStatus({
+          isSaving: false,
+          message: `자동 저장됨: ${new Date().toLocaleTimeString()}`,
         });
-
-        if (result.success) {
-          console.log("자동 저장 성공:", result.data);
-          // 성공 시 마지막 저장된 Delta와 Title 모두 업데이트
-          lastAutoSavedDataRef.current = {
-            delta: currentDelta,
-            title: currentTitle,
-          };
-          setAutoSaveStatus({
-            isSaving: false,
-            message: `자동 저장됨: ${new Date().toLocaleTimeString()}`,
-          });
-        } else {
-          console.error("자동 저장 실패:", result.data);
-          setAutoSaveStatus({
-            isSaving: false,
-            message: `자동 저장 실패: ${result.message || "알 수 없는 오류"}`,
-          });
-        }
       } else {
-        return;
+        console.error("자동 저장 실패:", result.data);
+        setAutoSaveStatus({
+          isSaving: false,
+          message: `자동 저장 실패: ${result.message || "알 수 없는 오류"}`,
+        });
       }
     }, AUTO_SAVE_DEBOUNCE_DELAY);
 
@@ -317,6 +377,23 @@ function App(): React.ReactElement {
       }
     };
   }, [title, value, editingContentId, saveOrUpdateContent]); // 의존성 배열에 'value' 추가!
+
+  // handleEditContent 함수 수정
+  const handleEditContent = useCallback((content: Content) => {
+    setTitle(content.title);
+    // 백엔드에서 받은 quill_content가 JSON string 형태라고 가정하고 Delta로 변환
+    const deltaToLoad = new Delta(JSON.parse(content.quill_content));
+
+    // ReactQuill에 Delta 객체를 직접 설정
+    quillRef.current?.getEditor().setContents(deltaToLoad);
+    // ReactQuill의 'value' prop은 HTML string을 기대하므로, Delta를 HTML로 변환하여 value 상태 업데이트
+    setValue(quillRef.current?.getEditor().root.innerHTML || "");
+    setEditingContentId(content.id);
+
+    // 편집 시작 시, 불러온 Delta를 마지막 저장 Delta로 설정
+    lastAutoSavedDataRef.current = deltaToLoad;
+    setAutoSaveStatus({ isSaving: false, message: "저장 대기 중" }); // 상태 초기화
+  }, []);
 
   // 콘텐츠 항목을 삭제합니다.
   const handleDeleteContent = useCallback(
@@ -366,57 +443,6 @@ function App(): React.ReactElement {
     },
     [editingContentId, fetchContents, handleNewPost]
   );
-
-  // handleEditContent 함수 수정
-  // const handleEditContent = useCallback((content: Content) => {
-
-  //         console.log('fetchedContents', contents)
-
-  //     // setTitle(content.title);
-  //     // // 백엔드에서 받은 quill_content가 JSON string 형태라고 가정하고 Delta로 변환
-  //     // const deltaToLoad = new Delta(JSON.parse(content.quill_content));
-
-  //     // // ReactQuill에 Delta 객체를 직접 설정
-  //     // quillRef.current?.getEditor().setContents(deltaToLoad);
-  //     // // ReactQuill의 'value' prop은 HTML string을 기대하므로, Delta를 HTML로 변환하여 value 상태 업데이트
-  //     // setValue(quillRef.current?.getEditor().root.innerHTML || '');
-  //     // setEditingContentId(content.id);
-
-  //     // // 편집 시작 시, 불러온 Delta를 마지막 저장 Delta로 설정
-  //     // lastAutoSavedDataRef.current = deltaToLoad;
-  //     // setAutoSaveStatus({ isSaving: false, message: '저장 대기 중' }); // 상태 초기화
-  // }, []);
-
-  const handleEditContent = (content: Content) => {
-    console.log("fetchedContents", contents);
-    const savingContent = contents.find((item) => item.id == content.id);
-    console.log("savingContent", savingContent);
-    const savingContents = contents.find((item) => item.id == content.id);
-    let savingTitle;
-    let savingQuill;
-    if (savingContents) {
-      savingTitle = savingContents.title;
-      savingQuill = savingContents.quill_content;
-    } else {
-      return;
-    }
-
-    setTitle(savingTitle);
-
-    // setTitle(content.title);
-    // // 백엔드에서 받은 quill_content가 JSON string 형태라고 가정하고 Delta로 변환
-    const deltaToLoad = new Delta(JSON.parse(savingQuill));
-
-    // ReactQuill에 Delta 객체를 직접 설정
-    quillRef.current?.getEditor().setContents(deltaToLoad);
-    // ReactQuill의 'value' prop은 HTML string을 기대하므로, Delta를 HTML로 변환하여 value 상태 업데이트
-    setValue(deltaToLoad);
-    setEditingContentId(content.id);
-
-    // 편집 시작 시, 불러온 Delta를 마지막 저장 Delta로 설정
-    lastAutoSavedDataRef.current = deltaToLoad;
-    setAutoSaveStatus({ isSaving: false, message: "저장 대기 중" }); // 상태 초기화
-  };
 
   // Quill 에디터 모듈 구성
   const modules = useMemo(
@@ -501,21 +527,13 @@ function App(): React.ReactElement {
               Quill JSON 복사
             </button> */}
             {/* 업데이트/저장 버튼 (주석 처리됨) */}
-            <button
+            {/* <button
               type="button"
               className="bg-teal-500 hover:bg-teal-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105"
-              onClick={
-                editingContentId
-                  ? () => {
-                      handleSaveDelta(false);
-                    }
-                  : () => {
-                      handleSaveDelta(true);
-                    }
-              }
+              onClick={handleSaveDelta}
             >
-              {editingContentId ? "업데이트" : "저장"}
-            </button>
+              {editingContentId ? '업데이트' : '저장'}
+            </button> */}
             <button
               type="button"
               className="bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105"

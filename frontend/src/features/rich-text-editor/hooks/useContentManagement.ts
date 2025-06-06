@@ -16,8 +16,7 @@ import {
 } from "../api/contentApi"; // API 함수 임포트
 
 const Delta = Quill.import("delta");
-const QuillDeltaToHtmlConverter =
-  require("quill-delta-to-html").QuillDeltaToHtmlConverter;
+import { QuillDeltaToHtmlConverter } from "quill-delta-to-html"; // <-- 이렇게 변경
 
 interface UseContentManagementResult {
   contents: Content[];

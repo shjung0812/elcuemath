@@ -1,7 +1,7 @@
 // features/rich-text-editor/components/ContentEditor.tsx
 import React from "react";
 import ReactQuill from "react-quill";
-import "react-quill/dist/snow.css"; // Quill CSS
+// import "react-quill/dist/snow.css"; // Quill CSS
 
 interface ContentEditorProps {
   title: string;

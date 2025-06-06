@@ -1,7 +1,7 @@
 // pages/EditorPage.tsx
 import React, { useState, useEffect } from "react";
 import Quill from "quill"; // Quill.import("delta")를 위해 필요
-import "react-quill/dist/snow.css"; // Quill CSS도 필요하다면 여기에
+// import "react-quill/dist/snow.css"; // Quill CSS도 필요하다면 여기에
 
 // features/rich-text-editor에서 필요한 훅과 컴포넌트를 임포트
 import {

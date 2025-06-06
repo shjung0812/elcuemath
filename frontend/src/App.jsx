@@ -1,7 +1,7 @@
 import { useState } from "react";
 import Home from "./pages/Home";
 import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
-import QuillPage from "./pages/QuillPage";
+// import QuillPage from "./pages/QuillPage";
 import NotFoundPage from "./pages/NotFound";
 import EditorPage from "./pages/EditorPage";
 
