@@ -28,6 +28,22 @@ export const saveContentApi = async ({
   editingContentId,
   isCreate,
 }: SaveContentOptions): Promise<FetchSuccessResponse> => {
+  // Add this check at the very beginning
+  const isDeltaEmpty =
+    !delta || // Catches null, undefined, etc.
+    (typeof delta === "string" && delta.trim() === "") || // Catches truly empty strings
+    (typeof delta === "object" && // Checks if it's an object (Quill's delta)
+      Array.isArray(delta.ops) && // Ensures it has an ops array
+      delta.ops.length === 1 && // Checks if there's only one operation
+      delta.ops[0] && // Ensures the operation exists
+      delta.ops[0].insert === "\n"); // Checks if that operation is just a newline
+
+  if (isDeltaEmpty) {
+    return {
+      success: false,
+      message: "저장할 내용이 없습니다. Delta 데이터는 비어 있을 수 없습니다.",
+    };
+  }
   const requestBody = {
     title: title,
     delta: delta, // Delta는 JSON stringify될 수 있음

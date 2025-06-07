@@ -64,8 +64,18 @@ export const useContentManagement = (): UseContentManagementResult => {
     try {
       const result = (await fetchContentsApi()) as FetchSuccessResponse;
       if (result.success) {
-        setContents(result.data);
-        const convertedHtmls = result.data.map((content: Content) => ({
+        // Sort the contents by 'updatedAt' in descending order (newest first)
+        const sortedContents = result.data.sort((a: Content, b: Content) => {
+          // Ensure updatedAt is treated as a Date for proper comparison
+          const dateA = new Date(a.updated_at || 0).getTime(); // Use 0 if updatedAt is null/undefined
+          const dateB = new Date(b.updated_at || 0).getTime();
+          return dateB - dateA; // Descending order
+        });
+
+        setContents(sortedContents); // Set the sorted content
+
+        const convertedHtmls = sortedContents.map((content: Content) => ({
+          // Use sortedContents here
           id: content.id,
           html: convertDeltaToHtml(content.quill_content),
         }));
@@ -78,7 +88,7 @@ export const useContentManagement = (): UseContentManagementResult => {
       console.error("콘텐츠 불러오기 중 오류 발생:", error);
       alert("콘텐츠 불러오기 중 네트워크 오류가 발생했습니다.");
     }
-  }, [convertDeltaToHtml]);
+  }, [convertDeltaToHtml]); // Dependencies remain the same
 
   const saveOrUpdateContent = useCallback(
     async ({

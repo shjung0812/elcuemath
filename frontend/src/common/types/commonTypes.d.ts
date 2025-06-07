@@ -34,5 +34,5 @@ export interface RequestOptions {
 export interface FetchSuccessResponse {
   success: boolean;
   message?: string;
-  data?: any;
+  data: any;
 }
