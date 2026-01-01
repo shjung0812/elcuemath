@@ -56,6 +56,15 @@ function App(): React.ReactElement {
   const quillRef = useRef<ReactQuill | null>(null);
   const previewRef = useRef<HTMLDivElement | null>(null); // 미리보기 div 참조
 
+  // Race Condition 방지를 위한 Refs
+  const isCreatingRef = useRef(false);
+  const editingContentIdRef = useRef<string | number | null>(null);
+
+  // editingContentId가 변경될 때마다 Ref도 동기화
+  useEffect(() => {
+    editingContentIdRef.current = editingContentId;
+  }, [editingContentId]);
+
   // Quill 에디터 내용 변경을 처리합니다.
   const handleChange = useCallback((newValue: string) => {
     setValue(newValue);
@@ -164,6 +173,12 @@ function App(): React.ReactElement {
 
       if (result.success) {
         const fetchedContents: Content[] = result.data;
+        // Sort by updated_at or created_at descending
+        fetchedContents.sort((a, b) => {
+          const dateA = new Date(a.updated_at || a.created_at || 0).getTime();
+          const dateB = new Date(b.updated_at || b.created_at || 0).getTime();
+          return dateB - dateA;
+        });
         setContents(fetchedContents); // 원본 Delta 객체를 포함하는 콘텐츠 스테이트 업데이트
 
         // fetchedContents를 순회하며 각 Delta를 HTML로 변환
@@ -187,6 +202,7 @@ function App(): React.ReactElement {
     setTitle("");
     setValue("");
     setEditingContentId(null);
+    editingContentIdRef.current = null; // Ref도 초기화
     lastAutoSavedDataRef.current = null; // 새 글 작성 시 마지막 저장 Delta 초기화
     setAutoSaveStatus({ isSaving: false, message: "저장 대기 중" }); // 상태 초기화
   }, []);
@@ -226,7 +242,7 @@ function App(): React.ReactElement {
             success: true,
             message: `Delta 데이터가 성공적으로 ${editingContentId ? "업데이트" : "저장"
               }되었습니다.`,
-            data: result,
+            data: result.data || result,
           };
         } else {
           return {
@@ -304,54 +320,63 @@ function App(): React.ReactElement {
   //     }
   // }, [title, editingContentId, saveOrUpdateContent, fetchContents, handleNewPost]);
 
-  // 자동 저장 debounce 로직
-  useEffect(() => {
-    // 기존에 설정된 타이머가 있다면 취소
-    if (autoSaveTimeoutRef.current) {
-      clearTimeout(autoSaveTimeoutRef.current);
+  // Perform Save Function (Serial Queue Pattern)
+  const performSave = async (currentTitle: string, currentDelta: any, currentId: string | number | null) => {
+    // 1. 이미 저장 중이라면 스킵 (하지만 변경사항이 있으므로 나중에 다시 시도해야 함? - Debounce가 처리해줌)
+    if (isCreatingRef.current) {
+      console.log("이미 저장 프로세스 진행 중... 스킵");
+      return;
     }
 
-    // 새로운 타이머 설정
-    autoSaveTimeoutRef.current = setTimeout(async () => {
-      if (!quillRef.current || !title.trim()) {
-        console.log("자동 저장 스킵: 에디터 인스턴스 없거나 제목 없음.");
-        setAutoSaveStatus({ isSaving: false, message: "저장 대기 중" });
-        return;
-      }
+    isCreatingRef.current = true;
+    setAutoSaveStatus({ isSaving: true, message: "자동 저장 중..." });
 
-      const currentDelta = quillRef.current.getEditor().getContents();
-      const currentTitle = title; // 현재 제목 가져오기
-
-      // 변경 사항 감지 로직 개선: Delta 또는 제목 중 하나라도 변경되었는지 확인
-      const hasDeltaChanged =
-        JSON.stringify(currentDelta) !==
-        JSON.stringify(lastAutoSavedDataRef.current?.delta);
-      const hasTitleChanged =
-        currentTitle !== lastAutoSavedDataRef.current?.title;
-
-      if (
-        !hasDeltaChanged &&
-        !hasTitleChanged &&
-        lastAutoSavedDataRef.current !== null
-      ) {
-        console.log("내용 또는 제목 변경 없음, 자동 저장 스킵.");
-        setAutoSaveStatus({ isSaving: false, message: "변경 없음" });
-        return;
-      }
-
-      console.log("자동 저장 시작 (Debounce)...");
-      setAutoSaveStatus({ isSaving: true, message: "자동 저장 중..." });
-
+    try {
       const result = await saveOrUpdateContent({
-        title: currentTitle, // 수정된 currentTitle 사용
+        title: currentTitle,
         delta: currentDelta,
-        editingContentId: editingContentId,
-        isCreate: !editingContentId,
+        editingContentId: currentId,
+        isCreate: !currentId,
       });
 
       if (result.success) {
         console.log("자동 저장 성공:", result.data);
-        // 성공 시 마지막 저장된 Delta와 Title 모두 업데이트
+        const savedContent: Content = result.data;
+
+        // 성공 시 상태 업데이트
+        if (!currentId) {
+          setEditingContentId(savedContent.id);
+          editingContentIdRef.current = savedContent.id;
+        }
+
+        setContents(prevContents => {
+          const index = prevContents.findIndex(c => c.id === savedContent.id);
+          if (index !== -1) {
+            const newContents = [...prevContents];
+            newContents[index] = savedContent;
+            newContents.sort((a, b) => { // 최신순 정렬 유지
+              const dateA = new Date(a.updated_at || a.created_at || 0).getTime();
+              const dateB = new Date(b.updated_at || b.created_at || 0).getTime();
+              return dateB - dateA;
+            });
+            return newContents;
+          } else {
+            return [savedContent, ...prevContents];
+          }
+        });
+
+        setPreviewHtmlContents(prev => {
+          const newHtml = convertDeltaToHtml(savedContent.quill_content);
+          const index = prev.findIndex(p => p.id === savedContent.id);
+          if (index !== -1) {
+            const newPreviews = [...prev];
+            newPreviews[index] = { id: savedContent.id, html: newHtml };
+            return newPreviews;
+          } else {
+            return [{ id: savedContent.id, html: newHtml }, ...prev];
+          }
+        });
+
         lastAutoSavedDataRef.current = {
           delta: currentDelta,
           title: currentTitle,
@@ -360,6 +385,7 @@ function App(): React.ReactElement {
           isSaving: false,
           message: `자동 저장됨: ${new Date().toLocaleTimeString()}`,
         });
+
       } else {
         console.error("자동 저장 실패:", result.data);
         setAutoSaveStatus({
@@ -367,15 +393,56 @@ function App(): React.ReactElement {
           message: `자동 저장 실패: ${result.message || "알 수 없는 오류"}`,
         });
       }
+    } catch (e) {
+      console.error("Save Error", e);
+      setAutoSaveStatus({ isSaving: false, message: "오류 발생" });
+    } finally {
+      isCreatingRef.current = false;
+    }
+  };
+
+  // 자동 저장 debounce 로직
+  useEffect(() => {
+    if (autoSaveTimeoutRef.current) {
+      clearTimeout(autoSaveTimeoutRef.current);
+    }
+
+    autoSaveTimeoutRef.current = setTimeout(() => {
+      // 1. 유효성 검사
+      if (!quillRef.current || !title.trim()) {
+        setAutoSaveStatus({ isSaving: false, message: "저장 대기 중" });
+        return;
+      }
+
+      const currentDelta = quillRef.current.getEditor().getContents();
+      const currentTitle = title;
+
+      // 2. Ref에서 최신 ID 가져오기
+      let currentId = editingContentIdRef.current;
+
+      // 3. 변경 사항 확인
+      const hasDeltaChanged =
+        JSON.stringify(currentDelta) !==
+        JSON.stringify(lastAutoSavedDataRef.current?.delta);
+      const hasTitleChanged =
+        currentTitle !== lastAutoSavedDataRef.current?.title;
+
+      if (!hasDeltaChanged && !hasTitleChanged && lastAutoSavedDataRef.current !== null) {
+        return;
+      }
+
+      // 4. 저장 실행
+      performSave(currentTitle, currentDelta, currentId);
+
     }, AUTO_SAVE_DEBOUNCE_DELAY);
 
-    // 컴포넌트 언마운트 시 또는 의존성 변경 시 타이머 정리
     return () => {
       if (autoSaveTimeoutRef.current) {
         clearTimeout(autoSaveTimeoutRef.current);
       }
     };
-  }, [title, value, editingContentId, saveOrUpdateContent]); // 의존성 배열에 'value' 추가!
+  }, [title, value, editingContentId]);
+
 
   // handleEditContent 함수 수정
   const handleEditContent = useCallback((content: Content) => {
@@ -490,191 +557,145 @@ function App(): React.ReactElement {
   }, [value, showPreview]);
 
   return (
-    <div className="min-h-screen bg-gray-100 p-4 sm:p-6 font-sans antialiased">
-      <div className="max-w-7xl mx-auto bg-white p-4 sm:p-6 rounded-lg shadow-xl">
-        <div className="flex flex-col sm:flex-row items-center justify-between mb-6 gap-3">
+    <div className="flex h-screen bg-gray-100 font-sans antialiased overflow-hidden">
+      {/* Left Sidebar: Saved Contents List */}
+      <div className="w-80 bg-white border-r border-gray-200 flex flex-col h-full shadow-lg z-20">
+        <div className="p-5 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
+          <h3 className="text-lg font-bold text-gray-800">
+            저장된 글
+          </h3>
           <button
             type="button"
-            className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-5 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105"
-            onClick={togglePreview}
+            className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold py-1.5 px-3 rounded shadow transition duration-200"
+            onClick={handleNewPost}
           >
-            {showPreview ? "에디터만 보기" : "에디터와 미리보기 같이 보기"}
+            새 글
           </button>
-          <div className="flex flex-wrap justify-center sm:justify-end gap-2 sm:gap-3">
-            <button
-              type="button"
-              className="bg-indigo-500 hover:bg-indigo-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105"
-              onClick={copyToPlainText}
-            >
-              텍스트로 복사
-            </button>
-            {/* HTML 복사 버튼 (주석 처리됨) */}
-            {/* <button
-              type="button"
-              className="bg-purple-500 hover:bg-purple-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105"
-              onClick={copyToHtml}
-            >
-              HTML로 복사
-            </button> */}
-            {/* Quill JSON 복사 버튼 (주석 처리됨) */}
-            {/* <button
-              type="button"
-              className="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105"
-              onClick={copyToJson}
-            >
-              Quill JSON 복사
-            </button> */}
-            {/* 업데이트/저장 버튼 (주석 처리됨) */}
-            {/* <button
-              type="button"
-              className="bg-teal-500 hover:bg-teal-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105"
-              onClick={handleSaveDelta}
-            >
-              {editingContentId ? '업데이트' : '저장'}
-            </button> */}
-            <button
-              type="button"
-              className="bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105"
-              onClick={handleNewPost}
-            >
-              새 글 작성
-            </button>
-          </div>
         </div>
 
-        <div className="mb-6">
-          <label
-            htmlFor="contentTitle"
-            className="block text-gray-800 text-base font-semibold mb-2"
-          >
-            제목
-          </label>
-          <input
-            type="text"
-            id="contentTitle"
-            className="shadow-sm appearance-none border border-gray-300 rounded-lg w-full py-3 px-4 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200"
-            placeholder="제목을 입력하세요"
-            value={title}
-            onChange={handleTitleChange}
-          />
-        </div>
-        {/* 자동 저장 상태 메시지 추가 */}
-        <p className="text-sm text-gray-600 mb-4 text-right">
-          {autoSaveStatus.message}{" "}
-          {autoSaveStatus.isSaving && (
-            <span className="animate-pulse">...</span>
-          )}
-        </p>
-
-        <div
-          className={`flex flex-col ${showPreview ? "lg:flex-row" : "justify-center"
-            } gap-6`}
-        >
-          <div
-            className={`quill-editor-container text-xl ${showPreview ? "lg:w-1/2" : "w-full"
-              } flex flex-col`}
-          >
-            <h2 className="text-2xl font-bold text-gray-800 mb-3">
-              Quill 에디터
-            </h2>
-            <ReactQuill
-              ref={quillRef}
-              value={value}
-              onChange={handleChange}
-              theme="snow"
-              modules={modules}
-              formats={[
-                "bold",
-                "italic",
-                "underline",
-                "strike",
-                "blockquote",
-                "code-block",
-                "header",
-                "list",
-                "script",
-                "indent",
-                "direction",
-                "size",
-                "color",
-                "background",
-                "font",
-                "align",
-                "clean",
-                "image",
-              ]}
-              className="editor-big-font bg-gray-50 border border-gray-300 rounded-lg shadow-sm min-h-[300px] flex flex-col"
-              style={{ flex: 1 }}
-            />
-          </div>
-
-          {showPreview && (
-            <div
-              ref={previewRef}
-              className="lg:w-1/2 mt-6 lg:mt-0 lg:pl-6 lg:border-l lg:border-gray-300"
-            >
-              <h3 className="text-2xl font-bold text-gray-800 mb-3">
-                미리보기
-              </h3>
-              <div
-                className="border border-gray-300 rounded-lg p-5 shadow-sm ql-editor bg-gray-50 min-h-[300px] overflow-auto"
-                dangerouslySetInnerHTML={{ __html: value }}
-              ></div>
-            </div>
-          )}
-        </div>
-
-        <div className="mt-10 pt-8 border-t border-gray-200">
-          <h3 className="text-2xl font-bold text-gray-800 mb-5">
-            저장된 콘텐츠 목록
-          </h3>
+        <div className="flex-1 overflow-y-auto p-4 space-y-3">
           {contents.length === 0 ? (
-            <p className="text-gray-600 text-lg text-center py-8">
-              아직 저장된 콘텐츠가 없습니다. 새 글을 작성해보세요!
+            <p className="text-gray-500 text-sm text-center py-10">
+              저장된 글이 없습니다.
             </p>
           ) : (
-            <ul className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {contents.map((content) => {
-                const previewHtml =
-                  previewHtmlContents.find((p) => p.id === content.id)?.html ||
-                  "<p>미리보기 준비 중...</p>";
+            contents.map((content) => {
+              const previewHtml =
+                previewHtmlContents.find((p) => p.id === content.id)?.html ||
+                "<p>로딩 중...</p>";
 
-                return (
-                  <li
-                    key={content.id}
-                    className="bg-white border border-gray-200 rounded-lg shadow-md p-5 flex flex-col justify-between transition duration-300 ease-in-out hover:shadow-lg hover:border-blue-300"
+              return (
+                <div
+                  key={content.id}
+                  className={`group relative border-b border-gray-100 p-3 cursor-pointer transition-colors duration-200 hover:bg-gray-50 ${editingContentId === content.id ? 'bg-blue-50 border-blue-200' : 'bg-white'}`}
+                  onClick={() => handleEditContent(content)}
+                >
+                  <h4 className="font-semibold text-gray-900 mb-1 truncate text-sm pr-10">
+                    {content.title || "제목 없음"}
+                  </h4>
+                  <div
+                    className="text-gray-500 text-xs line-clamp-1 h-4 overflow-hidden"
+                    dangerouslySetInnerHTML={{ __html: previewHtml }}
+                  ></div>
+
+                  <button
+                    onClick={(e) => { e.stopPropagation(); handleDeleteContent(content.id); }}
+                    className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 text-red-500 hover:text-red-700 text-xs bg-white/80 hover:bg-red-50 px-2 py-0.5 rounded border border-gray-200 hover:border-red-200 transition-all duration-200 shadow-sm"
                   >
-                    <div key={content.id}>
-                      <h4 className="text-xl font-semibold text-gray-900 mb-2 truncate">
-                        {content.title}
-                      </h4>
-                      {/* previewHtmlContents 스테이트에서 가져온 HTML을 사용 */}
-                      <p
-                        className="text-gray-600 text-sm mb-4 line-clamp-3"
-                        dangerouslySetInnerHTML={{ __html: previewHtml }}
-                      ></p>
-                    </div>
-                    <div className="flex justify-end gap-3 mt-4">
-                      <button
-                        type="button"
-                        className="bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-lg shadow-sm transition duration-200 ease-in-out transform hover:scale-105"
-                        onClick={() => handleEditContent(content)}
-                      >
-                        수정
-                      </button>
-                      <button
-                        type="button"
-                        className="bg-red-500 hover:bg-red-600 text-white font-medium py-2 px-4 rounded-lg shadow-sm transition duration-200 ease-in-out transform hover:scale-105"
-                        onClick={() => handleDeleteContent(content.id)}
-                      >
-                        삭제
-                      </button>
-                    </div>
-                  </li>
-                );
-              })}
-            </ul>
+                    삭제
+                  </button>
+                </div>
+              );
+            })
           )}
+        </div>
+      </div>
+
+      {/* Right Main Area: Editor */}
+      <div className="flex-1 flex flex-col h-full overflow-hidden relative">
+        {/* Top Header */}
+        <div className="bg-white p-4 shadow-sm z-10 border-b border-gray-200 flex flex-col gap-4">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+            <input
+              type="text"
+              id="contentTitle"
+              className="flex-1 text-xl font-bold text-gray-800 placeholder-gray-400 focus:outline-none bg-transparent border-b-2 border-transparent focus:border-blue-500 transition-colors py-1"
+              placeholder="제목을 입력하세요..."
+              value={title}
+              onChange={handleTitleChange}
+            />
+
+            <div className="flex items-center gap-2">
+              {/* Status Message */}
+              <span className="text-xs text-gray-500 mr-2 flex items-center">
+                {autoSaveStatus.isSaving && <span className="w-2 h-2 bg-yellow-400 rounded-full mr-1 animate-pulse"></span>}
+                {autoSaveStatus.message}
+              </span>
+
+              <button
+                type="button"
+                className="bg-indigo-100 hover:bg-indigo-200 text-indigo-700 font-medium py-1.5 px-3 rounded-md text-sm transition-colors"
+                onClick={copyToPlainText}
+              >
+                텍스트 복사
+              </button>
+              <button
+                type="button"
+                className={`font-medium py-1.5 px-3 rounded-md text-sm transition-colors border ${showPreview ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'}`}
+                onClick={togglePreview}
+              >
+                {showPreview ? "미리보기 끄기" : "미리보기"}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Editor Content Scrollable Area */}
+        <div className="flex-1 overflow-y-auto bg-gray-50 p-6">
+          <div className="max-w-6xl mx-auto h-full flex flex-col">
+            <div className={`flex flex-col ${showPreview ? "lg:flex-row" : ""} gap-6 h-full min-h-[500px]`}>
+              {/* Editor */}
+              <div className={`flex flex-col ${showPreview ? "lg:w-1/2" : "w-full"} bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden`}>
+                <div className="bg-gray-50 px-4 py-2 border-b border-gray-200 flex items-center">
+                  <h2 className="text-sm font-semibold text-gray-600">에디터</h2>
+                </div>
+                <ReactQuill
+                  ref={quillRef}
+                  value={value}
+                  onChange={handleChange}
+                  theme="snow"
+                  modules={modules}
+                  formats={[
+                    "bold", "italic", "underline", "strike", "blockquote", "code-block",
+                    "header", "list", "script", "indent", "direction", "size",
+                    "color", "background", "font", "align", "clean", "image",
+                  ]}
+                  className="flex-1 flex flex-col"
+                  style={{ height: '100%', display: 'flex', flexDirection: 'column' }}
+                />
+                {/* ReactQuill customization note: .ql-container should use flex-1 */}
+                <style>{`
+                            .quill { display: flex; flex-direction: column; flex: 1; overflow: hidden; }
+                            .ql-container { flex: 1; overflow-y: auto; font-size: 1.1rem; }
+                            .ql-editor { min-height: 100%; }
+                         `}</style>
+              </div>
+
+              {/* Preview */}
+              {showPreview && (
+                <div className="lg:w-1/2 bg-white rounded-lg shadow-sm border border-gray-200 flex flex-col overflow-hidden">
+                  <div className="bg-gray-50 px-4 py-2 border-b border-gray-200 flex items-center">
+                    <h2 className="text-sm font-semibold text-gray-600">미리보기</h2>
+                  </div>
+                  <div
+                    ref={previewRef}
+                    className="flex-1 p-5 overflow-auto prose max-w-none"
+                    dangerouslySetInnerHTML={{ __html: value }}
+                  ></div>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </div>

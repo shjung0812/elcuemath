@@ -10,7 +10,7 @@ function App() {
     <BrowserRouter basename="/renv">
       <Routes>
         <Route path="/" element={<Layout />}>
-          <Route index element={<Navigate to="/cms" replace />} />
+          <Route index element={<Navigate to="/editor" replace />} />
           <Route path="cms" element={<MathCMS />} />
           <Route path="editor" element={<QuillPage />} />
         </Route>

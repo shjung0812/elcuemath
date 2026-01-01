@@ -8,7 +8,7 @@ module.exports = {
   saveWriting: async ({ delta, title }) => {
     const deltaJsonString = JSON.stringify(delta);
 
-    Content.create({
+    return await Content.create({
       quill_content: deltaJsonString,
       title,
     });

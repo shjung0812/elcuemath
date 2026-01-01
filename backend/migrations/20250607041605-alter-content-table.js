@@ -8,26 +8,26 @@ module.exports = {
     // 이 부분은 데이터베이스 종류에 따라 구문이 다를 수 있습니다.
     // MySQL의 경우 MODIFY COLUMN, PostgreSQL의 경우 ALTER COLUMN TYPE을 사용합니다.
     // autoIncrement와 primaryKey는 해당 타입에 맞게 재정의됩니다.
-    await queryInterface.changeColumn("content", "id", {
-      type: Sequelize.BIGINT,
-      // primaryKey: true,
-      autoIncrement: true,
-      allowNull: false,
-    });
+    // await queryInterface.changeColumn("content", "id", {
+    //   type: Sequelize.BIGINT,
+    //   // primaryKey: true,
+    //   autoIncrement: true,
+    //   allowNull: false,
+    // });
 
     // 2. quill_content 컬럼 타입 변경 (JSON -> LONGTEXT)
     // 기존 JSON 데이터가 TEXT로 저장되므로 유의하세요.
-    await queryInterface.changeColumn("content", "quill_content", {
-      type: Sequelize.TEXT("long"), // LONGTEXT에 해당
-      allowNull: false,
-    });
+    // await queryInterface.changeColumn("content", "quill_content", {
+    //   type: Sequelize.TEXT("long"), // LONGTEXT에 해당
+    //   allowNull: false,
+    // });
 
     // 3. status 컬럼 추가
-    await queryInterface.addColumn("content", "status", {
-      type: Sequelize.STRING(50),
-      defaultValue: "draft",
-      allowNull: false,
-    });
+    // await queryInterface.addColumn("content", "status", {
+    //   type: Sequelize.STRING(50),
+    //   defaultValue: "draft",
+    //   allowNull: false,
+    // });
 
     // 4. section_id 컬럼 추가 (외래 키 포함)
     // 'sections' 테이블이 먼저 생성되어 있어야 합니다.
