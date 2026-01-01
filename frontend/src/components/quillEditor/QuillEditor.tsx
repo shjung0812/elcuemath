@@ -35,7 +35,7 @@ function App(): React.ReactElement {
     string | number | null
   >(null); // 편집 중인 콘텐츠 ID
   const [previewHtmlContents, setPreviewHtmlContents] = useState<
-    { id: number; html: string }[]
+    { id: string | number; html: string }[]
   >([]);
   // const [isAutoSaving, setIsAutoSaving] = useState(false); // 자동 저장 중 상태 - 이 상태는 autoSaveStatus로 대체됩니다.
 
@@ -224,9 +224,8 @@ function App(): React.ReactElement {
         if (response.ok) {
           return {
             success: true,
-            message: `Delta 데이터가 성공적으로 ${
-              editingContentId ? "업데이트" : "저장"
-            }되었습니다.`,
+            message: `Delta 데이터가 성공적으로 ${editingContentId ? "업데이트" : "저장"
+              }되었습니다.`,
             data: result,
           };
         } else {
@@ -240,9 +239,8 @@ function App(): React.ReactElement {
         if (response.success) {
           return {
             success: true,
-            message: `Delta 데이터가 성공적으로 ${
-              editingContentId ? "업데이트" : "저장"
-            }되었습니다.`,
+            message: `Delta 데이터가 성공적으로 ${editingContentId ? "업데이트" : "저장"
+              }되었습니다.`,
             data: response.data,
           };
         } else {
@@ -348,6 +346,7 @@ function App(): React.ReactElement {
         title: currentTitle, // 수정된 currentTitle 사용
         delta: currentDelta,
         editingContentId: editingContentId,
+        isCreate: !editingContentId,
       });
 
       if (result.success) {
@@ -427,11 +426,10 @@ function App(): React.ReactElement {
             response instanceof Response ? await response.json() : response;
           console.error("콘텐츠 삭제 실패:", errorData);
           alert(
-            `콘텐츠 삭제 실패: ${
-              errorData.message ||
-              (response instanceof Response
-                ? response.statusText
-                : "알 수 없는 오류")
+            `콘텐츠 삭제 실패: ${errorData.message ||
+            (response instanceof Response
+              ? response.statusText
+              : "알 수 없는 오류")
             }`
           );
         }
@@ -569,14 +567,12 @@ function App(): React.ReactElement {
         </p>
 
         <div
-          className={`flex flex-col ${
-            showPreview ? "lg:flex-row" : "justify-center"
-          } gap-6`}
+          className={`flex flex-col ${showPreview ? "lg:flex-row" : "justify-center"
+            } gap-6`}
         >
           <div
-            className={`quill-editor-container text-xl ${
-              showPreview ? "lg:w-1/2" : "w-full"
-            } flex flex-col`}
+            className={`quill-editor-container text-xl ${showPreview ? "lg:w-1/2" : "w-full"
+              } flex flex-col`}
           >
             <h2 className="text-2xl font-bold text-gray-800 mb-3">
               Quill 에디터
