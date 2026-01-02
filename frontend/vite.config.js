@@ -8,11 +8,11 @@ import tsChecker from 'vite-plugin-checker';
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react(),
-        tailwindcss(),
-        tsChecker({ typescript: true }),
+  tailwindcss(),
+  tsChecker({ typescript: true }),
 
-// 
-        // 
+    // 
+    // 
   ],
   base: '/renv/',
 
@@ -23,4 +23,13 @@ export default defineConfig({
       ],
     },
   },
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://localhost', // 80번 포트로 가정
+        changeOrigin: true,
+        secure: false,
+      }
+    }
+  }
 })

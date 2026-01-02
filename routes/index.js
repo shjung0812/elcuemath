@@ -11,8 +11,11 @@ router.use('/subjectanalysis', subjectanalysisRouter);
 const ads_router = require('./ads_router');
 router.use('/correspondence', ads_router);
 
-const contents_router=require('./mathcontents/contents_router')
+const contents_router = require('./mathcontents/contents_router')
 router.use('/contents', contents_router);
+
+const cmsRouter = require('./cms');
+router.use('/api/cms', cmsRouter);
 
 
 
