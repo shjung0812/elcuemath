@@ -17,6 +17,9 @@ router.use('/contents', contents_router);
 const cmsRouter = require('./cms');
 router.use('/api/cms', cmsRouter);
 
+const migrationRouter = require('./migration_api');
+router.use('/api/migration', migrationRouter);
+
 
 
 const react_router = require('./react_router')

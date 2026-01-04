@@ -26,9 +26,26 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'http://localhost', // 80번 포트로 가정
+        target: 'http://127.0.0.1:3000',
         changeOrigin: true,
         secure: false,
+      },
+      '/socket.io': {
+        target: 'http://127.0.0.1:3000',
+        ws: true,
+        changeOrigin: true,
+        secure: false
+      },
+      '/vdrg': {
+        target: 'http://127.0.0.1:3000',
+        ws: true,
+        changeOrigin: true,
+        secure: false
+      },
+      '/audiocall': {
+        target: 'http://127.0.0.1:3000',
+        changeOrigin: true,
+        secure: false
       }
     }
   }
