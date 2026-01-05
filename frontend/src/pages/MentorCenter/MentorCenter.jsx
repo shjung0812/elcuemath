@@ -165,6 +165,104 @@ const MentorCenter = () => {
     // Filtered Students (Assigned AND Online)
     const activeStudents = students.filter(s => isStudentOnline(s.username));
 
+    // --- Student Homework Data ---
+    const [studentHomeworks, setStudentHomeworks] = useState({});
+    const [studentClassHistory, setStudentClassHistory] = useState({}); // New: Class History (Blue Bar)
+    const [expandedSolutions, setExpandedSolutions] = useState({}); // Toggle state for solution visibility
+    const [homeworkDateRange, setHomeworkDateRange] = useState(3); // Default 3 days
+
+    useEffect(() => {
+        if (!activeStudent) {
+            setStudentHomeworks({});
+            setStudentClassHistory({});
+            setExpandedSolutions({});
+            return;
+        }
+
+        const fetchHomework = async () => {
+            try {
+                const daysParam = homeworkDateRange === 'all' ? 'all' : homeworkDateRange;
+                const res = await fetch(`/api/migration/mentor/student-homework?studentId=${activeStudent.username}&days=${daysParam}`);
+                if (res.ok) {
+                    const json = await res.json();
+
+                    // Process Homework (Red Bar)
+                    const hwMap = {};
+                    json.homeworks?.forEach(h => {
+                        if (!hwMap[h.prbid]) {
+                            hwMap[h.prbid] = [];
+                        }
+                        hwMap[h.prbid].push(h.mpicid);
+                    });
+                    setStudentHomeworks(hwMap);
+
+                    // Process Class History (Blue Bar)
+                    const classMap = {};
+                    json.classHistory?.forEach(h => {
+                        const cleanId = h.prbid ? h.prbid.trim() : '';
+                        if (cleanId) classMap[cleanId] = true;
+                    });
+                    setStudentClassHistory(classMap);
+
+
+
+                    // Reset expansions when data changes (optional, but safer)
+                    setExpandedSolutions({});
+                    console.log("Loaded student data - Homework:", Object.keys(hwMap).length, "Class:", Object.keys(classMap).length);
+                }
+            } catch (e) {
+                console.error("Failed to fetch student homeworks:", e);
+            }
+        };
+
+        fetchHomework();
+    }, [activeStudent, homeworkDateRange]);
+
+    const toggleSolutions = (prbid) => {
+        setExpandedSolutions(prev => ({
+            ...prev,
+            [prbid]: !prev[prbid]
+        }));
+    };
+
+    const getCounts = (r1) => {
+        if (!r1.prblist) return { hw: 0, ch: 0 };
+        const ids = r1.prblist.split(',').map(s => s.trim()).filter(s => s);
+        let hw = 0;
+        let ch = 0;
+        ids.forEach(id => {
+            if (studentHomeworks[id]) hw++;
+            if (studentClassHistory[id]) ch++;
+        });
+        return { hw, ch };
+    };
+
+    const getR2Counts = (r2) => {
+        let totalHw = 0;
+        let totalCh = 0;
+        if (r2.children) {
+            r2.children.forEach(r1 => {
+                const counts = getCounts(r1);
+                totalHw += counts.hw;
+                totalCh += counts.ch;
+            });
+        }
+        return { hw: totalHw, ch: totalCh };
+    };
+
+    const getR3Counts = (r3) => {
+        let totalHw = 0;
+        let totalCh = 0;
+        if (r3.children) {
+            r3.children.forEach(r2 => {
+                const counts = getR2Counts(r2);
+                totalHw += counts.hw;
+                totalCh += counts.ch;
+            });
+        }
+        return { hw: totalHw, ch: totalCh };
+    };
+
     // --- 4. Fetch Problems when R1 is selected ---
     useEffect(() => {
         if (!selectedR1) {
@@ -302,7 +400,20 @@ const MentorCenter = () => {
                                                 onClick={() => toggleNode(r3.r3id)}
                                             >
                                                 <span className="mr-2 text-xs">{expandedNodes[r3.r3id] ? '▼' : '▶'}</span>
-                                                {r3.listinfo?.replaceAll('`', '')}
+                                                {r3.listinfo}
+                                                {(() => {
+                                                    const counts = getR3Counts(r3);
+                                                    if (counts.hw > 0 || counts.ch > 0) {
+                                                        return (
+                                                            <span className="text-xs ml-2 font-bold">
+                                                                (<span className="text-red-400">{counts.hw}</span>
+                                                                {counts.hw > 0 && counts.ch > 0 && ', '}
+                                                                <span className="text-blue-400">{counts.ch}</span>)
+                                                            </span>
+                                                        );
+                                                    }
+                                                    return null;
+                                                })()}
                                             </div>
 
                                             {/* R2 Nodes */}
@@ -315,6 +426,19 @@ const MentorCenter = () => {
                                                     >
                                                         <span className="mr-2 text-xs">{expandedNodes[`${r3.r3id}-${r2.r2id}`] ? '▼' : '▶'}</span>
                                                         {r2.r2listinfo?.replaceAll('`', '')}
+                                                        {(() => {
+                                                            const counts = getR2Counts(r2);
+                                                            if (counts.hw > 0 || counts.ch > 0) {
+                                                                return (
+                                                                    <span className="text-xs ml-2 font-bold">
+                                                                        (<span className="text-red-400">{counts.hw}</span>
+                                                                        {counts.hw > 0 && counts.ch > 0 && ', '}
+                                                                        <span className="text-blue-400">{counts.ch}</span>)
+                                                                    </span>
+                                                                );
+                                                            }
+                                                            return null;
+                                                        })()}
                                                     </div>
 
                                                     {/* R1 Leaf Nodes */}
@@ -325,6 +449,19 @@ const MentorCenter = () => {
                                                             onClick={() => setSelectedR1(r1)}
                                                         >
                                                             {r1.listinfo?.replaceAll('`', '')}
+                                                            {(() => {
+                                                                const counts = getCounts(r1);
+                                                                if (counts.hw > 0 || counts.ch > 0) {
+                                                                    return (
+                                                                        <span className="text-xs ml-2 font-bold">
+                                                                            (<span className="text-red-400">{counts.hw}</span>
+                                                                            {counts.hw > 0 && counts.ch > 0 && ', '}
+                                                                            <span className="text-blue-400">{counts.ch}</span>)
+                                                                        </span>
+                                                                    );
+                                                                }
+                                                                return null;
+                                                            })()}
                                                         </div>
                                                     ))}
                                                 </div>
@@ -339,7 +476,26 @@ const MentorCenter = () => {
 
                                 {/* TOP: Active Students */}
                                 <div className="h-[20%] flex flex-col border-b border-gray-700">
-                                    <h3 className="p-2 font-semibold text-xs text-gray-300 bg-gray-800 border-b border-gray-700">Active Students ({activeStudents.length})</h3>
+                                    <h3 className="p-2 font-semibold text-xs text-gray-300 bg-gray-800 border-b border-gray-700 flex justify-between items-center">
+                                        <span>Active Students ({activeStudents.length})</span>
+                                        <select
+                                            className="bg-gray-700 text-white text-[10px] rounded px-1 border border-gray-600 focus:outline-none focus:border-purple-500"
+                                            value={homeworkDateRange}
+                                            onChange={(e) => setHomeworkDateRange(e.target.value)}
+                                        >
+                                            <option value="1">1 Day</option>
+                                            <option value="3">3 Days</option>
+                                            <option value="7">7 Days</option>
+                                            <option value="15">15 Days</option>
+                                            <option value="30">30 Days</option>
+                                            <option value="60">60 Days</option>
+                                            <option value="90">90 Days</option>
+                                            <option value="120">120 Days</option>
+                                            <option value="180">180 Days</option>
+                                            <option value="360">360 Days</option>
+                                            <option value="all">All</option>
+                                        </select>
+                                    </h3>
                                     <div className="flex-1 overflow-y-auto p-1 space-y-1">
                                         {activeStudents.length > 0 ? (
                                             activeStudents.map((student, idx) => (
@@ -386,40 +542,91 @@ const MentorCenter = () => {
                                         {selectedR1 ? (
                                             <div className="space-y-4">
                                                 {problemDetails.length > 0 ? (
-                                                    problemDetails.map((prob, idx) => (
-                                                        <div key={idx} className="p-4 bg-gray-800 border border-gray-700 rounded text-sm hover:border-gray-500 transition-colors"
-                                                            onClick={() => handleSendProblem(prob)}
-                                                        >
-                                                            <div className="flex justify-between items-start mb-2 group-hover:text-white">
-                                                                <span></span>
-                                                                <button
-                                                                    className="text-xs bg-blue-600 px-2 py-1 rounded hover:bg-blue-500"
-                                                                    onClick={(e) => { e.stopPropagation(); handleSendProblem(prob); }}
-                                                                >
-                                                                    Send
-                                                                </button>
-                                                            </div>
+                                                    problemDetails.map((prob, idx) => {
+                                                        const hasHomework = !!studentHomeworks[prob.prbid];
+                                                        const hasClassHistory = !!studentClassHistory[prob.prbid];
 
-                                                            {/* Problem Text (HTML) */}
-                                                            {prob.prbkorean && (
-                                                                <div
-                                                                    className="text-gray-300 mb-2 prose prose-invert max-w-none text-sm pointer-events-none"
-                                                                    dangerouslySetInnerHTML={{ __html: prob.prbkorean.replaceAll('`', '') }}
-                                                                />
-                                                            )}
+                                                        // Fallback background for visual confirmation? No, use bottom bars.
 
-                                                            {/* Problem Image */}
-                                                            {prob.prbpickor && (
-                                                                <div className="mt-2 text-center pointer-events-none">
-                                                                    <img
-                                                                        src={prob.prbpickor}
-                                                                        alt={`Problem ${prob.prbid}`}
-                                                                        className="max-w-full h-auto rounded border border-gray-600 mx-auto bg-white"
-                                                                    />
+                                                        return (
+                                                            <div key={idx} className={`p-4 bg-gray-800 border border-gray-700 rounded text-sm hover:border-gray-500 transition-colors relative pb-6`}
+                                                                onClick={() => handleSendProblem(prob)}
+                                                            >
+                                                                {/* Bars Container at Bottom */}
+                                                                <div className="absolute bottom-0 left-0 right-0 h-2 flex">
+                                                                    {/* Red Bar Indicator for Homework */}
+                                                                    {hasHomework && (
+                                                                        <div
+                                                                            className={`h-full bg-red-500 cursor-pointer hover:bg-red-400 transition-colors ${hasClassHistory ? 'w-1/2' : 'w-full'} rounded-bl ${!hasClassHistory ? 'rounded-br' : ''}`}
+                                                                            onClick={(e) => {
+                                                                                e.stopPropagation();
+                                                                                toggleSolutions(prob.prbid);
+                                                                            }}
+                                                                            title="Homework: Click to toggle solutions"
+                                                                        ></div>
+                                                                    )}
+
+                                                                    {/* Blue Bar Indicator for Class History */}
+                                                                    {hasClassHistory && (
+                                                                        <div
+                                                                            className={`h-full bg-blue-500 cursor-default transition-colors ${hasHomework ? 'w-1/2' : 'w-full'} rounded-br ${!hasHomework ? 'rounded-bl' : ''}`}
+                                                                            title="Shared in Class"
+                                                                        ></div>
+                                                                    )}
                                                                 </div>
-                                                            )}
-                                                        </div>
-                                                    ))
+
+                                                                <div className="flex justify-between items-start mb-2 group-hover:text-white">
+                                                                    <span></span>
+                                                                    <button
+                                                                        className="text-xs bg-blue-600 px-2 py-1 rounded hover:bg-blue-500"
+                                                                        onClick={(e) => { e.stopPropagation(); handleSendProblem(prob); }}
+                                                                    >
+                                                                        Send
+                                                                    </button>
+                                                                </div>
+
+                                                                {/* Problem Text (HTML) */}
+                                                                {prob.prbkorean && (
+                                                                    <div
+                                                                        className="text-gray-300 mb-2 prose prose-invert max-w-none text-sm pointer-events-none"
+                                                                        dangerouslySetInnerHTML={{ __html: prob.prbkorean.replaceAll('`', '') }}
+                                                                    />
+                                                                )}
+
+                                                                {/* Problem Image */}
+                                                                {prob.prbpickor && (
+                                                                    <div className="mt-2 text-center pointer-events-none">
+                                                                        <img
+                                                                            src={prob.prbpickor}
+                                                                            alt={`Problem ${prob.prbid}`}
+                                                                            className="max-w-full h-auto rounded border border-gray-600 mx-auto bg-white"
+                                                                        />
+                                                                    </div>
+                                                                )}
+
+                                                                {/* Student Solution Images (Toggled) */}
+                                                                {expandedSolutions[prob.prbid] && studentHomeworks[prob.prbid] && (
+                                                                    <div className="mt-4 pt-4 border-t border-gray-700 space-y-4">
+                                                                        <div className="text-xs text-red-400 font-bold mb-2">Student Solutions ({studentHomeworks[prob.prbid].length}):</div>
+                                                                        {studentHomeworks[prob.prbid].map((mpicid, i) => (
+                                                                            <div key={i} className="bg-gray-900/50 p-2 rounded">
+                                                                                <div className="text-[10px] text-gray-500 mb-1">Attempt {studentHomeworks[prob.prbid].length - i}</div>
+                                                                                <img
+                                                                                    src={`/usernote/mmcphomework/${mpicid}`}
+                                                                                    alt={`Solution ${i + 1}`}
+                                                                                    className="max-w-full h-auto rounded border border-red-500/50 mx-auto bg-white"
+                                                                                    onError={(e) => {
+                                                                                        e.target.style.display = 'none';
+                                                                                        e.target.parentNode.innerHTML += '<span class="text-red-400 text-xs">Image load failed</span>';
+                                                                                    }}
+                                                                                />
+                                                                            </div>
+                                                                        ))}
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        );
+                                                    })
                                                 ) : (
                                                     <div className="text-gray-500">Loading problems or list is empty...</div>
                                                 )}

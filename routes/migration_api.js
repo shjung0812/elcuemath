@@ -135,7 +135,7 @@ router.post('/mentor/share-problem', ensureAuthenticated, async function (req, r
             prbid: problemId,
             resultcode: null,
             createdate: dateString,
-            hisopt: 'instructprb',
+            hisopt: 'prbsolve',
             rconnum: null,
             cptinfo: 'rankcall',
             evalprb: null,
@@ -150,6 +150,71 @@ router.post('/mentor/share-problem', ensureAuthenticated, async function (req, r
     } catch (err) {
         console.error("Error sharing problem:", err);
         res.status(500).json({ error: "Failed to record problem sharing history" });
+    }
+});
+
+// Fetch Student Homework Records
+router.get('/mentor/student-homework', ensureAuthenticated, async function (req, res) {
+    try {
+        const { studentId, days } = req.query; // Add days param
+        if (!studentId) {
+            return res.status(400).json({ error: "Missing studentId query parameter" });
+        }
+
+        const { MmcpHomework, History } = require('../backend/models');
+        const { Op } = require('sequelize');
+
+        // Calculate cutoff date
+        let dateFilter = {};
+        if (days && days !== 'all') {
+            const dayCount = parseInt(days, 10);
+            if (!isNaN(dayCount)) {
+                const cutoff = new Date();
+                cutoff.setDate(cutoff.getDate() - dayCount);
+                // createdate format is 'YYYY-MM-DD HH:mm:ss' string in DB
+                const cutoffStr = cutoff.toISOString().slice(0, 19).replace('T', ' ');
+                dateFilter = {
+                    createdate: {
+                        [Op.gte]: cutoffStr
+                    }
+                };
+            }
+        }
+
+        // Fetch all homework records for this student
+        // We only need prbid and mpicid
+        const homeworks = await MmcpHomework.findAll({
+            where: {
+                username: studentId,
+                ...dateFilter
+            },
+            attributes: ['prbid', 'mpicid', 'createdate'], // Added createdate for debug if needed
+            order: [['createdate', 'DESC']]
+        });
+
+        // Fetch Class History (shared by teacher)
+
+
+        const classHistory = await History.findAll({
+            where: {
+                username: studentId,
+                // teacherid: req.user.username, // Commented out to show all shared history regardless of teacher
+                hisopt: {
+                    [Op.in]: ['prbsolve', 'instructprb']
+                },
+                ...dateFilter
+            },
+            attributes: ['prbid', 'createdate'],
+            order: [['createdate', 'DESC']]
+        });
+
+
+
+        res.json({ homeworks, classHistory });
+
+    } catch (err) {
+        console.error("Error fetching student homework:", err);
+        res.status(500).json({ error: "Failed to fetch student homework" });
     }
 });
 
