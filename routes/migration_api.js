@@ -184,7 +184,7 @@ router.post('/mentor/share-solution', ensureAuthenticated, async function (req, 
             // UNLESS I can safely put the pic ID. 
             // User didn't specify where to store the pic ID. 
             // Let's stick to the exact pattern but change hisopt.
-            cptinfo: 'rankcall', // Keeping it simple to avoid schema issues
+            cptinfo: mpicId || 'rankcall', // Storing image name as requested
             evalprb: null, // Reverting to null as mpicId might cause DB errors if column is not compatible
             teacherid: req.user.username
         };
