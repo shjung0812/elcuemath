@@ -32,8 +32,8 @@ if (isProduction) {
 	const options = {
 		// 키 파일 경로를 환경 변수나 다른 설정 파일에서 읽어오는 것이 더 안전할 수 있습니다.
 		// 여기서는 예시로 하드코딩된 경로를 사용합니다.
-		key: fs.readFileSync('./keys/2408aielcue/ai_elcue_org_SHA256WITHRSA.key'),
-		cert: fs.readFileSync('./keys/2408aielcue/ai_elcue_org.crt')
+		key: fs.readFileSync('./keys/2508aielcue/ai_elcue_org_SHA256WITHRSA.key'),
+		cert: fs.readFileSync('./keys/2508aielcue/ai_elcue_org.crt')
 		// ca: [fs.readFileSync('path/to/ca_bundle.crt')] // 체인 인증서가 있다면 추가
 	};
 	server = https.createServer(options, app);
