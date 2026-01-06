@@ -11,6 +11,7 @@ html
 
 		script(src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.5.0/chart.min.js")
 		script(src="/chartjs/chartjs.js")
+		script(src="/socket.io/socket.io.js")
 		style.
 			#bodydiv {
 				margin:0 auto;
@@ -115,6 +116,9 @@ html
 		div(id='passwordchange' class='slot')
 			div
 				a(onclick='forceFullscreen("/mypage/passwordchange");') 패스워드 바꾸기
+		
+		div(style="position:fixed; bottom:20px; right:20px; z-index:9999;")
+			a(onclick='window.open("http://localhost:5173/renv/student");', style="background:blue; color:white; padding:10px 20px; border-radius:5px; text-decoration:none; font-size:1.2em; cursor:pointer;") Canvas Test
 
 
 		script.
