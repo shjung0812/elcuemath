@@ -220,7 +220,8 @@ const MentorCenter = () => {
                         if (!hwMap[h.prbid]) {
                             hwMap[h.prbid] = [];
                         }
-                        hwMap[h.prbid].push(h.mpicid);
+                        // Store object instead of just string
+                        hwMap[h.prbid].push({ mpicid: h.mpicid, createdate: h.createdate });
                     });
                     setStudentHomeworks(hwMap);
 
@@ -664,18 +665,23 @@ const MentorCenter = () => {
                                                                 {expandedSolutions[prob.prbid] && studentHomeworks[prob.prbid] && (
                                                                     <div className="mt-4 pt-4 border-t border-gray-700 space-y-4">
                                                                         <div className="text-xs text-red-400 font-bold mb-2">Student Solutions ({studentHomeworks[prob.prbid].length}):</div>
-                                                                        {studentHomeworks[prob.prbid].map((mpicid, i) => (
+                                                                        {studentHomeworks[prob.prbid].map((hwItem, i) => (
                                                                             <div
                                                                                 key={i}
                                                                                 className="bg-gray-900/50 p-2 rounded cursor-pointer hover:border hover:border-blue-500 transition-all"
                                                                                 onClick={(e) => {
                                                                                     e.stopPropagation();
-                                                                                    handleShareSolution(mpicid, prob.prbid);
+                                                                                    handleShareSolution(hwItem.mpicid, prob.prbid);
                                                                                 }}
                                                                             >
-                                                                                <div className="text-[10px] text-gray-500 mb-1">Attempt {studentHomeworks[prob.prbid].length - i}</div>
+                                                                                <div className="flex justify-between items-center mb-1">
+                                                                                    <span className="text-[10px] text-gray-500">Attempt {studentHomeworks[prob.prbid].length - i}</span>
+                                                                                    <span className="text-[10px] text-gray-400">
+                                                                                        {hwItem.createdate ? new Date(hwItem.createdate).toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : ''}
+                                                                                    </span>
+                                                                                </div>
                                                                                 <img
-                                                                                    src={`/usernote/mmcphomework/${mpicid}`}
+                                                                                    src={`/usernote/mmcphomework/${hwItem.mpicid}`}
                                                                                     alt={`Solution ${i + 1}`}
                                                                                     className="max-w-full h-auto rounded border border-red-500/50 mx-auto bg-white"
                                                                                     onError={(e) => {

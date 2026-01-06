@@ -426,11 +426,18 @@ const SharedCanvas = forwardRef(({ roomId, width = 800, height = 600, isActive =
             }}
         >
             {/* 1. Content Layer (Z-Index 0) */}
-            <div ref={contentRef} className="absolute inset-0 z-0 flex p-12 pointer-events-none text-left">
+            <div
+                ref={contentRef}
+                className="absolute inset-0 z-0 flex pointer-events-none text-left"
+                style={{ padding: `${(parseInt(fixedWidth) || width) / 40}px` }}
+            >
                 {problemContent.text && (
                     <div
-                        className="text-white text-2xl font-sans leading-relaxed text-left"
-                        style={{ width: problemContent.image ? '70%' : '100%' }}
+                        className="text-white font-sans leading-relaxed text-left"
+                        style={{
+                            width: problemContent.image ? '70%' : '100%',
+                            fontSize: `${(parseInt(fixedWidth) || width) / 50}px` // Dynamic Font Size
+                        }}
                         dangerouslySetInnerHTML={{ __html: problemContent.text }}
                     />
                 )}
