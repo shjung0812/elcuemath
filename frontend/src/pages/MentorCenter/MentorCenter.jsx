@@ -378,6 +378,34 @@ const MentorCenter = () => {
     }, []);
 
 
+    const handleShareSolution = async (mpicid, prbid) => {
+        if (!mpicid) return;
+        const imageUrl = `/usernote/mmcphomework/${mpicid}`;
+        console.log("Sharing student solution:", imageUrl);
+
+        // Record history if a student is selected
+        if (activeStudent) {
+            try {
+                await fetch('/api/migration/mentor/share-solution', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        studentId: activeStudent.username,
+                        problemId: prbid,
+                        mpicId: mpicid
+                    })
+                });
+            } catch (err) {
+                console.error("Failed to record solution sharing history:", err);
+            }
+        }
+
+        if (sharedCanvasRef.current) {
+            sharedCanvasRef.current.addImage(imageUrl);
+            setShowStudentList(false);
+        }
+    };
+
     return (
         <div className="flex flex-col h-screen bg-black text-white overflow-hidden relative">
             {/* 1. Shared Canvas Layer - Centered & Fitted */}
@@ -637,7 +665,14 @@ const MentorCenter = () => {
                                                                     <div className="mt-4 pt-4 border-t border-gray-700 space-y-4">
                                                                         <div className="text-xs text-red-400 font-bold mb-2">Student Solutions ({studentHomeworks[prob.prbid].length}):</div>
                                                                         {studentHomeworks[prob.prbid].map((mpicid, i) => (
-                                                                            <div key={i} className="bg-gray-900/50 p-2 rounded">
+                                                                            <div
+                                                                                key={i}
+                                                                                className="bg-gray-900/50 p-2 rounded cursor-pointer hover:border hover:border-blue-500 transition-all"
+                                                                                onClick={(e) => {
+                                                                                    e.stopPropagation();
+                                                                                    handleShareSolution(mpicid, prob.prbid);
+                                                                                }}
+                                                                            >
                                                                                 <div className="text-[10px] text-gray-500 mb-1">Attempt {studentHomeworks[prob.prbid].length - i}</div>
                                                                                 <img
                                                                                     src={`/usernote/mmcphomework/${mpicid}`}

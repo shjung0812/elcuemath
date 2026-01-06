@@ -135,13 +135,13 @@ router.post('/mentor/share-problem', ensureAuthenticated, async function (req, r
             prbid: problemId,
             resultcode: null,
             createdate: dateString,
-            hisopt: 'prbsolve',
+            hisopt: 'instructprb', // Changed from 'prbsolve'
             rconnum: null,
             cptinfo: 'rankcall',
             evalprb: null,
             teacherid: req.user.username
         };
-        console.log("Saving History Data:", historyData);
+        console.log("Saving History Data (Instruction):", historyData);
 
         const newHistory = await History.create(historyData);
 
@@ -150,6 +150,53 @@ router.post('/mentor/share-problem', ensureAuthenticated, async function (req, r
     } catch (err) {
         console.error("Error sharing problem:", err);
         res.status(500).json({ error: "Failed to record problem sharing history" });
+    }
+});
+
+// Student Solution Sharing History API (New)
+router.post('/mentor/share-solution', ensureAuthenticated, async function (req, res) {
+    try {
+        const { studentId, problemId, mpicId } = req.body;
+        // problemId is optional but good for context if available, main thing is recording the event
+        if (!studentId) {
+            return res.status(400).json({ error: "Missing required fields: studentId" });
+        }
+
+        const { History } = require('../backend/models');
+
+        const now = new Date();
+        const kstDate = new Date(now.getTime() + (9 * 60 * 60 * 1000));
+        const dateString = kstDate.toISOString().slice(0, 19).replace('T', ' ');
+
+        const historyData = {
+            username: studentId,
+            prbid: problemId || '', // Can be empty if just sharing an image, but we usually know the problem context
+            resultcode: null,
+            createdate: dateString,
+            hisopt: 'sharehwresult', // New option
+            rconnum: null,
+            cptinfo: mpicId || 'shared_image', // Store the image ID or similar identifier in cptinfo? or just 'rankcall'? User said "similar to above". Let's use mpicId in cptinfo for reference if possible, or just 'rankcall' if schema constraints exist.
+            // Re-reading user request: "rdcthistory에 비슷하게 등록되는데 이때는 sharehwresult 라고 hisopt에 기록되게 해줘"
+            // "비슷하게" implies mostly same structure.
+            // Let's keep cptinfo as 'rankcall' for consistency unless specified, OR maybe store the mpicId there?
+            // Existing schema uses cptinfo for various things. Let's assume 'rankcall' is improved by storing the mpicId for traceability, 
+            // BUT given "비슷하게" (similarly), I'll stick to 'rankcall' to avoid breaking unique key constraints or assumptions, 
+            // UNLESS I can safely put the pic ID. 
+            // User didn't specify where to store the pic ID. 
+            // Let's stick to the exact pattern but change hisopt.
+            cptinfo: 'rankcall',
+            evalprb: mpicId || null, // Maybe store mpicId in evalprb? It's usually null.
+            teacherid: req.user.username
+        };
+        console.log("Saving History Data (Share Solution):", historyData);
+
+        const newHistory = await History.create(historyData);
+
+        res.json({ success: true, historyId: newHistory.numid });
+
+    } catch (err) {
+        console.error("Error sharing solution:", err);
+        res.status(500).json({ error: "Failed to record solution sharing history" });
     }
 });
 

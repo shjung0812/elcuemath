@@ -436,13 +436,13 @@ const SharedCanvas = forwardRef(({ roomId, width = 800, height = 600, isActive =
                 )}
                 {problemContent.image && (
                     <div
-                        className={`flex items-start ${problemContent.text ? 'justify-center pl-4' : 'justify-start'}`}
+                        className={`flex ${problemContent.text ? 'items-start justify-center pl-4' : 'items-center justify-center h-full'}`}
                         style={{ width: problemContent.text ? '30%' : '100%' }}
                     >
                         <img
                             src={problemContent.image}
                             alt="Problem"
-                            className="max-w-full h-auto object-contain bg-white p-2 rounded"
+                            className={`bg-white p-2 rounded object-contain ${problemContent.text ? 'max-w-full h-auto' : 'max-w-full max-h-full'}`}
                             onLoad={typesetMath}
                         />
                     </div>
