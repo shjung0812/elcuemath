@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState, useImperativeHandle, forwardRef, useCallback } from 'react';
 import io from 'socket.io-client';
 
-const SharedCanvas = forwardRef(({ roomId, width = 800, height = 600, isActive = true, socket: propSocket, userRole = 'student' }, ref) => {
+const SharedCanvas = forwardRef(({ roomId, width = 800, height = 600, isActive = true, socket: propSocket, userRole = 'student', fixedWidth, fixedHeight }, ref) => {
     // 캔버스 Refs
     const teacherCanvasRef = useRef(null);
     const studentCanvasRef = useRef(null);
@@ -418,8 +418,12 @@ const SharedCanvas = forwardRef(({ roomId, width = 800, height = 600, isActive =
 
     return (
         <div
-            className="relative border border-gray-500 shadow-lg overflow-hidden w-full h-full"
-            style={getBackgroundStyle()}
+            className="relative border border-gray-500 shadow-lg overflow-hidden"
+            style={{
+                ...getBackgroundStyle(),
+                width: fixedWidth || '100%',
+                height: fixedHeight || '100%'
+            }}
         >
             {/* 1. Content Layer (Z-Index 0) */}
             <div ref={contentRef} className="absolute inset-0 z-0 flex p-12 pointer-events-none text-left">
@@ -454,8 +458,8 @@ const SharedCanvas = forwardRef(({ roomId, width = 800, height = 600, isActive =
                 onMouseLeave={userRole === 'student' ? endDrawing : undefined}
                 className="cursor-crosshair block absolute inset-0 z-10"
                 style={{
-                    width: '100%',
-                    height: '100%',
+                    width: fixedWidth || '100%',
+                    height: fixedHeight || '100%',
                     backgroundColor: 'transparent',
                     pointerEvents: getPointerEvents('student')
                 }}
@@ -470,8 +474,8 @@ const SharedCanvas = forwardRef(({ roomId, width = 800, height = 600, isActive =
                 onMouseLeave={userRole === 'mentor' ? endDrawing : undefined}
                 className="cursor-crosshair block absolute inset-0 z-20"
                 style={{
-                    width: '100%',
-                    height: '100%',
+                    width: fixedWidth || '100%',
+                    height: fixedHeight || '100%',
                     backgroundColor: 'transparent',
                     pointerEvents: getPointerEvents('teacher')
                 }}
@@ -486,8 +490,8 @@ const SharedCanvas = forwardRef(({ roomId, width = 800, height = 600, isActive =
                 onMouseLeave={userRole === 'mentor' ? endDrawing : undefined}
                 className="cursor-crosshair block absolute inset-0 z-30"
                 style={{
-                    width: '100%',
-                    height: '100%',
+                    width: fixedWidth || '100%',
+                    height: fixedHeight || '100%',
                     backgroundColor: 'transparent',
                     pointerEvents: getPointerEvents('temp')
                 }}

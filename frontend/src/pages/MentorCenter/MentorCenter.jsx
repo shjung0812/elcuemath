@@ -13,6 +13,8 @@ const MentorCenter = () => {
     const [expandedNodes, setExpandedNodes] = useState({}); // Toggles for CMS Tree
     const [selectedR1, setSelectedR1] = useState(null); // Selected R1 Node
     const [problemDetails, setProblemDetails] = useState([]); // Problems for selected R1
+    const [canvasDimensions, setCanvasDimensions] = useState({ width: '100%', height: '100%' }); // Fixed Canvas Dimensions
+
 
     // WebRTC State (NEW)
     const [drawSocket, setDrawSocket] = useState(null); // The Main Communication Socket
@@ -24,6 +26,32 @@ const MentorCenter = () => {
     // Main Socket (Presence - /)
     const [mainSocket, setMainSocket] = useState(null);
     const [onlineUsers, setOnlineUsers] = useState([]); // List of [userid, peerid] from server
+
+    // Calculate Fixed Canvas Size on Mount (16:9)
+    useEffect(() => {
+        const calculateFixedSize = () => {
+            const padding = 32; // p-4 (16px * 2)
+            const availableWidth = window.innerWidth - padding;
+            const availableHeight = window.innerHeight - padding;
+
+            let width = availableWidth;
+            let height = width * (9 / 16);
+
+            if (height > availableHeight) {
+                height = availableHeight;
+                width = height * (16 / 9);
+            }
+
+            console.log("Setting Fixed Canvas Size:", width, height);
+            setCanvasDimensions({
+                width: `${width}px`,
+                height: `${height}px`
+            });
+        };
+
+        calculateFixedSize();
+        // Intentionally NO resize listener to keep size fixed effectively "freezing" it.
+    }, []);
 
     // Fetch Initial Data (CMS Tree, Students)
     useEffect(() => {
@@ -357,11 +385,9 @@ const MentorCenter = () => {
                 <div
                     className="relative bg-white shadow-2xl"
                     style={{
-                        width: '100%',
-                        height: '100%',
-                        maxWidth: '100%',
-                        maxHeight: '100%',
-                        aspectRatio: '16/9'
+                        ...canvasDimensions,
+                        // Removed maxWidth/maxHeight to ensure size stays fixed even if window shrinks
+                        overflow: 'hidden' // Optional: ensure content doesn't spill out visibly if something weird happens
                     }}
                 >
                     <SharedCanvas
@@ -372,6 +398,8 @@ const MentorCenter = () => {
                         username={data?.userinfo?.username || 'Mentor'}
                         width={1920}
                         height={1080}
+                        fixedWidth={canvasDimensions.width}
+                        fixedHeight={canvasDimensions.height}
                     />
                 </div>
             </div>

@@ -6,6 +6,8 @@ const StudentCenter = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [data, setData] = useState(null);
+    const [canvasDimensions, setCanvasDimensions] = useState({ width: '100%', height: '100%' }); // Fixed Canvas Dimensions
+
 
     // WebRTC & Socket State
     const [drawSocket, setDrawSocket] = useState(null);
@@ -35,6 +37,34 @@ const StudentCenter = () => {
     // Refs for safe access inside socket listeners
     const dataRef = useRef(data);
     const callTypeRef = useRef('video');
+
+    // Calculate Fixed Canvas Size on Mount (16:9)
+    useEffect(() => {
+        const calculateFixedSize = () => {
+            // Student might want full screen or with padding.
+            // Using small padding to ensure it fits comfortably without scrollbars initially if possible
+            const padding = 32;
+            const availableWidth = window.innerWidth - padding;
+            const availableHeight = window.innerHeight - padding;
+
+            let width = availableWidth;
+            let height = width * (9 / 16);
+
+            if (height > availableHeight) {
+                height = availableHeight;
+                width = height * (16 / 9);
+            }
+
+            console.log("Setting Student Fixed Canvas Size:", width, height);
+            setCanvasDimensions({
+                width: `${width}px`,
+                height: `${height}px`
+            });
+        };
+
+        calculateFixedSize();
+    }, []);
+
 
     useEffect(() => {
         dataRef.current = data;
@@ -273,7 +303,13 @@ const StudentCenter = () => {
             <div className="absolute inset-0 bg-black bg-opacity-30 pointer-events-none"></div>
 
             {/* Main Canvas Area */}
-            <div className="relative w-full max-w-[177.78vh] aspect-video bg-white shadow-2xl flex items-center justify-center">
+            <div
+                className="relative bg-white shadow-2xl flex items-center justify-center"
+                style={{
+                    ...canvasDimensions,
+                    overflow: 'hidden'
+                }}
+            >
                 {userinfo && (
                     <SharedCanvas
                         roomId={userinfo.username}
@@ -282,6 +318,8 @@ const StudentCenter = () => {
                         height={1080}
                         isActive={true}
                         socket={drawSocket}
+                        fixedWidth={canvasDimensions.width}
+                        fixedHeight={canvasDimensions.height}
                     />
                 )}
             </div>
