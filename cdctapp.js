@@ -4740,14 +4740,14 @@ vdrg.on('connection', function (socket) {
 			for (var ia = 0; ia < oldlist.length; ia++) {
 				var chk = 0;
 				for (var ib = 0; ib < a.chosenlist.length; ib++) {
-					if (oldlist[ia].childcol == a.chosenlist[ib]) {
+					if (oldlist[ia].childcol == a.chosenlist[ib][0]) {
 						chk = 1;
 						break;
 					}
 				}
 
 				if (chk == 0) {
-					sf.getinfodb('delete from mmttconnection where childcol="' + oldlist[ia].childcol + '"', function () { });
+					sf.getinfodb('delete from mmttconnection where parentcol="' + a.mmttmentorid + '" and childcol="' + oldlist[ia].childcol + '"', function () { });
 				}
 			}
 
@@ -4755,14 +4755,13 @@ vdrg.on('connection', function (socket) {
 			var count = 0;
 			async.whilst(
 				function (callbackfunction) {
-					callbackfunction(null, a.chosenlist.length);
-					//	return count<a.chosenlist.length
+					callbackfunction(null, count < a.chosenlist.length);
 				},
 				function (cback) {
 
 					var chk = 0;
 					for (var ib = 0; ib < oldlist.length; ib++) {
-						if (a.chosenlist[count] == oldlist[ib].childcol) {
+						if (a.chosenlist[count][0] == oldlist[ib].childcol) {
 							chk = 1;
 							break;
 						}
