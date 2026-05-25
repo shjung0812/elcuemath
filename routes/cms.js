@@ -45,6 +45,9 @@ router.put('/problem/:id', upload.single('image'), cmsController.updateProblem);
 // 문제 추가
 router.post('/problems', cmsController.createProblem);
 
+// 문제 일괄 개념 연결
+router.post('/problems/link', cmsController.linkProblems);
+
 // 노드 추가 (R1, R2, R3)
 router.post('/nodes', cmsController.createNode);
 

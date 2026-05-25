@@ -172,5 +172,21 @@ export const api = {
             console.error('API Error:', error);
             throw error;
         }
+    },
+
+    // 12. 문제 일괄 개념 연결
+    linkProblems: async (cptId, prbIds) => {
+        try {
+            const response = await fetch(`${BASE_URL}/problems/link`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ cptId, prbIds })
+            });
+            if (!response.ok) throw new Error('Failed to link problems');
+            return await response.json();
+        } catch (error) {
+            console.error('API Error:', error);
+            throw error;
+        }
     }
 };

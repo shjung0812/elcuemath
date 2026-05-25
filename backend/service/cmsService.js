@@ -462,6 +462,43 @@ const cmsService = {
             console.error('Error in swapNodeOrder:', error);
             throw error;
         }
+    },
+
+    // 12. 여러 문제를 개념(R1)에 일괄 연결
+    linkProblems: async (cptId, prbIds) => {
+        try {
+            if (!cptId || !Array.isArray(prbIds) || prbIds.length === 0) {
+                throw new Error('Concept ID and a non-empty array of Problem IDs are required');
+            }
+
+            const cpt = await CptProblemSet.findOne({ where: { cptid: cptId } });
+            if (!cpt) {
+                throw new Error('Concept not found');
+            }
+
+            // 기존 리스트 파싱
+            const currentList = cpt.prblist ? cpt.prblist.split(',').map(s => s.trim()).filter(p => p.length > 0) : [];
+            
+            let updatedCount = 0;
+            prbIds.forEach(id => {
+                const cleanId = id.trim();
+                if (cleanId && !currentList.includes(cleanId)) {
+                    currentList.push(cleanId);
+                    updatedCount++;
+                }
+            });
+
+            if (updatedCount > 0) {
+                await cpt.update({
+                    prblist: currentList.join(',')
+                });
+            }
+
+            return { success: true, updatedCount, totalCount: currentList.length };
+        } catch (error) {
+            console.error('Error in linkProblems:', error);
+            throw error;
+        }
     }
 };
 
