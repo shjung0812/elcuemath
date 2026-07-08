@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useCMS } from '../store';
 import { api } from '../api';
-import { Trash2, Plus, AlertCircle, Link2Off, Loader2, Pencil, Save, X } from 'lucide-react';
+import { Trash2, Plus, AlertCircle, Link2Off, Loader2, Pencil, Save, X, Link, CheckSquare } from 'lucide-react';
 import { useMathJax } from '../hooks/useMathJax';
 
 const ProblemWorkspace = ({ selectedNode }) => {
@@ -20,9 +20,13 @@ const ProblemWorkspace = ({ selectedNode }) => {
     const [error, setError] = useState(null);
     const [unlinkedLimit, setUnlinkedLimit] = useState(50); // Default 50
 
+    // Bulk Select State
+    const [selectedPrbIds, setSelectedPrbIds] = useState([]);
+    const [showLinkModal, setShowLinkModal] = useState(false);
+
     // MathJax Ref
     const containerRef = useRef(null);
-    useMathJax(containerRef, [problems, loading, editingId]); // Re-run when problems load/change or edit mode toggles
+    useMathJax(containerRef, [problems, loading, editingId, selectedPrbIds]); // Re-run when problems load/change or edit mode toggles
 
     useEffect(() => {
         if (selectedNode && (selectedNode.id.startsWith('cpt') || selectedNode.id === 'UNLINKED_PRBS')) {
@@ -30,6 +34,7 @@ const ProblemWorkspace = ({ selectedNode }) => {
                 setLoading(true);
                 setError(null);
                 setEditingId(null);
+                setSelectedPrbIds([]);
                 try {
                     let data;
                     if (selectedNode.id === 'UNLINKED_PRBS') {
@@ -58,6 +63,51 @@ const ProblemWorkspace = ({ selectedNode }) => {
             </div>
         );
     }
+
+    // Bulk Select Handlers
+    const handleToggleSelect = (prbId) => {
+        setSelectedPrbIds(prev =>
+            prev.includes(prbId) ? prev.filter(id => id !== prbId) : [...prev, prbId]
+        );
+    };
+
+    const handleToggleSelectAll = () => {
+        const allIds = problems.map(p => p.prbid);
+        if (selectedPrbIds.length === allIds.length) {
+            setSelectedPrbIds([]);
+        } else {
+            setSelectedPrbIds(allIds);
+        }
+    };
+
+    const handleLinkProblems = async (cptId) => {
+        if (!cptId) {
+            alert('연결할 개념을 선택해주세요.');
+            return;
+        }
+        try {
+            const result = await api.linkProblems(cptId, selectedPrbIds);
+            if (result.success) {
+                alert(`${result.updatedCount}개의 문제를 개념에 일괄 연결했습니다.`);
+                
+                // 미분류 뷰인 경우 연결 완료된 문제들을 리스트에서 제거
+                if (selectedNode.id === 'UNLINKED_PRBS') {
+                    setProblems(prev => prev.filter(p => !selectedPrbIds.includes(p.prbid)));
+                }
+                
+                // 개념별 문제 수 증가
+                dispatch({
+                    type: ACTIONS.INCREMENT_R1_COUNT,
+                    payload: { id: cptId, count: result.updatedCount }
+                });
+
+                setSelectedPrbIds([]);
+                setShowLinkModal(false);
+            }
+        } catch (err) {
+            alert('일괄 개념 연결 실패: ' + err.message);
+        }
+    };
 
     // Implement Create Problem
     const handleCreate = async (e) => {
@@ -174,6 +224,33 @@ const ProblemWorkspace = ({ selectedNode }) => {
                 </div>
 
                 <div className="flex items-center gap-2">
+                    {selectedNode.id === 'UNLINKED_PRBS' && problems.length > 0 && (
+                        <div className="flex items-center gap-3 mr-2 bg-zinc-100/80 border border-zinc-200 px-3 py-1.5 rounded-lg shadow-sm">
+                            <label className="flex items-center gap-1.5 text-xs font-bold text-zinc-600 cursor-pointer select-none">
+                                <input
+                                    type="checkbox"
+                                    checked={problems.length > 0 && selectedPrbIds.length === problems.length}
+                                    onChange={handleToggleSelectAll}
+                                    className="rounded border-zinc-300 text-blue-600 focus:ring-blue-500 h-3.5 w-3.5"
+                                />
+                                전체 선택
+                            </label>
+                            <div className="w-px h-4 bg-zinc-300" />
+                            <button
+                                disabled={selectedPrbIds.length === 0}
+                                onClick={() => setShowLinkModal(true)}
+                                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold transition-all shadow-sm ${
+                                    selectedPrbIds.length > 0
+                                        ? 'bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer'
+                                        : 'bg-zinc-200 text-zinc-400 cursor-not-allowed shadow-none'
+                                }`}
+                            >
+                                <Link size={12} />
+                                개념 일괄 연결 {selectedPrbIds.length > 0 && `(${selectedPrbIds.length}개)`}
+                            </button>
+                        </div>
+                    )}
+
                     {selectedNode.id === 'UNLINKED_PRBS' && (
                         <div className="flex bg-zinc-100 rounded-lg p-1 border border-zinc-200 mr-2">
                             {[50, 500, 'all'].map(limit => (
@@ -285,9 +362,25 @@ const ProblemWorkspace = ({ selectedNode }) => {
                         ) : (
                             problems.map(problem => {
                                 const isEditing = editingId === problem.prbid;
+                                const isSelected = selectedPrbIds.includes(problem.prbid);
 
                                 return (
-                                    <div key={problem.prbid} className="group bg-white rounded-xl border border-zinc-200 p-5 shadow-sm hover:shadow-md transition-shadow relative">
+                                    <div 
+                                        key={problem.prbid} 
+                                        className={`group bg-white rounded-xl border p-5 shadow-sm hover:shadow-md transition-shadow relative ${
+                                            isSelected ? 'border-blue-300 ring-2 ring-blue-50/50 bg-blue-50/5' : 'border-zinc-200'
+                                        }`}
+                                    >
+                                        {selectedNode.id === 'UNLINKED_PRBS' && !isEditing && (
+                                            <div className="absolute top-4 left-4 z-10">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={isSelected}
+                                                    onChange={() => handleToggleSelect(problem.prbid)}
+                                                    className="rounded border-zinc-300 text-blue-600 focus:ring-blue-500 h-4 w-4 cursor-pointer"
+                                                />
+                                            </div>
+                                        )}
 
                                         {isEditing ? (
                                             /* Editing Mode */
@@ -372,7 +465,7 @@ const ProblemWorkspace = ({ selectedNode }) => {
                                         ) : (
                                             /* View Mode */
                                             <>
-                                                <div className="pr-10">
+                                                <div className={`pr-10 ${selectedNode.id === 'UNLINKED_PRBS' ? 'pl-6' : ''}`}>
                                                     <div className="text-xs text-zinc-400 mb-2">{problem.prbid}</div>
                                                     {/* Content */}
                                                     <h4 className="font-medium text-zinc-800 text-lg mb-2" dangerouslySetInnerHTML={{ __html: problem.prbkorean?.replaceAll('`', '') }}></h4>
@@ -426,6 +519,118 @@ const ProblemWorkspace = ({ selectedNode }) => {
                         )}
                     </div>
                 )}
+            </div>
+            
+            {showLinkModal && (
+                <LinkProblemsModal
+                    state={state}
+                    selectedCount={selectedPrbIds.length}
+                    onClose={() => setShowLinkModal(false)}
+                    onConfirm={handleLinkProblems}
+                />
+            )}
+        </div>
+    );
+};
+
+// ==========================================
+// 개념 일괄 연결 모달 (LinkProblemsModal)
+// ==========================================
+const LinkProblemsModal = ({ state, selectedCount, onClose, onConfirm }) => {
+    const [selectedR3, setSelectedR3] = useState('');
+    const [selectedR2, setSelectedR2] = useState('');
+    const [selectedR1, setSelectedR1] = useState('');
+
+    const r3List = Object.values(state.r3).sort((a, b) => (a.order || 0) - (b.order || 0));
+    const r2List = selectedR3
+        ? Object.values(state.r2).filter(r2 => r2.r3_id === selectedR3).sort((a, b) => (a.order || 0) - (b.order || 0))
+        : [];
+    const r1List = selectedR2
+        ? Object.values(state.r1).filter(r1 => r1.r2_id === selectedR2).sort((a, b) => (a.order || 0) - (b.order || 0))
+        : [];
+
+    return (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm animate-in fade-in duration-200">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 border border-zinc-100 animate-in zoom-in duration-200">
+                <h3 className="text-lg font-bold text-zinc-900 mb-2 flex items-center gap-2">
+                    <Link className="text-blue-600" size={18} />
+                    문제 일괄 개념 연결
+                </h3>
+                <p className="text-xs text-zinc-500 mb-6">
+                    선택한 <span className="text-blue-600 font-bold">{selectedCount}개</span>의 문제를 아래 개념(R1) 노드에 연결합니다.
+                </p>
+
+                <div className="space-y-4 mb-6">
+                    {/* 과목 (R3) */}
+                    <div>
+                        <label className="block text-[10px] font-bold text-zinc-500 mb-1 uppercase tracking-wider">1. 과목 (R3) 선택</label>
+                        <select
+                            className="w-full p-2.5 border border-zinc-200 rounded-lg bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-xs transition-all"
+                            value={selectedR3}
+                            onChange={(e) => {
+                                setSelectedR3(e.target.value);
+                                setSelectedR2('');
+                                setSelectedR1('');
+                            }}
+                        >
+                            <option value="">-- 과목을 선택하세요 --</option>
+                            {r3List.map(r3 => (
+                                <option key={r3.id} value={r3.id}>{r3.title?.replaceAll('`', '')}</option>
+                            ))}
+                        </select>
+                    </div>
+
+                    {/* 단원 (R2) */}
+                    <div>
+                        <label className="block text-[10px] font-bold text-zinc-500 mb-1 uppercase tracking-wider">2. 단원 (R2) 선택</label>
+                        <select
+                            className="w-full p-2.5 border border-zinc-200 rounded-lg bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-xs disabled:bg-zinc-50 disabled:text-zinc-400 transition-all"
+                            disabled={!selectedR3}
+                            value={selectedR2}
+                            onChange={(e) => {
+                                setSelectedR2(e.target.value);
+                                setSelectedR1('');
+                            }}
+                        >
+                            <option value="">-- 단원을 선택하세요 --</option>
+                            {r2List.map(r2 => (
+                                <option key={r2.id} value={r2.id}>{r2.title?.replaceAll('`', '')}</option>
+                            ))}
+                        </select>
+                    </div>
+
+                    {/* 개념 (R1) */}
+                    <div>
+                        <label className="block text-[10px] font-bold text-zinc-500 mb-1 uppercase tracking-wider">3. 개념 (R1) 선택</label>
+                        <select
+                            className="w-full p-2.5 border border-zinc-200 rounded-lg bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-xs disabled:bg-zinc-50 disabled:text-zinc-400 transition-all"
+                            disabled={!selectedR2}
+                            value={selectedR1}
+                            onChange={(e) => setSelectedR1(e.target.value)}
+                        >
+                            <option value="">-- 개념을 선택하세요 --</option>
+                            {r1List.map(r1 => (
+                                <option key={r1.id} value={r1.id}>{r1.title?.replaceAll('`', '')}</option>
+                            ))}
+                        </select>
+                    </div>
+                </div>
+
+                <div className="flex justify-end gap-2 border-t border-zinc-100 pt-4 text-xs font-semibold">
+                    <button
+                        onClick={onClose}
+                        className="px-4 py-2 text-zinc-600 hover:bg-zinc-100 rounded-lg transition-colors"
+                    >
+                        취소
+                    </button>
+                    <button
+                        onClick={() => onConfirm(selectedR1)}
+                        className="px-5 py-2 text-white bg-blue-600 hover:bg-blue-700 disabled:bg-zinc-200 disabled:text-zinc-400 rounded-lg shadow-sm transition-all"
+                        disabled={!selectedR1}
+                    >
+                        연결 완료
+                    </button>
+                </div>
             </div>
         </div>
     );

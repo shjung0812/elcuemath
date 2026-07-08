@@ -142,14 +142,14 @@ const reducer = (state, action) => {
         }
 
         case ACTIONS.INCREMENT_R1_COUNT: {
-            const { id } = action.payload;
+            const { id, count } = action.payload;
             const node = state.r1[id];
             if (!node) return state;
             return {
                 ...state,
                 r1: {
                     ...state.r1,
-                    [id]: { ...node, problemCount: (node.problemCount || 0) + 1 }
+                    [id]: { ...node, problemCount: (node.problemCount || 0) + (count || 1) }
                 }
             };
         }

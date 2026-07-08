@@ -169,6 +169,20 @@ const cmsController = {
             console.error('Controller Error:', error);
             res.status(500).json({ error: 'Failed to swap node order' });
         }
+    },
+
+    linkProblems: async (req, res) => {
+        try {
+            const { cptId, prbIds } = req.body;
+            if (!cptId || !Array.isArray(prbIds) || prbIds.length === 0) {
+                return res.status(400).json({ error: 'cptId and a non-empty array of prbIds are required' });
+            }
+            const result = await cmsService.linkProblems(cptId, prbIds);
+            res.json(result);
+        } catch (error) {
+            console.error('Controller Error:', error);
+            res.status(500).json({ error: 'Failed to link problems' });
+        }
     }
 };
 
