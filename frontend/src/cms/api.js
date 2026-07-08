@@ -97,10 +97,14 @@ export const api = {
     // 7. 문제 추가
     createProblem: async (data) => {
         try {
+            const isFormData = data instanceof FormData;
+            const headers = isFormData ? {} : { 'Content-Type': 'application/json' };
+            const body = isFormData ? data : JSON.stringify(data);
+
             const response = await fetch(`${BASE_URL}/problems`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
+                headers: headers,
+                body: body
             });
             if (!response.ok) throw new Error('Failed to create problem');
             return await response.json();

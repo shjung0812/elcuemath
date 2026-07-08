@@ -62,7 +62,21 @@ const cmsController = {
             // Handle File Upload
             if (req.file) {
                 const oldPath = req.file.path;
-                const extension = path.extname(req.file.originalname);
+                let extension = path.extname(req.file.originalname);
+                
+                // Fallback extension for clipboard blob uploads
+                if (!extension || extension === '.' || extension.toLowerCase() === '.blob') {
+                    if (req.file.mimetype === 'image/png') {
+                        extension = '.png';
+                    } else if (req.file.mimetype === 'image/jpeg' || req.file.mimetype === 'image/jpg') {
+                        extension = '.jpg';
+                    } else if (req.file.mimetype === 'image/gif') {
+                        extension = '.gif';
+                    } else {
+                        extension = '.png';
+                    }
+                }
+
                 const newFilename = `${id}${extension}`;
                 const newPath = path.join('public/prismpics', newFilename);
                 const webPath = `/prismpics/${newFilename}`;
@@ -105,9 +119,42 @@ const cmsController = {
 
     createProblem: async (req, res) => {
         try {
-            const data = req.body;
+            let data = req.body;
             const r1_id = data.r1_id; // Extract r1_id if present
-            const newProblem = await cmsService.createProblem(data, r1_id);
+            let newProblem = await cmsService.createProblem(data, r1_id);
+
+            // Handle File Upload
+            if (req.file && newProblem) {
+                const oldPath = req.file.path;
+                let extension = path.extname(req.file.originalname);
+                
+                // Fallback extension for clipboard blob uploads
+                if (!extension || extension === '.' || extension.toLowerCase() === '.blob') {
+                    if (req.file.mimetype === 'image/png') {
+                        extension = '.png';
+                    } else if (req.file.mimetype === 'image/jpeg' || req.file.mimetype === 'image/jpg') {
+                        extension = '.jpg';
+                    } else if (req.file.mimetype === 'image/gif') {
+                        extension = '.gif';
+                    } else {
+                        extension = '.png';
+                    }
+                }
+
+                const newFilename = `${newProblem.prbid}${extension}`;
+                const newPath = path.join('public/prismpics', newFilename);
+                const webPath = `/prismpics/${newFilename}`;
+
+                // Rename (Move) file
+                if (fs.existsSync(newPath)) {
+                    fs.unlinkSync(newPath); // Delete existing file if present
+                }
+                fs.renameSync(oldPath, newPath);
+
+                // Update problem with new image URL
+                newProblem = await cmsService.updateProblem(newProblem.prbid, { prbpickor: webPath });
+            }
+
             res.json(newProblem);
         } catch (error) {
             console.error('Controller Error:', error);

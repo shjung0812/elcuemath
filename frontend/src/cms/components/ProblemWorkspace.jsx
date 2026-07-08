@@ -8,7 +8,7 @@ import { useMathJax } from '../hooks/useMathJax';
 const ProblemWorkspace = ({ selectedNode }) => {
     const { state, dispatch, ACTIONS } = useCMS();
     const [showAddForm, setShowAddForm] = useState(false);
-    const [newProblem, setNewProblem] = useState({ content: '', answer: '', solution: '' });
+    const [newProblem, setNewProblem] = useState({ content: '', answer: '', solution: '', imageFile: null, imagePreview: null });
 
     // Editing State
     const [editingId, setEditingId] = useState(null);
@@ -64,6 +64,34 @@ const ProblemWorkspace = ({ selectedNode }) => {
         );
     }
 
+    // Clipboard Paste Handler
+    const handlePaste = (e, formType) => {
+        const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+        for (let i = 0; i < items.length; i++) {
+            if (items[i].type.indexOf('image') !== -1) {
+                const file = items[i].getAsFile();
+                if (file) {
+                    const previewUrl = URL.createObjectURL(file);
+                    if (formType === 'new') {
+                        setNewProblem(prev => ({
+                            ...prev,
+                            imageFile: file,
+                            imagePreview: previewUrl
+                        }));
+                    } else if (formType === 'edit') {
+                        setEditForm(prev => ({
+                            ...prev,
+                            imageFile: file,
+                            imagePreview: previewUrl
+                        }));
+                    }
+                    e.preventDefault();
+                    break;
+                }
+            }
+        }
+    };
+
     // Bulk Select Handlers
     const handleToggleSelect = (prbId) => {
         setSelectedPrbIds(prev =>
@@ -100,7 +128,7 @@ const ProblemWorkspace = ({ selectedNode }) => {
                     type: ACTIONS.INCREMENT_R1_COUNT,
                     payload: { id: cptId, count: result.updatedCount }
                 });
-
+ 
                 setSelectedPrbIds([]);
                 setShowLinkModal(false);
             }
@@ -113,22 +141,27 @@ const ProblemWorkspace = ({ selectedNode }) => {
     const handleCreate = async (e) => {
         e.preventDefault();
         try {
-            const data = {
-                prbkorean: newProblem.content,
-                prbmainans: newProblem.answer,
-                prbexplain: newProblem.solution
-            };
+            const formData = new FormData();
+            // Wrap in backticks only if content is present, otherwise send empty string
+            const prbKoreanVal = newProblem.content ? `\`${newProblem.content}\`` : '';
+            formData.append('prbkorean', prbKoreanVal);
 
+            if (newProblem.answer) formData.append('prbmainans', newProblem.answer);
+            if (newProblem.solution) formData.append('prbexplain', newProblem.solution);
+            
             // Context-aware creation: if R1 is selected, pass its ID
             if (selectedNode?.type === 'r1') {
-                data.r1_id = selectedNode.id;
+                formData.append('r1_id', selectedNode.id);
             }
 
-            const created = await api.createProblem(data);
+            if (newProblem.imageFile) {
+                formData.append('image', newProblem.imageFile);
+            }
+
+            const created = await api.createProblem(formData);
             alert(`문제 생성이 완료되었습니다. ID: ${created.prbid}`);
 
             // If in Unlinked view OR R1 view, add to list (prepend)
-            // Note: If newly created linked to R1, it shouldn't appear in Unlinked, but we rely on current view context.
             if (selectedNode.id === 'UNLINKED_PRBS' || selectedNode.type === 'r1') {
                 setProblems(prev => [created, ...prev]);
             }
@@ -138,7 +171,7 @@ const ProblemWorkspace = ({ selectedNode }) => {
                 dispatch({ type: ACTIONS.INCREMENT_R1_COUNT, payload: { id: selectedNode.id } });
             }
 
-            setNewProblem({ content: '', answer: '', solution: '' });
+            setNewProblem({ content: '', answer: '', solution: '', imageFile: null, imagePreview: null });
             setShowAddForm(false);
         } catch (err) {
             alert('문제 생성 실패: ' + err.message);
@@ -164,25 +197,42 @@ const ProblemWorkspace = ({ selectedNode }) => {
         setEditForm({});
     };
 
-    const handleImageChange = (e) => {
+    const handleImageChange = (e, formType) => {
         const file = e.target.files[0];
         if (file) {
-            setEditForm(prev => ({
-                ...prev,
-                imageFile: file,
-                imagePreview: URL.createObjectURL(file)
-            }));
+            const previewUrl = URL.createObjectURL(file);
+            if (formType === 'new') {
+                setNewProblem(prev => ({
+                    ...prev,
+                    imageFile: file,
+                    imagePreview: previewUrl
+                }));
+            } else {
+                setEditForm(prev => ({
+                    ...prev,
+                    imageFile: file,
+                    imagePreview: previewUrl
+                }));
+            }
         }
     };
 
-    const handleRemoveImage = () => {
+    const handleRemoveImage = (formType) => {
         if (window.confirm("정말로 이미지를 삭제하시겠습니까?")) {
-            setEditForm(prev => ({
-                ...prev,
-                imageFile: null,
-                imagePreview: null,
-                prbpickor: ''
-            }));
+            if (formType === 'new') {
+                setNewProblem(prev => ({
+                    ...prev,
+                    imageFile: null,
+                    imagePreview: null
+                }));
+            } else {
+                setEditForm(prev => ({
+                    ...prev,
+                    imageFile: null,
+                    imagePreview: null,
+                    prbpickor: ''
+                }));
+            }
         }
     };
 
@@ -301,16 +351,68 @@ const ProblemWorkspace = ({ selectedNode }) => {
                         <h3 className="font-semibold text-zinc-800 mb-4">새 문제 작성</h3>
                         <form onSubmit={handleCreate} className="space-y-4">
                             <div>
-                                <label className="block text-xs font-medium text-zinc-500 uppercase mb-1">문제 내용</label>
+                                <label className="block text-xs font-medium text-zinc-500 uppercase mb-1">문제 내용 (클립보드 이미지 복사 후 붙여넣기 가능)</label>
                                 <textarea
                                     className="w-full p-3 border border-zinc-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
                                     rows={3}
-                                    placeholder="문제 질문을 입력하세요..."
+                                    placeholder="문제 질문을 입력하세요... (텍스트 입력 또는 Ctrl+V 이미지 붙여넣기)"
                                     value={newProblem.content}
                                     onChange={e => setNewProblem({ ...newProblem, content: e.target.value })}
-                                    required
+                                    onPaste={(e) => handlePaste(e, 'new')}
                                 />
                             </div>
+
+                            {/* Image Upload Area in Create Form */}
+                            <div>
+                                <label className="block text-xs font-medium text-zinc-500 uppercase mb-1">문제 이미지</label>
+                                <div className="flex items-start gap-4 p-4 border border-zinc-200 rounded-lg bg-zinc-50/50">
+                                    {newProblem.imagePreview ? (
+                                        <div className="relative group w-48">
+                                            <div className="w-full aspect-[1/0.617] bg-zinc-100 border border-zinc-200 rounded overflow-hidden flex items-center justify-center">
+                                                <img
+                                                    src={newProblem.imagePreview}
+                                                    alt="Preview"
+                                                    className="w-full h-full object-fill"
+                                                />
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() => handleRemoveImage('new')}
+                                                className="absolute -top-2 -right-2 bg-red-500 text-white p-1 rounded-full shadow hover:bg-red-600 transition-colors"
+                                                title="이미지 제거"
+                                            >
+                                                <X size={14} />
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <div className="w-48 aspect-[1/0.617] flex items-center justify-center border-2 border-dashed border-zinc-300 rounded text-zinc-400 text-xs">
+                                            이미지 없음
+                                        </div>
+                                    )}
+
+                                    <div className="flex-1">
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            id="new-file-upload"
+                                            className="hidden"
+                                            onChange={(e) => handleImageChange(e, 'new')}
+                                        />
+                                        <label
+                                            htmlFor="new-file-upload"
+                                            className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-zinc-300 rounded text-zinc-700 hover:bg-zinc-50 cursor-pointer shadow-sm text-sm font-medium"
+                                        >
+                                            <Plus size={16} />
+                                            이미지 선택
+                                        </label>
+                                        <p className="text-xs text-zinc-500 mt-2 leading-relaxed">
+                                            여기에 이미지를 복사하여 붙여넣거나 파일 선택을 하세요.<br />
+                                            비율은 황금비율인 <span className="font-bold text-blue-600">1:0.617</span>이 적용됩니다.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-xs font-medium text-zinc-500 uppercase mb-1">정답</label>
@@ -391,12 +493,13 @@ const ProblemWorkspace = ({ selectedNode }) => {
 
                                                 {/* Problem Content */}
                                                 <div>
-                                                    <label className="block text-xs font-bold text-zinc-500 mb-1">본문 (한글)</label>
+                                                    <label className="block text-xs font-bold text-zinc-500 mb-1">본문 (한글) (클립보드 이미지 복사 후 붙여넣기 가능)</label>
                                                     <textarea
                                                         className="w-full p-3 border border-zinc-300 rounded focus:ring-2 focus:ring-blue-500 outline-none"
                                                         rows={4}
                                                         value={editForm.prbkorean}
                                                         onChange={e => setEditForm({ ...editForm, prbkorean: e.target.value })}
+                                                        onPaste={(e) => handlePaste(e, 'edit')}
                                                     />
                                                 </div>
 
@@ -405,14 +508,16 @@ const ProblemWorkspace = ({ selectedNode }) => {
                                                     <label className="block text-xs font-bold text-zinc-500 mb-1">문제 이미지</label>
                                                     <div className="flex items-start gap-4 p-4 border border-zinc-200 rounded-lg bg-zinc-50">
                                                         {editForm.imagePreview ? (
-                                                            <div className="relative group">
-                                                                <img
-                                                                    src={editForm.imagePreview}
-                                                                    alt="Preview"
-                                                                    className="h-32 w-auto object-contain rounded border border-white shadow-sm"
-                                                                />
+                                                            <div className="relative group w-48">
+                                                                <div className="w-full aspect-[1/0.617] bg-zinc-100 border border-zinc-200 rounded overflow-hidden flex items-center justify-center">
+                                                                    <img
+                                                                        src={editForm.imagePreview}
+                                                                        alt="Preview"
+                                                                        className="w-full h-full object-fill"
+                                                                    />
+                                                                </div>
                                                                 <button
-                                                                    onClick={handleRemoveImage}
+                                                                    onClick={() => handleRemoveImage('edit')}
                                                                     className="absolute -top-2 -right-2 bg-red-500 text-white p-1 rounded-full shadow hover:bg-red-600 transition-colors"
                                                                     title="이미지 제거"
                                                                 >
@@ -420,7 +525,7 @@ const ProblemWorkspace = ({ selectedNode }) => {
                                                                 </button>
                                                             </div>
                                                         ) : (
-                                                            <div className="h-32 w-32 flex items-center justify-center border-2 border-dashed border-zinc-300 rounded text-zinc-400 text-sm">
+                                                            <div className="w-48 aspect-[1/0.617] flex items-center justify-center border-2 border-dashed border-zinc-300 rounded text-zinc-400 text-xs">
                                                                 이미지 없음
                                                             </div>
                                                         )}
@@ -431,7 +536,7 @@ const ProblemWorkspace = ({ selectedNode }) => {
                                                                 accept="image/*"
                                                                 id={`file-upload-${problem.prbid}`}
                                                                 className="hidden"
-                                                                onChange={handleImageChange}
+                                                                onChange={(e) => handleImageChange(e, 'edit')}
                                                             />
                                                             <label
                                                                 htmlFor={`file-upload-${problem.prbid}`}
@@ -470,15 +575,17 @@ const ProblemWorkspace = ({ selectedNode }) => {
                                                     {/* Content */}
                                                     <h4 className="font-medium text-zinc-800 text-lg mb-2" dangerouslySetInnerHTML={{ __html: problem.prbkorean?.replaceAll('`', '') }}></h4>
 
-                                                    {/* Problem Image */}
+                                                    {/* Problem Image (Golden Ratio layout applied with cache bust) */}
                                                     {problem.prbpickor && (
-                                                        <div className="mb-4">
-                                                            <img
-                                                                src={problem.prbpickor}
-                                                                alt="Problem Attachment"
-                                                                className="max-w-full h-auto rounded-lg border border-zinc-200"
-                                                                onError={(e) => e.target.style.display = 'none'}
-                                                            />
+                                                        <div className="mb-4 w-72 max-w-full">
+                                                            <div className="w-full aspect-[1/0.617] bg-zinc-100 border border-zinc-200 rounded overflow-hidden flex items-center justify-center">
+                                                                <img
+                                                                    src={`${problem.prbpickor}?t=${new Date(problem.updatedAt || problem.prbregi || Date.now()).getTime()}`}
+                                                                    alt="Problem Attachment"
+                                                                    className="w-full h-full object-fill"
+                                                                    onError={(e) => e.target.style.display = 'none'}
+                                                                />
+                                                            </div>
                                                         </div>
                                                     )}
 

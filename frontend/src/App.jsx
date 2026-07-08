@@ -7,19 +7,20 @@ import MentorCallWindow from './pages/MentorCenter/MentorCallWindow';
 import EditorPage from './pages/EditorPage';
 import QuillPage from './pages/QuillPage';
 import MathCMS from './cms/MathCMS';
+import Home from './pages/Home';
 
 function App() {
     return (
         <Router basename="/renv">
             <Routes>
-                <Route path="/" element={<MentorCenter />} />
+                <Route path="/" element={<Home />} />
                 <Route path="/mentor" element={<MentorCenter />} />
                 <Route path="/mentor/call/:studentId" element={<MentorCallWindow />} />
                 <Route path="/student" element={<StudentCenter />} />
                 <Route path="/editor" element={<EditorPage />} />
                 <Route path="/quill" element={<QuillPage />} />
                 <Route path="/cms" element={<MathCMS />} />
-                <Route path="*" element={<MentorCenter />} />
+                <Route path="*" element={<Home />} />
                 {/* <Route path="/switch-connect" element={<ConnectionChoice />} /> */}
             </Routes>
         </Router>

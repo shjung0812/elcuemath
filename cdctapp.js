@@ -6393,6 +6393,45 @@ vdrg.on('connection', function (socket) {
 		})
 	});
 
+	socket.on('vdrgcallunlinkedprblist', function (data) {
+		var limit = parseInt(data.limit) || 30;
+		sf.getinfodb('select prblist from cptproblemset', function (rows) {
+			var usedIds = {};
+			rows.forEach(function (row) {
+				if (row.prblist) {
+					row.prblist.split(',').forEach(function (id) {
+						var cleanId = id.trim();
+						if (cleanId) usedIds[cleanId] = true;
+					});
+				}
+			});
+
+			sf.getinfodb('select prid.prbid, prid.prbkorean, prid.prbpickor from (select prbid, prbkorean, prbpickor from prb order by prbregi desc) as prid', function (prbs) {
+				var unlinkedPrbs = [];
+				for (var i = 0; i < prbs.length; i++) {
+					if (!usedIds[prbs[i].prbid]) {
+						var formatted = [
+							prbs[i].prbid,
+							prbs[i].prbkorean,
+							null,
+							null,
+							null,
+							null,
+							null,
+							null,
+							prbs[i].prbpickor
+						];
+						unlinkedPrbs.push(formatted);
+						if (unlinkedPrbs.length >= limit) {
+							break;
+						}
+					}
+				}
+				socket.emit('vdrggetprblist', { prbcon: unlinkedPrbs, cptid: 'unlinked' });
+			});
+		});
+	});
+
 
 
 	socket.on('rankcall', function (b) {

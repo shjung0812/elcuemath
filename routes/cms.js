@@ -42,8 +42,8 @@ router.get('/problems/unlinked', cmsController.getUnlinkedProblems);
 // 문제 수정 (이미지 업로드 포함)
 router.put('/problem/:id', upload.single('image'), cmsController.updateProblem);
 
-// 문제 추가
-router.post('/problems', cmsController.createProblem);
+// 문제 추가 (이미지 업로드 포함)
+router.post('/problems', upload.single('image'), cmsController.createProblem);
 
 // 문제 일괄 개념 연결
 router.post('/problems/link', cmsController.linkProblems);
