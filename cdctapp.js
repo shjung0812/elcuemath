@@ -4250,6 +4250,15 @@ var vdrgmanage = { userlist: [] };
 vdrg.on('connection', function (socket) {
 	console.log('vdrg connected');
 
+	socket.on('vdrgcreateblankprb', function (data) {
+		sf.GetObjId('prb', 'prb', 10, function (prbid) {
+			var text = { prbid: prbid, prbkorean: data.prbkorean || '클립보드 업로드 문제' }
+			sf.getinfodb_par('insert into prb SET ?', text, function (rst) {
+				socket.emit('vdrgcreateblankprbafter', { prbid: prbid });
+			});
+		});
+	});
+
 
 	socket.on('subjectanalysis2', function (a) {
 		if (a.mode == 'getdata') {

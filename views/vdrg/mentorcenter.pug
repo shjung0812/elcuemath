@@ -3320,5 +3320,119 @@ html
 				socket.emit('fortabletreport',{a:'reconnect_failed',username:username,modecheck:'socketcheck'});
 			})
 
+			// 클립보드 이미지 붙여넣기(Ctrl+V) 문제 생성 기능
+			window.addEventListener('paste', function (event) {
+				var items = (event.clipboardData || event.originalEvent.clipboardData).items;
+				for (var i = 0; i < items.length; i++) {
+					if (items[i].type.indexOf('image') !== -1) {
+						var blob = items[i].getAsFile();
+						
+						// 이미지 미리보기 컨펌 모달 생성
+						var modal = document.createElement('div');
+						modal.style.position = 'fixed';
+						modal.style.top = '0';
+						modal.style.left = '0';
+						modal.style.width = '100%';
+						modal.style.height = '100%';
+						modal.style.backgroundColor = 'rgba(0,0,0,0.85)';
+						modal.style.zIndex = '9999';
+						modal.style.display = 'flex';
+						modal.style.flexDirection = 'column';
+						modal.style.alignItems = 'center';
+						modal.style.justifyContent = 'center';
+						modal.style.fontFamily = 'sans-serif';
+
+						var img = document.createElement('img');
+						img.src = URL.createObjectURL(blob);
+						img.style.maxWidth = '80%';
+						img.style.maxHeight = '70%';
+						img.style.border = '3px solid white';
+						img.style.borderRadius = '8px';
+						img.style.marginBottom = '20px';
+						img.style.boxShadow = '0 4px 15px rgba(0,0,0,0.5)';
+						modal.appendChild(img);
+
+						var label = document.createElement('div');
+						label.innerText = '이 이미지를 문제로 등록하시겠습니까?';
+						label.style.color = 'white';
+						label.style.fontSize = '18px';
+						label.style.fontWeight = 'bold';
+						label.style.marginBottom = '25px';
+						modal.appendChild(label);
+
+						var btnGroup = document.createElement('div');
+						btnGroup.style.display = 'flex';
+						btnGroup.style.gap = '20px';
+
+						var okBtn = document.createElement('button');
+						okBtn.innerText = '등록';
+						okBtn.style.padding = '10px 30px';
+						okBtn.style.fontSize = '16px';
+						okBtn.style.backgroundColor = '#28a745';
+						okBtn.style.color = 'white';
+						okBtn.style.border = 'none';
+						okBtn.style.borderRadius = '5px';
+						okBtn.style.cursor = 'pointer';
+						okBtn.style.fontWeight = 'bold';
+						okBtn.onclick = function () {
+							document.body.removeChild(modal);
+							
+							// 1. 소켓을 통해 빈 문제 생성 후 prbid 발급받기
+							socket.emit('vdrgcreateblankprb', { prbkorean: '클립보드 붙여넣기 문제' });
+							
+							// 2. 일회성 이벤트 리스너로 생성 성공 응답 처리
+							socket.once('vdrgcreateblankprbafter', function (res) {
+								var prbid = res.prbid;
+								
+								// 3. 파일 확장자 추출 및 파일객체/FormData 생성
+								var ext = blob.type.split('/')[1] || 'png';
+								var formData = new FormData();
+								formData.append(prbid, blob, prbid + '.' + ext);
+								
+								// 4. qprbupload에 AJAX post 전송
+								var xhr = new XMLHttpRequest();
+								xhr.open('POST', '/qprbupload', true);
+								xhr.onload = function () {
+									if (xhr.status === 200) {
+										alert('문제가 성공적으로 등록되었습니다. (ID: ' + prbid + ')');
+										// 최근 문제 목록(30개) 자동 갱신
+										socket.emit('vdrgcallunlinkedprblist', { limit: 30 });
+									} else {
+										alert('문제 등록(이미지 업로드)에 실패했습니다.');
+									}
+								};
+								xhr.onerror = function () {
+									alert('네트워크 오류가 발생했습니다.');
+								};
+								xhr.send(formData);
+							});
+						};
+						btnGroup.appendChild(okBtn);
+
+						var cancelBtn = document.createElement('button');
+						cancelBtn.innerText = '취소';
+						cancelBtn.style.padding = '10px 30px';
+						cancelBtn.style.fontSize = '16px';
+						cancelBtn.style.backgroundColor = '#dc3545';
+						cancelBtn.style.color = 'white';
+						cancelBtn.style.border = 'none';
+						cancelBtn.style.borderRadius = '5px';
+						cancelBtn.style.cursor = 'pointer';
+						cancelBtn.style.fontWeight = 'bold';
+						cancelBtn.onclick = function () {
+							document.body.removeChild(modal);
+						};
+						btnGroup.appendChild(cancelBtn);
+
+						modal.appendChild(btnGroup);
+						document.body.appendChild(modal);
+						
+						break;
+					}
+				}
+			});
+
+
+
 
 		script(src='/component/mentorcenter/writing_service_mentorcenter.js')
