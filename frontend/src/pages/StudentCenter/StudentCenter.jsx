@@ -34,6 +34,12 @@ const StudentCenter = () => {
     // Video Widget Visibility State
     const [showVideoWidget, setShowVideoWidget] = useState(false);
 
+    // Image size control state (NEW)
+    const [imageSize, setImageSize] = useState('100%');
+    const [videoSocket, setVideoSocket] = useState(null); // /vdrg Socket connection
+
+
+
     // Refs for safe access inside socket listeners
     const dataRef = useRef(data);
     const callTypeRef = useRef('video');
@@ -148,7 +154,7 @@ const StudentCenter = () => {
             transports: ['polling', 'websocket']
         });
 
-        socket.on('connect', () => {
+        const onConnect = () => {
             console.log('[Student] Main Socket Connected');
             if (data?.userinfo) {
                 // Register presence
@@ -157,10 +163,74 @@ const StudentCenter = () => {
                     peerid: socket.id
                 });
             }
-        });
+        };
 
-        return () => socket.disconnect();
+        socket.on('connect', onConnect);
+
+        return () => {
+            socket.off('connect', onConnect);
+            socket.disconnect();
+        };
     }, [data]);
+
+    // --- Legacy /vdrg Socket for Session Events ---
+    useEffect(() => {
+        if (!data?.userinfo) return;
+
+        const socket = io('/vdrg', {
+            transports: ['polling', 'websocket'],
+            path: '/socket.io'
+        });
+        setVideoSocket(socket);
+
+        const onConnect = () => {
+            console.log('[Student] vdrg Socket Connected:', socket.id);
+            // Register socket ID in mmttconnectionstate mapping
+            socket.emit('vdrgsocketidregister', {
+                socketid: socket.id,
+                username: data.userinfo.username,
+                position: 11
+            });
+            // Proactively register for presence update list
+            socket.emit('vdrgreregistrationserviceresponse', {
+                socketid: socket.id,
+                username: data.userinfo.username,
+                position: 'mentee'
+            });
+        };
+
+        const onReRegistrationCheck = (a) => {
+            console.log('[Student] Re-registration check from server:', a);
+            socket.emit('vdrgreregistrationserviceresponse', {
+                socketid: socket.id,
+                username: data.userinfo.username,
+                position: 'mentee'
+            });
+        };
+
+        const onPicSizeControl = (a) => {
+            console.log('[Student] Image size control:', a.size);
+            if (a.size === 'big') {
+                setImageSize('100%');
+            } else if (a.size === 'down') {
+                setImageSize('40%');
+            } else {
+                setImageSize(`${a.size}%`);
+            }
+        };
+
+        socket.on('connect', onConnect);
+        socket.on('vdrgreregistrationservicecheck', onReRegistrationCheck);
+        socket.on('vdrgpicsizecontrolafter', onPicSizeControl);
+
+        return () => {
+            socket.off('connect', onConnect);
+            socket.off('vdrgreregistrationservicecheck', onReRegistrationCheck);
+            socket.off('vdrgpicsizecontrolafter', onPicSizeControl);
+            socket.disconnect();
+        };
+    }, [data]);
+
 
     // --- WebRTC Signaling Logic (Dependent on drawSocket) ---
     useEffect(() => {
@@ -320,7 +390,9 @@ const StudentCenter = () => {
                         socket={drawSocket}
                         fixedWidth={canvasDimensions.width}
                         fixedHeight={canvasDimensions.height}
+                        imageSize={imageSize}
                     />
+
                 )}
             </div>
 

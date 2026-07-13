@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState, useImperativeHandle, forwardRef, useCallback } from 'react';
 import io from 'socket.io-client';
 
-const SharedCanvas = forwardRef(({ roomId, width = 800, height = 600, isActive = true, socket: propSocket, userRole = 'student', fixedWidth, fixedHeight }, ref) => {
+const SharedCanvas = forwardRef(({ roomId, width = 800, height = 600, isActive = true, socket: propSocket, userRole = 'student', fixedWidth, fixedHeight, imageSize = '100%' }, ref) => {
     // 캔버스 Refs
     const teacherCanvasRef = useRef(null);
     const studentCanvasRef = useRef(null);
@@ -443,15 +443,21 @@ const SharedCanvas = forwardRef(({ roomId, width = 800, height = 600, isActive =
                 )}
                 {problemContent.image && (
                     <div
-                        className={`flex ${problemContent.text ? 'items-start justify-center pl-4' : 'items-center justify-center h-full'}`}
+                        className={`flex items-start justify-end ${problemContent.text ? 'pr-4' : 'w-full h-full p-4'}`}
                         style={{ width: problemContent.text ? '30%' : '100%' }}
                     >
                         <img
                             src={problemContent.image}
                             alt="Problem"
-                            className={`bg-white p-2 rounded object-contain ${problemContent.text ? 'max-w-full h-auto' : 'max-w-full max-h-full'}`}
+                            className={`object-contain transition-all duration-200 ${problemContent.text ? 'max-w-full h-auto' : 'max-w-full max-h-full'}`}
+                            style={{
+                                width: imageSize,
+                                height: imageSize,
+                                objectFit: 'contain'
+                            }}
                             onLoad={typesetMath}
                         />
+
                     </div>
                 )}
             </div>

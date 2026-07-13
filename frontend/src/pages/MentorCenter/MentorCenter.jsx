@@ -14,7 +14,11 @@ const MentorCenter = () => {
     const [selectedR1, setSelectedR1] = useState(null); // Selected R1 Node
     const [problemDetails, setProblemDetails] = useState([]); // Problems for selected R1
     const [canvasDimensions, setCanvasDimensions] = useState({ width: '100%', height: '100%' }); // Fixed Canvas Dimensions
-
+    // Homework states (NEW)
+    const [studentHwList, setStudentHwList] = useState([]); // List of homework assignments
+    const [selectedHwId, setSelectedHwId] = useState(null); // Active homework assignment ID
+    const [problemListTitle, setProblemListTitle] = useState('Problem List'); // Problem list header title
+    const [imageSize, setImageSize] = useState('100%'); // Problem image rendering size (default: 100%)
 
     // WebRTC State (NEW)
     const [drawSocket, setDrawSocket] = useState(null); // The Main Communication Socket
@@ -82,6 +86,9 @@ const MentorCenter = () => {
     const dataRef = useRef(data);
     useEffect(() => { dataRef.current = data; }, [data]);
 
+    const activeStudentRef = useRef(activeStudent);
+    useEffect(() => { activeStudentRef.current = activeStudent; }, [activeStudent]);
+
     // Initialize Video Socket on Mount
     const menteeSocketIdRef = useRef(null);
     const [menteeSocketId, setMenteeSocketId] = useState(null);
@@ -103,35 +110,76 @@ const MentorCenter = () => {
                     socketid: socket.id,
                     username: userData.userinfo.username,
                     mentorid: userData.userinfo.username,
-                    position: 3
+                    position: 0 // Changed from 3 to 0 (Mentor)
                 });
             }
         };
 
         const onReRegistrationCheck = (a) => {
             console.log('Reregistration Check:', a);
-            if (a.menteesocketid) {
+            // If position 0, server sends userlist
+            if (a.userlist) {
+                dataRef.current.menteeList = a.userlist;
+                const active = activeStudentRef.current;
+                if (active) {
+                    const studentData = a.userlist.find(s => s.username === active.username);
+                    if (studentData && studentData.menteesocketid) {
+                        menteeSocketIdRef.current = studentData.menteesocketid;
+                        setMenteeSocketId(studentData.menteesocketid);
+                        console.log("Mentee Socket ID Updated from userlist:", studentData.menteesocketid);
+                    }
+                }
+            } else if (a.menteesocketid) {
+                // Fallback just in case
                 menteeSocketIdRef.current = a.menteesocketid;
                 setMenteeSocketId(a.menteesocketid);
                 console.log("Mentee Socket ID Updated:", a.menteesocketid);
             }
+            
             const userData = dataRef.current;
             if (userData && userData.userinfo) {
                 socket.emit('vdrgreregistrationserviceresponse', {
                     socketid: socket.id,
                     username: userData.userinfo.username,
                     mentorid: userData.userinfo.username,
-                    position: 'wrssmentor'
+                    position: 'mentor' // Changed from 'wrssmentor' to 'mentor'
                 });
+            }
+        };
+
+        const onCallUserHwListAfter = (data) => {
+            console.log("Received student homework list:", data?.b);
+            setStudentHwList(data?.b || []);
+        };
+
+        const onGetPrbList = (p) => {
+            console.log('Received problem list:', p);
+            if (p?.prbcon) {
+                const mappedProblems = p.prbcon.map(item => ({
+                    prbid: item[0],
+                    prbkorean: item[1],
+                    prbpickor: item[8],
+                    prbanswer: item[2],
+                    prboption1: item[4],
+                    prboption2: item[5],
+                    prboption3: item[6],
+                    prboption4: item[7]
+                }));
+                setProblemDetails(mappedProblems);
+                setSelectedR1(null); // Clear active library highlight
             }
         };
 
         socket.on('connect', onConnect);
         socket.on('vdrgreregistrationservicecheck', onReRegistrationCheck);
+        socket.on('calluserhwlistafter', onCallUserHwListAfter);
+        socket.on('vdrggetprblist', onGetPrbList);
 
         return () => {
             socket.off('connect', onConnect);
             socket.off('vdrgreregistrationservicecheck', onReRegistrationCheck);
+            socket.off('calluserhwlistafter', onCallUserHwListAfter);
+            socket.off('vdrggetprblist', onGetPrbList);
             socket.disconnect();
         };
     }, []);
@@ -245,7 +293,32 @@ const MentorCenter = () => {
         };
 
         fetchHomework();
-    }, [activeStudent, homeworkDateRange]);
+
+        if (activeStudent && videoSocket) {
+            console.log("Emitting calluserhwlist for student:", activeStudent.username);
+            videoSocket.emit('calluserhwlist', { studentid: activeStudent.username });
+            
+            // Extract menteesocketid immediately when student changes if we have the list
+            if (dataRef.current.menteeList) {
+                const studentData = dataRef.current.menteeList.find(s => s.username === activeStudent.username);
+                if (studentData && studentData.menteesocketid) {
+                    menteeSocketIdRef.current = studentData.menteesocketid;
+                    setMenteeSocketId(studentData.menteesocketid);
+                    console.log("Mentee Socket ID Updated on student switch:", studentData.menteesocketid);
+                } else {
+                    setMenteeSocketId(null);
+                    menteeSocketIdRef.current = null;
+                }
+            } else {
+                setMenteeSocketId(null);
+                menteeSocketIdRef.current = null;
+            }
+        } else {
+            setStudentHwList([]);
+            setMenteeSocketId(null);
+            menteeSocketIdRef.current = null;
+        }
+    }, [activeStudent, homeworkDateRange, videoSocket]);
 
     const toggleSolutions = (prbid) => {
         setExpandedSolutions(prev => ({
@@ -357,6 +430,65 @@ const MentorCenter = () => {
         }
     };
 
+    const handleSelectHw = (hw) => {
+        if (!hw || !videoSocket) return;
+        setSelectedHwId(hw.mmcpconid);
+        setProblemListTitle(`Homework: ${hw.mmcplistinfo}`);
+        console.log("Requesting problems for homework:", hw.mmcplistinfo, hw.mmcpprblist);
+        videoSocket.emit('vdrgcallprblist', { plist: hw.mmcpprblist, cptid: 'hwlist' });
+    };
+
+    const handleFetchHistory = (hours, label) => {
+        if (!activeStudent || !videoSocket) return;
+        console.log("Requesting history for:", activeStudent.username, hours);
+        setSelectedHwId(null);
+        setSelectedR1(null);
+        setProblemListTitle(`History: ${activeStudent.DisplayName} (${label})`);
+        videoSocket.emit('userimmediatehistory', {
+            studentid: activeStudent.username,
+            dtime: hours,
+            mode: 'immediatehistory',
+            returnsocket: 'vdrggetprblist'
+        });
+    };
+
+    const handleSizeUp = () => {
+        setImageSize('100%');
+        if (videoSocket && menteeSocketId) {
+            videoSocket.emit('vdrgpicsizecontrol', { size: 'big', usersocketid: menteeSocketId });
+        }
+    };
+
+    const handleSizeDown = () => {
+        setImageSize('40%');
+        if (videoSocket && menteeSocketId) {
+            videoSocket.emit('vdrgpicsizecontrol', { size: 'down', usersocketid: menteeSocketId });
+        }
+    };
+
+    const handleSizeCycle = () => {
+        let currentPct = parseInt(imageSize) || 100;
+        if (currentPct + 10 > 100) {
+            currentPct = 40;
+        } else {
+            currentPct += 10;
+        }
+        const newSizeStr = `${currentPct}%`;
+        setImageSize(newSizeStr);
+        if (videoSocket && menteeSocketId) {
+            videoSocket.emit('vdrgpicsizecontrol', { size: currentPct, usersocketid: menteeSocketId });
+        }
+    };
+
+    const handleFetchUnlinked = (limit) => {
+        if (!videoSocket) return;
+        console.log("Requesting unlinked/recent problems:", limit);
+        setSelectedHwId(null);
+        setSelectedR1(null);
+        setProblemListTitle(`Unlinked Recent Problems (${limit})`);
+        videoSocket.emit('vdrgcallunlinkedprblist', { limit });
+    };
+
     // UI Helpers
     const toggleNode = (nodeId) => {
         setExpandedNodes(prev => ({
@@ -429,6 +561,7 @@ const MentorCenter = () => {
                         height={1080}
                         fixedWidth={canvasDimensions.width}
                         fixedHeight={canvasDimensions.height}
+                        imageSize={imageSize}
                     />
                 </div>
             </div>
@@ -438,17 +571,43 @@ const MentorCenter = () => {
             {
                 showStudentList && (
                     <div className="absolute top-0 right-0 h-full w-[60%] bg-gray-900 bg-opacity-95 text-white border-l border-gray-700 shadow-2xl z-50 flex flex-col backdrop-blur-sm">
-                        <div className="p-6 border-b border-gray-700 flex justify-between items-center bg-gray-800">
-                            <h2 className="text-2xl font-bold text-purple-400">Session Control</h2>
-                            <span className="text-sm text-gray-400 bg-gray-700 px-2 py-1 rounded">Shift + F to close</span>
+                        <div className="p-3 border-b border-gray-700 flex justify-between items-center bg-gray-800">
+                            <h2 className="text-lg font-bold text-purple-400">Session Control</h2>
+                            <span className="text-xs text-gray-400 bg-gray-700 px-1.5 py-0.5 rounded">Shift + F to close</span>
                         </div>
 
                         <div className="flex-1 overflow-hidden flex">
 
                             {/* LEFT COLUMN: Hierarchical CMS Browser */}
-                            <div className="w-1/2 flex flex-col border-r border-gray-700 bg-gray-800/50">
-                                <div className="p-4 border-b border-gray-700 bg-gray-800 font-bold text-gray-300">CMS Library</div>
-                                <div className="flex-1 overflow-y-auto p-4 space-y-2">
+                            <div className="w-1/3 flex flex-col border-r border-gray-700 bg-gray-800/50">
+                                {activeStudent && (
+                                    <div className="border-b border-gray-700 bg-gray-900/40 p-2 max-h-[40%] flex flex-col min-h-0">
+                                        <div className="font-bold text-gray-300 mb-1 flex justify-between items-center text-sm">
+                                            <span>{activeStudent.DisplayName}'s Homework List</span>
+                                            <span className="text-[10px] text-gray-500 bg-gray-800 px-1.5 py-0.5 rounded">Active</span>
+                                        </div>
+                                        <div className="flex-1 overflow-y-auto space-y-1 pr-1">
+                                            {studentHwList.length > 0 ? (
+                                                studentHwList.map((hw, idx) => (
+                                                    <div
+                                                        key={idx}
+                                                        onClick={() => handleSelectHw(hw)}
+                                                        className={`p-1.5 bg-gray-800 hover:bg-purple-900/30 border border-gray-700 hover:border-purple-500 rounded text-xs cursor-pointer transition-all flex justify-between items-center ${selectedHwId === hw.mmcpconid ? 'border-purple-500 bg-purple-900/20 text-white font-semibold' : 'text-gray-400'}`}
+                                                    >
+                                                        <span className="truncate flex-1 pr-2">{hw.mmcplistinfo}</span>
+                                                        <span className="text-[10px] text-gray-500 shrink-0">
+                                                            {hw.mmcpprblist?.split(',').filter(Boolean).length || 0} Problems
+                                                        </span>
+                                                    </div>
+                                                ))
+                                            ) : (
+                                                <div className="text-xs text-gray-500 italic p-1.5 bg-gray-800/20 rounded">No assignments found</div>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+                                <div className="p-2 border-b border-gray-700 bg-gray-800 font-bold text-xs text-gray-300">CMS Library</div>
+                                <div className="flex-1 overflow-y-auto p-2 space-y-1">
                                     {cmsTree.map((r3) => (
                                         <div key={r3.r3id} className="space-y-1">
                                             {/* R3 Node */}
@@ -529,7 +688,7 @@ const MentorCenter = () => {
                             </div>
 
                             {/* RIGHT COLUMN: Context (Students & Problems) */}
-                            <div className="w-1/2 flex flex-col h-full">
+                            <div className="w-2/3 flex flex-col h-full">
 
                                 {/* TOP: Active Students */}
                                 <div className="h-[20%] flex flex-col border-b border-gray-700">
@@ -587,16 +746,76 @@ const MentorCenter = () => {
                                             <div className="text-gray-500 text-xs p-2 text-center">No active students found.</div>
                                         )}
                                     </div>
+                                    {activeStudent && (
+                                         <div className="p-1 bg-gray-800/80 border-t border-gray-700 flex flex-wrap items-center justify-between text-[10px] gap-1 select-none">
+                                             {/* Left group: History */}
+                                             <div className="flex items-center space-x-0.5">
+                                                 <span className="text-gray-400 font-bold mr-1">Hw:</span>
+                                                 <button
+                                                     onClick={() => handleFetchHistory(10, 'now')}
+                                                     className="bg-purple-600 hover:bg-purple-500 text-white px-1 py-0.5 rounded font-bold"
+                                                 >
+                                                     now
+                                                 </button>
+                                                 <button
+                                                     onClick={() => handleFetchHistory(168, '1w')}
+                                                     className="bg-purple-600 hover:bg-purple-500 text-white px-1 py-0.5 rounded font-bold"
+                                                 >
+                                                     1w
+                                                 </button>
+                                                 <button
+                                                     onClick={() => handleFetchHistory(336, '2w')}
+                                                     className="bg-purple-600 hover:bg-purple-500 text-white px-1 py-0.5 rounded font-bold"
+                                                 >
+                                                     2w
+                                                 </button>
+                                                 <button
+                                                     onClick={() => handleFetchHistory(1680, '10w')}
+                                                     className="bg-purple-600 hover:bg-purple-500 text-white px-1 py-0.5 rounded font-bold"
+                                                 >
+                                                     10w
+                                                 </button>
+                                             </div>
+                                             {/* Right group: Size */}
+                                             <div className="flex items-center space-x-0.5">
+                                                 <span className="text-gray-400 font-bold mr-1">Size ({imageSize}):</span>
+                                                 <button
+                                                     onClick={handleSizeUp}
+                                                     className="bg-blue-600 hover:bg-blue-500 text-white px-1 py-0.5 rounded font-bold"
+                                                 >
+                                                     Up
+                                                 </button>
+                                                 <button
+                                                     onClick={handleSizeDown}
+                                                     className="bg-blue-600 hover:bg-blue-500 text-white px-1 py-0.5 rounded font-bold"
+                                                 >
+                                                     Dn
+                                                 </button>
+                                                 <button
+                                                     onClick={handleSizeCycle}
+                                                     className="bg-blue-600 hover:bg-blue-500 text-white px-1 py-0.5 rounded font-bold"
+                                                 >
+                                                     Ctrl
+                                                 </button>
+                                             </div>
+                                         </div>
+                                     )}
                                 </div>
 
                                 {/* BOTTOM: Problem List */}
                                 <div className="flex-1 flex flex-col bg-gray-900/50 min-h-0">
-                                    <h3 className="p-4 font-semibold text-gray-300 bg-gray-800 border-b border-gray-700 flex justify-between items-center">
-                                        <span>Problem List</span>
+                                    <h3 className="p-2 font-semibold text-xs text-gray-300 bg-gray-800 border-b border-gray-700 flex justify-between items-center select-none">
+                                        <span>{problemListTitle}</span>
                                         {selectedR1 && <span className="text-xs text-blue-400 max-w-[200px] truncate">{selectedR1.listinfo?.replaceAll('`', '')}</span>}
                                     </h3>
-                                    <div className="flex-1 overflow-y-auto p-4 min-h-0">
-                                        {selectedR1 ? (
+                                    <div className="p-1 bg-gray-800 border-b border-gray-700 flex items-center space-x-1.5 text-[10px] select-none shrink-0">
+                                        <span className="text-gray-400 font-bold">미소속 최근 문제:</span>
+                                        <button onClick={() => handleFetchUnlinked(30)} className="bg-gray-700 hover:bg-gray-600 text-white px-1.5 py-0.5 rounded font-bold">30개</button>
+                                        <button onClick={() => handleFetchUnlinked(50)} className="bg-gray-700 hover:bg-gray-600 text-white px-1.5 py-0.5 rounded font-bold">50개</button>
+                                        <button onClick={() => handleFetchUnlinked(100)} className="bg-gray-700 hover:bg-gray-600 text-white px-1.5 py-0.5 rounded font-bold">100개</button>
+                                    </div>
+                                    <div className="flex-1 overflow-y-auto p-2 min-h-0">
+                                        {selectedR1 || selectedHwId || problemDetails.length > 0 ? (
                                             <div className="space-y-4">
                                                 {problemDetails.length > 0 ? (
                                                     problemDetails.map((prob, idx) => {
